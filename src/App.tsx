@@ -1,7 +1,7 @@
-import './App.css'
+import { BoardListPage } from './pages/BoardListPage';
 
 function App() {
-  return null
+  return <BoardListPage />;
 }
 
-export default App
+export default App;
