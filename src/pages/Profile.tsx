@@ -106,7 +106,7 @@ const Profile = () => {
         <div className="flex flex-col items-center w-full"> {/* 전체 중앙 정렬을 위한 부모 */}
             
             {/** 유저 정보 영역 */}
-            <div className="w-full max-w-[1337px] px-6"> 
+            <div className="w-full max-w-[1337px] px-4"> 
                 <div className="relative flex justify-center mt-[101px] h-[42px] items-center">
                     {!isEditing && (
                         <div className="text-[32px] font-pretendard font-semibold leading-[130%] tracking-[-0.01em] text-[#444446]">
@@ -124,7 +124,8 @@ const Profile = () => {
                         </button>
                     )}
                 </div>
-                <div className="flex justify-center w-full mt-[40px]">
+
+                <div className="mt-[40px]">
                     <UserInfo isEditing={isEditing} setIsEditing={setIsEditing} />
                 </div>
             </div>

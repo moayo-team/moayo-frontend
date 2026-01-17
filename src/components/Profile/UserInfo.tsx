@@ -56,21 +56,35 @@ const UserInfo = ({ isEditing, setIsEditing }: UserInfoProps) => {
     };
 
     return (
-        <div className="relative w-full">
-            <div className="flex gap-[100px]">
+        <div className="w-full">
+            <div className="flex w-full gap-[60px]">
                 {/*아미지 & 수정버튼*/}
-                <div className="flex flex-col w-[227px] self-stretch gap-[10px]">
+                <div className="flex flex-col w-[227px] items-start gap-[25px]">
                     {/**이미지 */}
-                    <div className="h-[258px] bg-[#f2f2f2] flex items-center justify-center gap-[10px] self-stretch 
-                        rounded-[10px] px-[20px] py-[27px] cursor-pointer"
-                        onClick={handleImageClick}>
+                    <div 
+                        onClick={isEditing ? handleImageClick : undefined}
+                        className={`relative h-[258px] bg-[#FAFAFA] flex items-center justify-center
+                        gap-[10px] self-stretch rounded-[10px] px-[20px] py-[27px]
+                        ${isEditing ? "cursor-pointer" : "cursor-default"}`}    
+                    >
 
-                    <div className="h-[188.936px] aspect-square overflow-hidden rounded-full">
-                        <img 
-                            src={avatarUrl}
-                            alt="프로필 이미지" 
-                            className="w-full h-full object-cover" 
-                        />
+                    <div className="relative h-[188.936px] aspect-square">
+                        <div className=" overflow-hidden rounded-full">
+                            <img 
+                                src={avatarUrl}
+                                alt="프로필 이미지" 
+                                className="w-full h-full object-cover" 
+                            />
+                        </div>
+                            
+                        {isEditing && (
+                            <div className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4">
+                                <div className="w-[40px] h-[40px] rounded-[20px] bg-[#F2F2F2] border border-[#C3C2C5]
+                                    flex items-center justify-center shadow-sm">
+                                <Pencil size={20} className="text-[#C3C2C5]" />
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <input 
                         type="file" 
@@ -101,10 +115,10 @@ const UserInfo = ({ isEditing, setIsEditing }: UserInfoProps) => {
                         { label: "학과", key: "major" },
                         { label: "이메일", key: "email" }
                     ].map((item) => (
-                        <div key={item.key} className="flex gap-[12px] items-center self-stretch">
-                            <div className="flex items-center justify-center w-[124px] h-[74px] 
+                        <div key={item.key} className="flex gap-[12px] items-center shrink-0">
+                            <div className="flex items-center justify-center w-[95px] h-[74px] px-[40px] py-[10px]
                                 bg-[#E9FCF7] rounded-l-[10px] 
-                                font-pretendard text-[#969599] text-[24px] font-semibold 
+                                font-pretendard text-[#58575B] text-[24px] font-medium leading-[130%]
                                 whitespace-nowrap">
                                 {item.label}
                             </div>
@@ -115,22 +129,21 @@ const UserInfo = ({ isEditing, setIsEditing }: UserInfoProps) => {
                                         type="text"
                                         value={userData[item.key as keyof typeof userData]}
                                         onChange={(e) => handleInputChange(item.key, e.target.value)}
-                                        className="flex items-center w-[325px] h-[74px] px-[40px] py-[33px] 
-                                        rounded-r-[10px] border border-[#D6D6D8]
-                                        font-pretendard text-[#444446] text-[24px] font-semibold
+                                        className="flex items-center w-[325px] h-[74px] px-[30px] py-[10px]
+                                        rounded-r-[10px] border border-[#D6D6D8] 
+                                        font-pretendard text-[#444446] text-[24px] font-medium leading-[130%]
                                         outline-none
                                         " 
                                     />
-                                    <div className="absolute right-[20px] top-1/2 -translate-y-1/2 text-[#969599] opacity-0 
-                                        group-hover:opacity-100 transition-opacity pointer-events-none">
-                                        <Pencil size="24" />
+                                    <div className="absolute right-[20px] top-1/2 -translate-y-1/2 text-[#C3C2C5]">
+                                        <Pencil size="20" />
                                     </div>
                                 </div>
                             ) : (
                                 //일반 모드
-                                <div className="flex items-center w-[325px] h-[74px] px-[40px] py-[33px]
+                                <div className="flex items-center w-[325px] h-[74px] px-[30px] py-[10px]
                                     rounded-r-[10px] border border-[#D6D6D8] 
-                                    font-pretendard text-[#444446] text-[24px] font-semibold">
+                                    font-pretendard text-[#444446] text-[24px] font-medium leading-[130%]">
                                     {userData[item.key as keyof typeof userData]}
                                 </div>
                             )}
@@ -142,32 +155,37 @@ const UserInfo = ({ isEditing, setIsEditing }: UserInfoProps) => {
                 {/**소개와 태그 */}
                 <div className="flex flex-col w-[572px] gap-3">
                     {/**소개 */}
-                    <div className="inline-flex flex-col gap-[10px] h-[160px] border border-[#d6d6d8] rounded-[10px] p-[20px]">
-                        <span className="font-pretendard text-[24px] font-semibold text-[#58575b] leading-[130%]">
-                            한 줄 소개
-                        </span>
+                    <div className="inline-flex flex-col gap-[10px] h-[160px] border border-[#D6D6D8] rounded-[10px] p-[20px]">
+                        <div className="flex items-center justify-between">
+                            <span className="font-pretendard text-[24px] font-semibold text-[#58575b] leading-[130%]">
+                                한 줄 소개
+                            </span>
+                            {isEditing && (
+                                <Pencil size={20} className="text-[#969599]" />
+                                )}
+                        </div>
                         {isEditing ? (
+                            <>
                             <textarea 
                                 className="outline-none font-pretendard text-[18px] resize-none leading-[150%]"
                                 value={userData.bio}
                                 onChange={(e) => handleInputChange("bio", e.target.value)}
                             />
+                            </>
                         ) : (
-                            <div className="text-[18px] text-[#444446] leading-[150%]">{userData.bio}</div>
+                            <div className="text-[18px] text-[#444446] font-normal leading-[150%]">{userData.bio}</div>
                         )}
                     </div>
                     {/**관심사 태그 */}
                     <div className="flex flex-col w-[496px] items-start gap-[20px]">
-                        <span className="self-stretch font-pretendard font-semibold font-normal  text-[24px] leading-[130%] text-[#58575b]">
+                        <span className="self-stretch font-pretendard font-semibold text-[24px] leading-[130%] text-[#58575b]">
                             관심사 태그
                         </span>
-                        <div className="flex flex-col items-start gap-[15px] self-stretch">
                             <InterestTags 
                                 interests={interestList} 
                                 isEditing={isEditing} 
                                 onTagClick={handleTagToggle} 
                             />
-                        </div>
                     </div>
                 </div>
             </div>
