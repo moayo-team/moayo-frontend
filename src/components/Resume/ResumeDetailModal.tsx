@@ -1,10 +1,13 @@
-import { FileText, ToggleRightIcon, X } from "lucide-react";
+import { FileText, ToggleLeft, ToggleRight, X } from "lucide-react";
+import { useState } from "react";
 
 interface ResumeDetailModalProps {
   onClose: () => void;
   data: any; // 카드로부터 전달받은 상세 데이터
 }
 const ResumeDetailModal = ({ data, onClose }: ResumeDetailModalProps) => {
+    const [isPublic, setIsPublic] = useState(data?.isPublic ?? true);
+    
     // 라벨과 데이터 필드 매칭
     const infoFields = [
         { label: "활동명", value: data?.title },
@@ -33,7 +36,7 @@ const ResumeDetailModal = ({ data, onClose }: ResumeDetailModalProps) => {
           onClick={(e) => e.stopPropagation()}
         >
 
-            {/* Body - 스크롤 가능 영역*/}
+            {/*스크롤 가능 영역*/}
             <div className="flex-1 overflow-y-auto
                 [&::-webkit-scrollbar]:w-2
                 [&::-webkit-scrollbar-track]:bg-transparent
@@ -47,7 +50,16 @@ const ResumeDetailModal = ({ data, onClose }: ResumeDetailModalProps) => {
                     <span className="font-pretendard text-[32px] font-semibold leading-[130%] tracking-[-0.32px]">이력관리</span>
                     <div className="flex items-center gap-[9px]">
                         <span className="font-pretendard text-[18px] font-normal leading-[150%]">이력 공개 여부</span>
-                        <ToggleRightIcon size="40"/>
+                        <div 
+                            className="flex items-center gap-[9px] cursor-pointer group"
+                            onClick={() => setIsPublic(!isPublic)} // 클릭 시 상태 반전
+                        >
+                            {isPublic ? (
+                              <ToggleRight size="40" className="text-[#969599] fill-[#969599]/10" />
+                            ) : (
+                                <ToggleLeft size="40" className="text-[#969599]" />
+                            )}
+                        </div>
                     </div>
                 </div>
 

@@ -2,22 +2,26 @@ import { useState } from "react";
 import ResumeCard from "./ResumeCard";
 import ResumeDetailModal from "./ResumeDetailModal";
 
+
 interface ResumeSectionProps {
   resumes: any[]; 
+  sortOrder: 'latest' | 'oldest';
 }
 
-const ResumeSection = ({ resumes }: ResumeSectionProps) => {
+const ResumeSection = ({ resumes, sortOrder }: ResumeSectionProps) => {
   const [selectedResume, setSelectedResume] = useState<any | null>(null);
-  
+
   // 최신순 정렬 (기본)
-  const latestResumes = [...resumes].sort((a, b) => 
-    new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-  );
+  const sortedResumes = [...resumes].sort((a, b) => {
+    const dateA = new Date(a.startDate).getTime();
+    const dateB = new Date(b.startDate).getTime();
+    
+    return sortOrder === 'latest' ? dateB - dateA : dateA - dateB;
+  });
 
   return (
-    <div className="flex w-[1337px] flex-col items-start gap-[33px]">
-      <div className="flex items-center gap-[16px] self-stretch flex-wrap">
-        {latestResumes.map((resume, idx) => (
+    <div className="grid grid-cols-2 gap-x-[16px] gap-y-[33px] w-[963px]">
+        {sortedResumes.map((resume, idx) => (
           <div 
           key={idx} 
           onDoubleClick={() => setSelectedResume(resume)} 
@@ -25,7 +29,7 @@ const ResumeSection = ({ resumes }: ResumeSectionProps) => {
             <ResumeCard{...resume} />
           </div>
         ))}
-      </div>
+      
 
       {/* 상세 모달*/}
       {selectedResume && (
