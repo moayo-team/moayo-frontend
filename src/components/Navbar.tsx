@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Navbar() {
   return (
     <nav className="h-20 border-b">
@@ -11,16 +13,16 @@ function Navbar() {
         {/* Center: 메뉴 */}
         <ul className="flex items-center gap-10 h-6 justify-self-center">
           <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
-            홈
+            <Link to="/">홈</Link>
           </li>
           <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
-            프로필
+            <Link to="/profile">프로필</Link>
           </li>
           <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
             게시판
           </li>
           <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
-            쪽지함
+            <Link to="/message">쪽지함</Link>
           </li>
           <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
             설정
@@ -33,4 +35,6 @@ function Navbar() {
   );
 }
 
+
 export default Navbar;
+
