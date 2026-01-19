@@ -8,6 +8,7 @@ import ProfilePage from './pages/ProfilePage';
 import ProfileHistoryPage from './pages/ProfileHistoryPage';
 import ProfileEditPage from './pages/ProfileEditPage';
 import ProfilePostsPage from './pages/ProfilePostsPage';
+import MessagePage from "./pages/messagePage";
 
 
 const router = createBrowserRouter([
@@ -17,6 +18,7 @@ const router = createBrowserRouter([
       children: [
         { index: true, element: <HomePage /> },
         { path: "profile/add-resume", element: <ResumeAddPage /> },
+        { path: "message", element: <MessagePage />}
         ],
       },
       {
@@ -43,4 +45,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

@@ -22,7 +22,7 @@ function Navbar() {
             게시판
           </li>
           <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
-            쪽지함
+            <Link to="/message">쪽지함</Link>
           </li>
           <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
             설정
@@ -35,4 +35,6 @@ function Navbar() {
   );
 }
 
+
 export default Navbar;
+
