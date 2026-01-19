@@ -1,7 +1,9 @@
 import './App.css'
+import "./index.css";
+import MessagePage from "./pages/messagePage";
 
 function App() {
-  return null
+  return <MessagePage />;
 }
 
-export default App
+export default App;
