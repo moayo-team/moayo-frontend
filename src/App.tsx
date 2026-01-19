@@ -1,9 +1,17 @@
-import './App.css'
-import "./index.css";
-import MessagePage from "./pages/messagePage";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AppLayout from "./layouts/appLayout";
 
-function App() {
-  return <MessagePage />;
+import MessagePage from "./pages/MessagePage";
+
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/messages" element={<MessagePage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
-
-export default App;
