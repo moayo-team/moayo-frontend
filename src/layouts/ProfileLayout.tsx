@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import ProfileSidebar from "../components/profile/ProfileSidebar";
-import { Navbar } from "../components/Navbar";
+import Navbar from "../components/Navbar";
 
 const ProfileLayout = () => {
   return (

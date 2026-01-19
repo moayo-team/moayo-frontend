@@ -67,7 +67,7 @@ const ProfileHeader = ({ isEditing, jobTitle="", profileImage="",tags = [], onDa
                 />
             </div>
 
-            <div className="flex w-[539px] flex-col gap-[60px]">
+            <div className="flex w-[687px] flex-col gap-[60px]">
                 <div className="flex flex-col w-[305px] items-start gap-[14px]">
                     <span className="slef-stretch font-pretendard text-[48px] font-bold leading-[120%] tracking-[-0.01em]">
                         {DUMMY_PROFILE.name}
@@ -105,6 +105,21 @@ const ProfileHeader = ({ isEditing, jobTitle="", profileImage="",tags = [], onDa
                             </>
                         )}
                     </div>
+                    <div className="flex flex-start gap-[11px] self-stretch">
+                        <span className="flex font-pretendard text-[24px] font-medium leading-[130%] text-[#7C7B80]">
+                            팔로잉 
+                            <p className="font-pretendard text-[24px] font-bold leading-[130%] text-[#7C7B80]">
+                                30
+                            </p>
+                        </span>
+                        <span className="flex font-pretendard text-[24px] font-medium leading-[130%] text-[#7C7B80]">
+                            팔로워 
+                            <p className="font-pretendard text-[24px] font-bold leading-[130%] text-[#7C7B80]">
+                                100
+                            </p>
+    
+                        </span>
+                    </div>
                 </div>
 
 
@@ -112,7 +127,7 @@ const ProfileHeader = ({ isEditing, jobTitle="", profileImage="",tags = [], onDa
                 {!isEditing && !isResumeManagePage &&(
                     <button
                         onClick={handleEditClick}
-                        className="h-[74px] py-[10px] px-[15px] items-center justify-center gap-[10px] self-stretch 
+                        className="w-full h-[74px] py-[10px] px-[15px] items-center justify-center gap-[10px] self-stretch 
                         bg-[#f2f2f2] rounded-[10px] cursor-pointer
                         font-pretendard text-[20px] font-medium leading-[140%]">
                         프로필 수정하기

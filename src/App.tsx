@@ -7,6 +7,7 @@ import ProfileLayout from './layouts/ProfileLayout';
 import ProfilePage from './pages/ProfilePage';
 import ProfileHistoryPage from './pages/ProfileHistoryPage';
 import ProfileEditPage from './pages/ProfileEditPage';
+import ProfilePostsPage from './pages/ProfilePostsPage';
 
 
 const router = createBrowserRouter([
@@ -15,7 +16,7 @@ const router = createBrowserRouter([
       element: <HomeLayout />, 
       children: [
         { index: true, element: <HomePage /> },
-        { path: "profile/add-resume", element: <ResumeAddPage /> }, 
+        { path: "profile/add-resume", element: <ResumeAddPage /> },
         ],
       },
       {
@@ -24,7 +25,7 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <ProfilePage /> },
           { path: "history", element: <ProfileHistoryPage /> },
-          { path: "posts", element: <ProfilePage /> },
+          { path: "posts", element: <ProfilePostsPage /> },
           { path: "edit", element: <ProfileEditPage /> },
           { path: "add-resume", element: <ResumeAddPage />},
         ],
