@@ -1,5 +1,7 @@
-import { FileText, ToggleLeft, ToggleRight, X } from "lucide-react";
 import { useState } from "react";
+import delIcon from "../../assets/X.svg"
+import addFileIcon from "../../assets/File text.svg"
+
 
 interface ResumeDetailModalProps {
   onClose: () => void;
@@ -20,6 +22,39 @@ const ResumeDetailModal = ({ data, onClose }: ResumeDetailModalProps) => {
         { label: "링크", value: data?.link },
     ];
 
+    const CustomToggle = ({ checked }: { checked: boolean }) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="40"
+      height="40"
+      viewBox="0 0 40 40"
+      fill="none"
+      className="transition-all duration-300"
+    >
+      {/* 토글 배경 배경 */}
+      <path
+        d="M26.6667 8.33334H13.3334C6.89009 8.33334 1.66675 13.5567 1.66675 20C1.66675 26.4433 6.89009 31.6667 13.3334 31.6667H26.6667C33.1101 31.6667 38.3334 26.4433 38.3334 20C38.3334 13.5567 33.1101 8.33334 26.6667 8.33334Z"
+        stroke={checked ? "#7C7B80" : "#7C7B80"}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* 토글 원 (상태에 따라 위치 변동) */}
+      <path
+        d={
+          checked
+            ? "M26.6667 25C29.4282 25 31.6667 22.7614 31.6667 20C31.6667 17.2386 29.4282 15 26.6667 15C23.9053 15 21.6667 17.2386 21.6667 20C21.6667 22.7614 23.9053 25 26.6667 25Z" // 우측 (True)
+            : "M13.3334 25C16.0948 25 18.3334 22.7614 18.3334 20C18.3334 17.2386 16.0948 15 13.3334 15C10.5719 15 8.33337 17.2386 8.33337 20C8.33337 22.7614 10.5719 25 13.3334 25Z" // 좌측 (False)
+        }
+        fill={checked ? "#7C7B80" : "none"} // 활성화 시 원 내부 채움
+        stroke={checked ? "#7C7B80" : "#7C7B80"}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="transition-all duration-300"
+      />
+    </svg>
+  );
     return(
         <>
         <div 
@@ -54,11 +89,7 @@ const ResumeDetailModal = ({ data, onClose }: ResumeDetailModalProps) => {
                             className="flex items-center gap-[9px] cursor-pointer group"
                             onClick={() => setIsPublic(!isPublic)} // 클릭 시 상태 반전
                         >
-                            {isPublic ? (
-                              <ToggleRight size="40" className="text-[#969599] fill-[#969599]/10" />
-                            ) : (
-                                <ToggleLeft size="40" className="text-[#969599]" />
-                            )}
+                            <CustomToggle checked={isPublic} />
                         </div>
                     </div>
                 </div>
@@ -123,7 +154,11 @@ const ResumeDetailModal = ({ data, onClose }: ResumeDetailModalProps) => {
                                                 <span className="font-pretendard text-[20px] font-medium leading-[140%] text-[#343436]">
                                                     {file.name}
                                                 </span>
-                                                <X size="24" className="text-[#7C7B80] cursor-pointer" />
+                                                <img
+                                                    src={delIcon}
+                                                    className="w-[24px] h-[24px] text-[#7C7B80] cursor-pointer"
+                                                    alt="삭제"
+                                                />
                                                 </div>
                                             </div>
                                             ))
@@ -135,8 +170,12 @@ const ResumeDetailModal = ({ data, onClose }: ResumeDetailModalProps) => {
                                                 <span className="font-pretendard text-[20px] font-medium leading-[140%] text-[#343436]">
                                                 {data.fileName}
                                                 </span>
-                                                <X size="24" className="text-[#7C7B80] cursor-pointer" />
-                                            </div>
+                                                <img
+                                                    src={delIcon}
+                                                    className="w-[24px] h-[24px] text-[#7C7B80] cursor-pointer"
+                                                    alt="삭제"
+                                                />                                            
+                                                </div>
                                             </div>
                                         )}
                                     </>
@@ -146,7 +185,11 @@ const ResumeDetailModal = ({ data, onClose }: ResumeDetailModalProps) => {
                                                     justify-center items-center gap-[10px] rounded-[30px] bg-white
                                                     rounded-[20px] bg-[#E9FCF7]">
                                         <div className="flex justify-center items-center gap-[10px]">
-                                            <FileText size="40" className="text-[#969599]"/>
+                                            <img
+                                                src={addFileIcon}
+                                                alt="추가"
+                                                className="w-[40px] h-[40px] text-[#969599]"
+                                            />
                                             <div className="flex flex-col px-[10px] py-[5px] justify-center items-center gap-[4px]">
                                                 <span className="self-stretch text-center
                                                     font-pretendard text-[20px] font-medium leading-[140%] text-[#969599]">
@@ -188,7 +231,11 @@ const ResumeDetailModal = ({ data, onClose }: ResumeDetailModalProps) => {
                                                         >
                                                         {linkUrl}
                                                     </a>
-                                                    <X size="24" className="text-[#7C7B80] cursor-pointer" />
+                                                    <img
+                                                    src={delIcon}
+                                                    className="w-[24px] h-[24px] text-[#7C7B80] cursor-pointer"
+                                                    alt="삭제"
+                                                    />                                                
                                                 </div>
                                             </div>
                                             ))
@@ -205,7 +252,11 @@ const ResumeDetailModal = ({ data, onClose }: ResumeDetailModalProps) => {
                                                         truncate max-w-[440px] cursor-pointer transition-colors">
                                                     {data.link}
                                                     </a>
-                                                    <X size="24" className="text-[#7C7B80] cursor-pointer" />                                          
+                                                    <img
+                                                    src={delIcon}
+                                                    className="w-[24px] h-[24px] text-[#7C7B80] cursor-pointer"
+                                                    alt="삭제"
+                                                    />                                                
                                                 </div>
                                             </div>
                                         )}
@@ -216,7 +267,11 @@ const ResumeDetailModal = ({ data, onClose }: ResumeDetailModalProps) => {
                                                     justify-center items-center gap-[10px] rounded-[30px] bg-white
                                                     rounded-[20px] bg-[#E9FCF7]">
                                         <div className="flex justify-center items-center gap-[10px]">
-                                            <FileText size="40" className="text-[#969599]"/>
+                                            <img
+                                                src={addFileIcon}
+                                                alt="추가"
+                                                className="w-[40px] h-[40px] text-[#969599]"
+                                            />                                            
                                             <div className="flex flex-col px-[10px] py-[5px] justify-center items-center gap-[4px]">
                                                 <span className="self-stretch text-center
                                                     font-pretendard text-[20px] font-medium leading-[140%] text-[#969599]">
