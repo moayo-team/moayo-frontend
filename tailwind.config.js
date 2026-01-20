@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+module.exports = {
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       fontFamily: {
@@ -11,7 +8,7 @@ export default {
       },
       colors: {
         primary: {
-          50:  "#e9fcf7",
+          50: "#e9fcf7",
           100: "#bcf6e5",
           200: "#9bf1d9",
           300: "#6eebc7",
@@ -23,7 +20,7 @@ export default {
           900: "#105f48",
         },
         gray: {
-          50:  "#f2f2f2",
+          50: "#f2f2f2",
           100: "#d6d6d8",
           200: "#c3c2c5",
           300: "#a7a7aa",
