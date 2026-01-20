@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 function Navbar() {
   return (
-    <nav className="h-20 border-b">
+    <nav className="h-20 border-b w-full bg-white sticky top-0 z-50 min-w-[1200px]">
       <div className="max-w-[1440px] mx-auto h-full px-[50px] grid grid-cols-3 items-center">
         
         {/* Left: 로고 */}

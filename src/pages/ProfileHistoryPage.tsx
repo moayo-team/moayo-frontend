@@ -3,8 +3,8 @@ import latestIcon from "../assets/basil_exchange-outline.svg"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { DUMMY_PROFILE } from "../data/profileData";
-import ProfileHeader from "../components/profile/ProfileHeader";
-import ResumeSection from "../components/resume/ResumeSection";
+import ProfileHeader from "../components/Profile/ProfileHeader";
+import ResumeSection from "../components/Resume/ResumeSection";
 
 interface LocationState {
     newResume?: {
