@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ProfileHeader from "../components/profile/ProfileHeader";
+import ProfileHeader from "../components/Profile/ProfileHeader";
 import { DUMMY_PROFILE } from "../data/profileData";
 import { DUMMY_POST } from "../data/postData";
 import latestIcon from "../assets/basil_exchange-outline.svg";

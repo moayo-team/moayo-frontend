@@ -8,7 +8,7 @@ import ProfilePage from './pages/ProfilePage';
 import ProfileHistoryPage from './pages/ProfileHistoryPage';
 import ProfileEditPage from './pages/ProfileEditPage';
 import ProfilePostsPage from './pages/ProfilePostsPage';
-import MessagePage from "./pages/messagePage";
+import MessagePage from './pages/MessagePage';
 
 
 const router = createBrowserRouter([

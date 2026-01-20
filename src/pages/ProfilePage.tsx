@@ -1,8 +1,8 @@
 import { useLocation} from "react-router-dom";
 import { useEffect, useState } from "react";
+import { DUMMY_PROFILE } from "../data/profileData";
 import ProfileHeader from "../components/Profile/ProfileHeader";
 import InfoSection from "../components/Profile/InfoSection";
-import { DUMMY_PROFILE } from "../data/profileData";
 
 const ProfilePage = () => {
   const location = useLocation();

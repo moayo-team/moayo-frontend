@@ -42,15 +42,14 @@ const ProfileHeader = ({ isEditing, jobTitle="", profileImage="",tags = [], onDa
     };
 
     return (
-        <header className="inline-flex flex-start gap-[40px]">
+        <header className="flex flex-row items-start gap-[40px] w-full min-w-[800px]">
             {/**이미지 */}
             <div
                 onClick={isEditing ? handleImageClick : undefined}
-                className={`h-[258px] bg-[#FAFAFA] flex items-center justify-center gap-[10px] self-stretch 
-                    rounded-[10px] px-[20px] py-[27px]  
+                className={`shrink-0 w-[258px] h-[258px] bg-[#FAFAFA] flex items-center justify-center rounded-[10px]  
                     ${isEditing ? "cursor-pointer" : "cursor-default"}`}    
             >
-                <div className="h-[188.936px] aspect-square overflow-hidden rounded-full">
+                <div className="w-[188px] aspect-square overflow-hidden rounded-full">
                     <img
                         src={profileImage || DUMMY_PROFILE.profileImage}
                         alt="프로필 이미지"
@@ -67,13 +66,13 @@ const ProfileHeader = ({ isEditing, jobTitle="", profileImage="",tags = [], onDa
                 />
             </div>
 
-            <div className="flex w-[687px] flex-col gap-[60px]">
-                <div className="flex flex-col w-[305px] items-start gap-[14px]">
-                    <span className="slef-stretch font-pretendard text-[48px] font-bold leading-[120%] tracking-[-0.01em]">
+            <div className="flex flex-col flex-1 gap-[60px] min-w-[450px]">
+                <div className="flex flex-col items-start gap-[14px]">
+                    <span className="text-[48px] font-bold leading-[120%] text-[#343436] whitespace-nowrap">
                         {DUMMY_PROFILE.name}
                     </span>
 
-                    <div className="flex w-fit items-center gap-[11px] self-stretch">
+                    <div className="flex items-center gap-[11px] text-[#7C7B80] w-full">
                         {isEditing ? (
                             // 수정 모드일 때
                             <>
@@ -99,7 +98,7 @@ const ProfileHeader = ({ isEditing, jobTitle="", profileImage="",tags = [], onDa
                                     <img
                                         src={shareIcon}
                                         alt="공유"
-                                        className="w-[16px] h-[20px] "
+                                        className="w-5 h-5 cursor-pointer shrink-0"
                                     />
                                 </button>
                             </>

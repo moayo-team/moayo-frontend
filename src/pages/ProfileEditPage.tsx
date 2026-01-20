@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DUMMY_PROFILE } from "../data/profileData";
-import ProfileHeader from "../components/profile/ProfileHeader";
-import InfoSection from "../components/profile/InfoSection";
+import ProfileHeader from "../components/Profile/ProfileHeader";
+import InfoSection from "../components/Profile/InfoSection";
 
 const ProfileEditPage = () => {
     const navigate = useNavigate();
