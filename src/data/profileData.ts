@@ -37,8 +37,8 @@ export const DUMMY_PROFILE = {
       startDate: "2025-01-13",
       organizer: "한국 너디너리 해커톤..",
       participation: "전반적인 기획과 ui디자인 참여",
-      fileName: "UMC_기획서_최종.pdf",
-      link: "https://www.figma.com/file/...",
+      fileName: ["UMC_기획서_최종.pdf"],
+      link: ["https://www.figma.com/file/..."],
       intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
 
     },
@@ -50,8 +50,8 @@ export const DUMMY_PROFILE = {
       startDate: "2020-01-13",
       organizer: "한국 너디너리 해커톤..",
       participation: "전반적인 기획과 ui디자인 참여",
-      fileName: "UMC_기획서_최종.pdf",
-      link: "https://www.figma.com/file/...",
+      fileName: ["UMC_기획서_최종.pdf"],
+      link: ["https://www.figma.com/file/..."],
       intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
     },
     {
@@ -62,7 +62,7 @@ export const DUMMY_PROFILE = {
       startDate: "2020-05-13",
       organizer: "한국 너디너리 해커톤..",
       participation: "전반적인 기획과 ui디자인 참여",
-      fileName: "UMC_기획서_최종.pdf",
+      fileName: ["UMC_기획서_최종.pdf"],
       intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
     },
     {

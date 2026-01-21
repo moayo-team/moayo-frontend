@@ -2,11 +2,13 @@ import { useLocation} from "react-router-dom";
 import { useEffect, useState } from "react";
 import { DUMMY_PROFILE } from "../data/profileData";
 import ProfileHeader from "../components/Profile/ProfileHeader";
-import InfoSection from "../components/Profile/InfoSection";
+import ResumeSection from "../components/Resume/ResumeSection";
 
 const ProfilePage = () => {
   const location = useLocation();
   const [profileData, setProfileData] = useState(DUMMY_PROFILE);
+  const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
+  const [allResumes, setAllResumes] = useState(DUMMY_PROFILE.careers);
 
   useEffect(() => {
     if (location.state?.updatedProfile) {
@@ -23,10 +25,10 @@ const ProfilePage = () => {
         profileImage={profileData.profileImage}
         tags={profileData.tags || []}
         onDataChange={() => {}}/>
-      <InfoSection 
-          isEditing={false} 
-          data={profileData}
-           onDataChange={() => {}} />
+
+      <ResumeSection 
+        carrers={allResumes} 
+        sortOrder={sortOrder}/>
 
     </div>
   );

@@ -90,7 +90,7 @@ const ProfileHistoryPage = () => {
                 </div>
                 
             </div>
-            <ResumeSection resumes={allResumes} sortOrder={sortOrder}/>
+            <ResumeSection carrers={allResumes} sortOrder={sortOrder}/>
         </div>
     </div>
     )

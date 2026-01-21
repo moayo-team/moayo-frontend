@@ -3,14 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { CircleCheck, FileText, Mic, X } from "lucide-react";
 import { getDisplayName } from "../utils/name";
 import { DUMMY_PROFILE } from "../data/profileData";
+import { useUploadManager } from "../hooks/useUploadManager";
+import { formatPeriod, validatePeriod } from "../utils/format";
 
-const ResumeAddPage = () => {
+const CareerAddPage = () => {
     const navigate = useNavigate();
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const [links, setLinks] = useState<string[]>([]); // 링크 리스트 상태
-    const [linkInput, setLinkInput] = useState(""); // 현재 링크 인풋창 값
 
+   // 커스텀 훅 도입 (파일 3개, 링크 4개 등 제한사항 주입)
+    const { selectedFiles, handleFileUpload, removeFile,
+        links, linkInput, setLinkInput, addLink, removeLink, fileInputRef
+    } = useUploadManager({
+        maxFiles: 3,
+    });
     const [isAIInputOpen, setIsAIInputOpen] = useState(false); // ai입력창 상태
     const [aiText, setAiText] = useState("");// AI 입력창의 텍스트를 관리할 상태
     const [isAnalysing, setIsAnalysing] = useState(false);    // AI 로딩 상태 (버튼 텍스트 변경용)
@@ -38,10 +42,23 @@ const ResumeAddPage = () => {
     ];
 
     const handleInputChange = (field: string, value: string) => {
-        setNewCareer(prev => ({ ...prev, [field]: value }));
+        let finalValue = value;
+        
+        // 기간 필드인 경우 숫자만 쳐도 자동으로 포맷을 잡아줌
+        if (field === "period") {
+            finalValue = formatPeriod(value);
+        }
+
+        setNewCareer(prev => ({ ...prev, [field]: finalValue }));
     };
+    
 
     const handleSave = () => {
+        // 기간 형식이 올바른지 체크 (YYYY.MM.DD - YYYY.MM.DD)
+        if (newCareer.period && !validatePeriod(newCareer.period)) {
+            return;
+        }
+        
         // 모든 정보를 하나의 객체로 합침
         const finalData = {
             ...newCareer,
@@ -53,48 +70,9 @@ const ResumeAddPage = () => {
 
         console.log("최종 전달 데이터:", finalData);
 
-        navigate("/profile/history", {
+        navigate("/profile", {
             state: { newResume: finalData }
         });
-    };
-
-    // 파일 처리 공통 로직
-    const handleFileProcess = (files: FileList) => {
-        const newFiles = Array.from(files);
-
-        // 개수 제한: 기존 파일 + 새로 추가할 파일이 3개를 넘는지 확인
-        if (selectedFiles.length + newFiles.length > 3) {
-            alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
-            return;
-        }
-
-        {/**유효성 검사 */}
-        // 용량 및 확장자 제한 체크
-        const isValid = newFiles.every((file) => {
-            const maxSize = 10 * 1024 * 1024; // 10MB 계산
-            const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/gif"];
-
-            // 용량 체크
-            if (file.size > maxSize) {
-                alert(`${file.name}의 용량이 10MB를 초과합니다.`);
-                return false;
-            }
-
-            // 확장자 체크
-            if (!allowedTypes.includes(file.type)) {
-                alert(`${file.name}은 허용되지 않는 파일 형식입니다. (PDF, 이미지 파일만 가능)`);
-                return false;
-            }
-
-            return true;
-        });
-        
-        if (isValid) {
-            setSelectedFiles((prev) => [...prev, ...newFiles]);
-            if (newFiles.length > 0) {
-                handleInputChange("fileName", newFiles[0].name);
-            }
-        }
     };
 
     //  클릭 시 파일 선택창 띄우기
@@ -105,7 +83,7 @@ const ResumeAddPage = () => {
     // 파일 선택창에서 선택했을 때
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            handleFileProcess(e.target.files);
+            handleFileUpload(e.target.files);
         }
     };
 
@@ -121,29 +99,8 @@ const ResumeAddPage = () => {
         e.preventDefault();
         e.stopPropagation();
         if (e.dataTransfer.files) {
-            handleFileProcess(e.dataTransfer.files);
+            handleFileUpload(e.dataTransfer.files);
         }
-    };
-
-    // 선택된 파일 삭제
-    const removeFile = (index: number) => {
-        setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-    };
-
-    const addLink = () => {
-        if (!linkInput.trim()) return;
-
-        // http:// 또는 https:// 가 없는 경우 자동으로 붙여줌
-        const formattedLink = linkInput.startsWith("http")
-            ? linkInput
-            : `https://${linkInput}`;
-
-        setLinks((prev) => [...prev, formattedLink]);
-        setLinkInput(""); // 인풋창 초기화
-    };
-    //링크 삭제
-    const removeLink = (index: number) => {
-        setLinks((prev) => prev.filter((_, i) => i !== index));
     };
 
     // AI 시뮬레이션 
@@ -182,6 +139,7 @@ const ResumeAddPage = () => {
         }
     }, [isToastVisible]);
 
+    
 
     return (
         <>
@@ -271,6 +229,7 @@ const ResumeAddPage = () => {
                                 </div>
                                 <input
                                     type="text"
+                                    maxLength={item.field === "period" ? 23 : undefined}
                                     value={(newCareer as any)[item.field]}
                                     onChange={(e) => handleInputChange(item.field, e.target.value)}
                                     placeholder="입력해주세요."
@@ -397,7 +356,7 @@ const ResumeAddPage = () => {
                                 type="text"
                                 value={linkInput}
                                 onChange={(e) => setLinkInput(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && addLink()}
+                                onKeyDown={(e) => e.key === "Enter" && addLink(linkInput)}
                                 placeholder="링크를 첨부해주세요. (포트폴리오, 깃허브)"
                                 className="w-full h-14 lg:h-[71px] p-4
                                 border border-[#D6D6D8] rounded-[10px] outline-none bg-transparent
@@ -421,4 +380,4 @@ const ResumeAddPage = () => {
     )
 };
 
-export default ResumeAddPage;
+export default CareerAddPage;

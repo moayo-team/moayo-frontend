@@ -2,13 +2,12 @@ import './App.css'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import HomeLayout from './layouts/HomeLayout';
 import HomePage from './pages/HomePage';
-import ResumeAddPage from './pages/ResumeAddPage';
+import ResumeAddPage from './pages/CareerAddPage';
 import ProfileLayout from './layouts/ProfileLayout';
 import ProfilePage from './pages/ProfilePage';
-import ProfileHistoryPage from './pages/ProfileHistoryPage';
 import ProfileEditPage from './pages/ProfileEditPage';
-import ProfilePostsPage from './pages/ProfilePostsPage';
 import MessagePage from './pages/MessagePage';
+import CareerAddPage from './pages/CareerAddPage';
 
 
 const router = createBrowserRouter([
@@ -26,10 +25,8 @@ const router = createBrowserRouter([
         element: <ProfileLayout />,
         children: [
           { index: true, element: <ProfilePage /> },
-          { path: "history", element: <ProfileHistoryPage /> },
-          { path: "posts", element: <ProfilePostsPage /> },
           { path: "edit", element: <ProfileEditPage /> },
-          { path: "add-resume", element: <ResumeAddPage />},
+          { path: "add-carrer", element: <CareerAddPage />},
         ],
       },
     ],

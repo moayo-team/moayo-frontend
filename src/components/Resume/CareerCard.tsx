@@ -1,4 +1,4 @@
-interface ResumeCardProps {
+interface CarrerCardProps {
   title: string;          
   period: string;         
   organizer?: string;     
@@ -6,7 +6,7 @@ interface ResumeCardProps {
   role: string;           
 }
 
-const ResumeCard = ({ title, period, organizer, participation, role }: ResumeCardProps) => {
+const CarrerCard = ({ title, period, organizer, participation, role }: CarrerCardProps) => {
   return (
     <div className="flex flex-col gap-[10px] w-[474px] py-[20px] px-[24px] justify-center items-center 
           rounded-[16px] border border-[#a7a7aa] bg-white shadow-[0_0_2px_0_#AFAFAF]">
@@ -47,4 +47,4 @@ const ResumeCard = ({ title, period, organizer, participation, role }: ResumeCar
   );
 };
 
-export default ResumeCard;
+export default CarrerCard;
