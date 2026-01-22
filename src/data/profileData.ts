@@ -39,7 +39,8 @@ export const DUMMY_PROFILE = {
       participation: "전반적인 기획과 ui디자인 참여",
       fileName: ["UMC_기획서_최종.pdf"],
       link: ["https://www.figma.com/file/..."],
-      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
+      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요",
+      isPublic: true,
 
     },
     {
@@ -52,7 +53,8 @@ export const DUMMY_PROFILE = {
       participation: "전반적인 기획과 ui디자인 참여",
       fileName: ["UMC_기획서_최종.pdf"],
       link: ["https://www.figma.com/file/..."],
-      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
+      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요",
+      isPublic: true,
     },
     {
       id: 3,
@@ -63,7 +65,8 @@ export const DUMMY_PROFILE = {
       organizer: "한국 너디너리 해커톤..",
       participation: "전반적인 기획과 ui디자인 참여",
       fileName: ["UMC_기획서_최종.pdf"],
-      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
+      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요",
+      isPublic: false,
     },
     {
       id: 4,
@@ -73,7 +76,8 @@ export const DUMMY_PROFILE = {
       startDate: "2021-01-13",
       organizer: "한국 너디너리 해커톤..",
       participation: "전반적인 기획과 ui디자인 참여",
-      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
+      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요",
+      isPublic: true,
     },
     {
       id: 5,
@@ -83,7 +87,8 @@ export const DUMMY_PROFILE = {
       startDate: "2025-01-13",
       organizer: "한국 너디너리 해커톤..",
       participation: "전반적인 기획과 ui디자인 참여",
-      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
+      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요",
+      isPublic: false,
     }
   ],
   additionalInfo: [

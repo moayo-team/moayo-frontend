@@ -9,4 +9,5 @@ export interface Career {
   intro: string;
   fileName?: string[];
   link?: string[];
+  isPublic: boolean; 
 }
