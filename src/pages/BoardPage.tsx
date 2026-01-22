@@ -6,6 +6,10 @@ import { useFilters } from '../hooks/useFilters';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
 import type { JSX } from 'react';
+import menu from '../assets/menu.svg';
+import remove from '../assets/delete.svg';
+import leftarr from '../assets/leftarr.svg';
+import rightarr from '../assets/rightarr.svg';
 
 export const BoardPage = (): JSX.Element => {
   const navigate = useNavigate();
@@ -90,8 +94,8 @@ export const BoardPage = (): JSX.Element => {
                   >
                     <img
                       className="relative w-5 h-5"
-                      alt=""
-                      src="https://c.animaapp.com/ThzHYGdj/img/unorderedlist.svg"
+                      alt="menu icon"
+                      src={menu}
                     />
                     <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                       내가 쓴 게시글
@@ -157,7 +161,7 @@ export const BoardPage = (): JSX.Element => {
                     <img
                       className="relative w-5 h-5 sm:w-6 sm:h-6"
                       alt="Remove"
-                      src="https://c.animaapp.com/ThzHYGdj/img/x-1.svg"
+                      src={remove}
                     />
                   </button>
                 ))}
@@ -177,7 +181,7 @@ export const BoardPage = (): JSX.Element => {
                 <img
                   className="relative w-3 h-3"
                   alt="Previous"
-                  src="https://c.animaapp.com/ThzHYGdj/img/left.svg"
+                  src={leftarr}
                 />
               </button>
               {paginationPages.map((page) => (
@@ -209,8 +213,8 @@ export const BoardPage = (): JSX.Element => {
                 <img
                   className="relative w-3 h-3"
                   alt="Next"
-                  src="https://c.animaapp.com/ThzHYGdj/img/right.svg"
-                />
+                  src={rightarr}
+              />
               </button>
               </nav>
             )}

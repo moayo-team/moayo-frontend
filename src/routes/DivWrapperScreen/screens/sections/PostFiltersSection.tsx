@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { JSX } from "react";
+import bottomarr from "../../../../assets/bottomarr.svg";
 
 interface FilterOption {
   label: string;
@@ -11,6 +12,7 @@ export const PostFiltersSection = (): JSX.Element => {
   const [selectedPosition, setSelectedPosition] = useState<string>("");
   const [selectedDeadline, setSelectedDeadline] = useState<string>("");
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const filterOptions: FilterOption[] = [
     {
       label: "모집인원",
@@ -54,7 +56,7 @@ export const PostFiltersSection = (): JSX.Element => {
               onChange={(e) => handleFilterChange(0, e.target.value)}
               className="flex flex-col w-[177px] h-16 items-start justify-center gap-2 p-4 bg-white rounded-lg border border-solid border-[#d9d9d9] font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--body-b1-200-font-size)] leading-[var(--body-b1-200-line-height)] tracking-[var(--body-b1-200-letter-spacing)] [font-style:var(--body-b1-200-font-style)] cursor-pointer appearance-none"
               style={{
-                backgroundImage: `url('https://c.animaapp.com/mknptopiampEkf/img/chevron-up.svg')`,
+                backgroundImage: bottomarr,
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "right 16px center",
                 backgroundSize: "20px 20px",
@@ -84,7 +86,7 @@ export const PostFiltersSection = (): JSX.Element => {
               onChange={(e) => handleFilterChange(1, e.target.value)}
               className="flex flex-col w-[177px] h-16 items-start justify-center gap-2 p-4 bg-white rounded-lg border border-solid border-[#d9d9d9] font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--body-b1-200-font-size)] leading-[var(--body-b1-200-line-height)] tracking-[var(--body-b1-200-letter-spacing)] [font-style:var(--body-b1-200-font-style)] cursor-pointer appearance-none"
               style={{
-                backgroundImage: `url('https://c.animaapp.com/mknptopiampEkf/img/chevron-up.svg')`,
+                backgroundImage: bottomarr,
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "right 16px center",
                 backgroundSize: "20px 20px",
@@ -117,7 +119,7 @@ export const PostFiltersSection = (): JSX.Element => {
               placeholder="날짜선택"
               className="flex flex-col w-[177px] h-16 items-start justify-center gap-2 p-4 bg-white rounded-lg border border-solid border-[#d9d9d9] font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--body-b1-200-font-size)] leading-[var(--body-b1-200-line-height)] tracking-[var(--body-b1-200-letter-spacing)] [font-style:var(--body-b1-200-font-style)] cursor-pointer"
               style={{
-                backgroundImage: `url('https://c.animaapp.com/mknptopiampEkf/img/chevron-up.svg')`,
+                backgroundImage: bottomarr,
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "right 16px center",
                 backgroundSize: "20px 20px",

@@ -4,6 +4,8 @@ import { NavigationBar } from '../components/layout/NavigationBar';
 import { usePost, useUpdatePost } from '../hooks/usePosts';
 import { SuccessModal } from '../components/common/SuccessModal';
 import type { JSX } from 'react';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 interface JobCategory {
   id: string;
@@ -35,6 +37,17 @@ export const EditPostPage = (): JSX.Element => {
     { id: 'literature', label: '문학', selected: false },
     { id: 'other', label: '기타', selected: false },
   ]);
+
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'align': [] }],
+      ['clean']
+    ],
+  };
 
   // Load post data when available
   useEffect(() => {
@@ -226,18 +239,22 @@ export const EditPostPage = (): JSX.Element => {
 
               {/* Content Section */}
               <section className="flex flex-col w-full min-h-[417px] items-start gap-2.5 px-[38px] py-8 rounded-[10px] border border-solid border-[#d6d6d8]">
-                <div className="flex flex-col items-start gap-4 relative self-stretch w-full flex-[0_0_auto]">
-                  <label htmlFor="post-content" className="sr-only">
-                    게시물 본문 입력
-                  </label>
-                  <textarea
-                    id="post-content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="w-full min-h-[300px] font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-black text-[length:var(--body-b1-200-font-size)] leading-[var(--body-b1-200-line-height)] relative tracking-[var(--body-b1-200-letter-spacing)] [font-style:var(--body-b1-200-font-style)] resize-none focus:outline-none"
-                    placeholder="본문을 입력해주세요.&#10;[본문 가이드]&#10;프로젝트 소개, 모집 배경, 활동 내용 등을 자유롭게 작성해주세요."
-                  />
-                </div>
+                <div className="flex flex-col w-full items-start gap-4">
+                        <label htmlFor="post-content" className="sr-only">
+                          게시물 본문 수정
+                        </label>
+                        
+                        <div className="w-full h-[500px]"> 
+                          <ReactQuill 
+                            theme="snow"
+                            value={content}
+                            onChange={setContent}
+                            modules={modules}
+                            className="h-full flex flex-col [&_.ql-toolbar]:border-[#d6d6d8] [&_.ql-toolbar]:rounded-t-[10px] [&_.ql-toolbar]:border-b-0 [&_.ql-toolbar]:p-3 [&_.ql-toolbar_button]:w-9 [&_.ql-toolbar_button]:h-9 [&_.ql-toolbar_button]:p-1.5 [&_.ql-toolbar_button_svg]:!w-6 [&_.ql-toolbar_button_svg]:!h-6 [&_.ql-picker-label]:text-base [&_.ql-picker-item]:text-base [&_.ql-container]:border-[#d6d6d8] [&_.ql-container]:rounded-b-[10px] [&_.ql-container]:flex-1 [&_.ql-container]:overflow-y-auto [&_.ql-editor]:text-[17px] [&_.ql-editor]:leading-relaxed [&_.ql-editor]:font-body-regular"
+                            placeholder="내용을 입력하세요..."
+                          />
+                        </div>
+                      </div>
               </section>
 
               {/* Requirements Section */}

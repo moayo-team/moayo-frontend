@@ -5,6 +5,20 @@ import { formatDateRange } from '../../utils/dateUtils';
 import { useAuth } from '../../hooks/useAuth';
 import type { JSX } from 'react';
 
+const stripHtml = (html: string | undefined | null) => {
+  if (!html) return "";
+  
+  // 1. <br> 태그를 줄바꿈 문자(\n)로 변환
+  let formatted = html.replace(/<br\s*\/?>/gi, '\n');
+  
+  // 2. </p>와 </div> 태그 뒤에도 줄바꿈 추가 (단락 구분)
+  formatted = formatted.replace(/<\/p>/gi, '\n').replace(/<\/div>/gi, '\n');
+  
+  // 3. 나머지 HTML 태그 제거
+  const doc = new DOMParser().parseFromString(formatted, "text/html");
+  return (doc.body.textContent || "").trim();
+};
+
 interface PostCardProps {
   post: Post;
 }
@@ -13,7 +27,7 @@ export const PostCard = ({ post }: PostCardProps): JSX.Element => {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
   const dateRange = formatDateRange(post.createdAt, post.deadline);
-  const positionsArray = post.positions.split(',').map(p => p.trim()).filter(Boolean);
+  // const positionsArray = post.positions.split(',').map(p => p.trim()).filter(Boolean);
   
   return (
     <article
@@ -47,8 +61,8 @@ export const PostCard = ({ post }: PostCardProps): JSX.Element => {
               </time>
             </div>
           </header>
-          <p className="relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] text-sm sm:text-base break-words line-clamp-2">
-            {post.description}
+          <p className="whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
+            {stripHtml(post.description)} 
           </p>
         </div>
         

@@ -7,6 +7,10 @@ import { Badge } from '../components/common/Badge';
 import { DeleteConfirmationModal } from '../components/common/DeleteConfirmationModal';
 import { formatDateRange } from '../utils/dateUtils';
 import type { JSX } from 'react';
+import leftarr from '../assets/leftarr.svg';
+import rightarr from '../assets/rightarr.svg';
+import vertical_line from '../assets/vertical_line.svg';
+import menu from '../assets/menu.svg';
 
 interface PostCardProps {
   post: {
@@ -26,6 +30,20 @@ interface PostCardProps {
   onEdit: (id: string) => void;
   isDeleting: boolean;
 }
+
+const stripHtml = (html: string | undefined | null) => {
+  if (!html) return "";
+  
+  // 1. <br> 태그를 줄바꿈 문자(\n)로 변환
+  let formatted = html.replace(/<br\s*\/?>/gi, '\n');
+  
+  // 2. </p>와 </div> 태그 뒤에도 줄바꿈 추가 (단락 구분)
+  formatted = formatted.replace(/<\/p>/gi, '\n').replace(/<\/div>/gi, '\n');
+  
+  // 3. 나머지 HTML 태그 제거
+  const doc = new DOMParser().parseFromString(formatted, "text/html");
+  return (doc.body.textContent || "").trim();
+};
 
 const PostCard = ({ post, onDelete, onEdit, isDeleting }: PostCardProps): JSX.Element => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -60,7 +78,7 @@ const PostCard = ({ post, onDelete, onEdit, isDeleting }: PostCardProps): JSX.El
               <img
                 className="relative w-px h-[19.5px] hidden sm:block"
                 alt=""
-                src="https://c.animaapp.com/mknskxfd3qPIE6/img/vector-203.svg"
+                src={vertical_line}
                 aria-hidden="true"
               />
               <time className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)]">
@@ -68,8 +86,8 @@ const PostCard = ({ post, onDelete, onEdit, isDeleting }: PostCardProps): JSX.El
               </time>
             </div>
           </header>
-          <p className="relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
-            {post.description}
+          <p className="whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
+              {stripHtml(post.description)}
           </p>
         </div>
         <div className="flex items-center justify-end gap-2.5 relative self-stretch w-full flex-[0_0_auto] mt-4">
@@ -249,7 +267,7 @@ export const MyPostsPage = (): JSX.Element => {
                 <img
                   className="relative w-5 h-5"
                   alt=""
-                  src="https://c.animaapp.com/mknskxfd3qPIE6/img/unorderedlist.svg"
+                  src={menu}
                   aria-hidden="true"
                 />
                 <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
@@ -332,7 +350,7 @@ export const MyPostsPage = (): JSX.Element => {
                 </section>
 
                 {/* Pagination */}
-                {totalPages > 1 && (
+                {totalPages > 0 && (
                   <nav
                     className="flex justify-center items-center mt-8 sm:mt-12"
                     role="navigation"
@@ -348,7 +366,7 @@ export const MyPostsPage = (): JSX.Element => {
                       <img
                         className="relative w-3 h-3"
                         alt="Left"
-                        src="https://c.animaapp.com/mknskxfd3qPIE6/img/left.svg"
+                        src={leftarr}
                       />
                     </button>
 
@@ -403,7 +421,7 @@ export const MyPostsPage = (): JSX.Element => {
                       <img
                         className="relative w-3 h-3"
                         alt="Right"
-                        src="https://c.animaapp.com/mknskxfd3qPIE6/img/right.svg"
+                        src={rightarr}
                       />
                     </button>
                   </nav>

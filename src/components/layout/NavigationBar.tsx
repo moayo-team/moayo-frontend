@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import type { JSX } from 'react';
+import logo from '../../assets/pavicon.png';
 
 export const NavigationBar = (): JSX.Element => {
   const navigate = useNavigate();
@@ -23,14 +24,14 @@ export const NavigationBar = (): JSX.Element => {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
         <button 
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 sm:gap-4 hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2 sm:gap-4 hover:opacity-80 transition-opacity cursor-pointer"
         >
           <img
             className="w-8 h-8 sm:w-10 sm:h-10 aspect-[1]"
             alt="MOAYO Logo"
-            src="https://c.animaapp.com/ThzHYGdj/img/------01.svg"
+            src={logo}
           />
-          <div className="[font-family:'Pretendard-Bold',Helvetica] font-bold text-black text-xl sm:text-[28px] tracking-[0] leading-9 whitespace-nowrap">
+          <div className="[font-family:'Pretendard-Bold',Helvetica] font-bold text-black text-xl sm:text-[28px] tracking-[0] leading-9 whitespace-nowrap ">
             MOAYO!
           </div>
         </button>

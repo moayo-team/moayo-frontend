@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { JSX } from "react";
+import vertical_line from "../../../../assets/vertical_line.svg";
 
 interface Post {
   id: number;
@@ -110,7 +111,7 @@ const PostCard = ({ post, onDelete, onEdit }: PostCardProps): JSX.Element => {
               <img
                 className="relative w-px h-[19.5px]"
                 alt=""
-                src="https://c.animaapp.com/mknskxfd3qPIE6/img/vector-203.svg"
+                src={vertical_line}
                 aria-hidden="true"
               />
               <time className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)]">

@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import logo from "../../../../assets/logo.png";
 
 export const NavigationBarSection = (): JSX.Element => {
   const navigationItems = [
@@ -33,7 +34,7 @@ export const NavigationBarSection = (): JSX.Element => {
       <img
         className="absolute top-5 left-[41px] w-10 h-10"
         alt="MOAYO Logo"
-        src="https://c.animaapp.com/mknskxfd3qPIE6/img/------01.svg"
+        src={logo}
       />
     </nav>
   );

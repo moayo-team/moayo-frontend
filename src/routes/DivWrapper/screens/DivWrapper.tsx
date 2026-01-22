@@ -1,5 +1,12 @@
 import { useState } from "react";
 import type { JSX } from "react";
+import logo from "../../../assets/pavicon.png";
+import head from "../../../assets/profile.svg";
+import menu from "../../../assets/menu.svg";
+import separator from "../../../assets/separator.svg";
+import deco_1 from "../../../assets/deco_1.svg";
+import like from "../../../assets/like.svg";
+import send from "../../../assets/send.svg";
 
 interface Comment {
   id: number;
@@ -36,7 +43,7 @@ export const DivWrapper = (): JSX.Element => {
     {
       id: 1,
       author: "익명",
-      avatar: "https://c.animaapp.com/mknojtgvOWAjPV/img/image-13-3.png",
+      avatar: head,
       content: "궁금한 점이 있어서 쪽지 드려도 될까요?",
       date: "2024.02.22",
       isReply: false,
@@ -44,7 +51,7 @@ export const DivWrapper = (): JSX.Element => {
     {
       id: 2,
       author: "익명",
-      avatar: "https://c.animaapp.com/mknojtgvOWAjPV/img/image-13-3.png",
+      avatar: head,
       content: "궁금한 점이 있어서 쪽지 드려도 될까요?",
       date: "2024.02.22",
       isReply: true,
@@ -90,7 +97,7 @@ export const DivWrapper = (): JSX.Element => {
         <img
           className="absolute top-5 left-[50px] w-10 h-10"
           alt="Logo"
-          src="https://c.animaapp.com/mknojtgvOWAjPV/img/------01.svg"
+          src={logo}
         />
         <h1 className="absolute top-[22px] left-[101px] [font-family:'Pretendard-Bold',Helvetica] font-bold text-black text-[28px] tracking-[0] leading-9 whitespace-nowrap">
           MOAYO!
@@ -146,7 +153,7 @@ export const DivWrapper = (): JSX.Element => {
           <img
             className="relative w-5 h-5"
             alt="List icon"
-            src="https://c.animaapp.com/mknojtgvOWAjPV/img/unorderedlist.svg"
+            src={menu}
           />
           <span className="w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
             내가 쓴 게시글
@@ -293,7 +300,7 @@ export const DivWrapper = (): JSX.Element => {
             <img
               className="relative w-5 h-5"
               alt="Thumbs up"
-              src="https://c.animaapp.com/mknojtgvOWAjPV/img/thumbs-up.svg"
+              src={like}
             />
             <div className="inline-flex items-center gap-1 relative flex-[0_0_auto]">
               <span className="w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-300 text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]">
@@ -308,7 +315,7 @@ export const DivWrapper = (): JSX.Element => {
             <img
               className="relative w-5 h-5"
               alt="Send message"
-              src="https://c.animaapp.com/mknojtgvOWAjPV/img/send.svg"
+              src={send}
             />
             <div className="inline-flex items-center gap-[9px] relative flex-[0_0_auto]">
               <span className="w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-300 text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]">
@@ -321,12 +328,12 @@ export const DivWrapper = (): JSX.Element => {
         <img
           className="absolute top-[1201px] left-[-339px] w-[9px] h-5"
           alt="Decoration"
-          src="https://c.animaapp.com/mknojtgvOWAjPV/img/vector-207.svg"
+          src={deco_1}
         />
         <img
           className="absolute top-[1321px] left-[-339px] w-[9px] h-5"
           alt="Decoration"
-          src="https://c.animaapp.com/mknojtgvOWAjPV/img/vector-207.svg"
+          src={deco_1}
         />
 
         <section className="flex flex-col w-[999px] items-start gap-[17px] absolute top-[1376px] left-0">
@@ -366,7 +373,7 @@ export const DivWrapper = (): JSX.Element => {
                     <img
                       className="relative w-px h-[13.5px]"
                       alt="Separator"
-                      src="https://c.animaapp.com/mknojtgvOWAjPV/img/vector-204.svg"
+                      src={separator}
                     />
                     <button className="w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-300-letter-spacing)] [font-style:var(--body-b2-300-font-style)]">
                       쪽지
@@ -374,7 +381,7 @@ export const DivWrapper = (): JSX.Element => {
                     <img
                       className="relative w-px h-[13.5px]"
                       alt="Separator"
-                      src="https://c.animaapp.com/mknojtgvOWAjPV/img/vector-204.svg"
+                      src={separator}
                     />
                     <button className="w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-300-letter-spacing)] [font-style:var(--body-b2-300-font-style)]">
                       신고

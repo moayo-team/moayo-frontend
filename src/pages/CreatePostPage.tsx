@@ -4,6 +4,8 @@ import { NavigationBar } from '../components/layout/NavigationBar';
 import { useCreatePost } from '../hooks/usePosts';
 import { SuccessModal } from '../components/common/SuccessModal';
 import type { JSX } from 'react';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 interface JobCategory {
   id: string;
@@ -33,6 +35,17 @@ export const CreatePostPage = (): JSX.Element => {
     { id: 'literature', label: '문학', selected: false },
     { id: 'other', label: '기타', selected: false },
   ]);
+
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],        // 굵게, 기울임, 밑줄, 취소선
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],     // 리스트
+      [{ 'color': [] }, { 'background': [] }],          // 글자색, 배경색
+      [{ 'align': [] }],                                // 정렬
+      ['clean']                                         // 포맷 지우기
+    ],
+  };
 
   const handleCategoryToggle = (id: string) => {
     setCategories((prev) =>
@@ -180,13 +193,20 @@ export const CreatePostPage = (): JSX.Element => {
                   <label htmlFor="post-content" className="sr-only">
                     게시물 본문 입력
                   </label>
-                  <textarea
-                    id="post-content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="w-full min-h-[300px] font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-black text-[length:var(--body-b1-200-font-size)] leading-[var(--body-b1-200-line-height)] relative tracking-[var(--body-b1-200-letter-spacing)] [font-style:var(--body-b1-200-font-style)] resize-none focus:outline-none"
-                    placeholder="본문을 입력해주세요.&#10;[본문 가이드]&#10;프로젝트 소개, 모집 배경, 활동 내용 등을 자유롭게 작성해주세요."
-                  />
+                  <div className="w-full h-[500px]"> 
+                    <ReactQuill 
+                      theme="snow"
+                      value={content}
+                      onChange={setContent}
+                      modules={modules}
+                      // 👇 핵심 수정 사항
+                      // 1. [&_.ql-toolbar]: 상단 툴바 스타일 (테두리 색상 변경, 둥근 모서리 위쪽만)
+                      // 2. [&_.ql-container]: 하단 입력창 스타일 (남은 높이 꽉 채우기, 둥근 모서리 아래쪽만)
+                      // 3. border-[#d6d6d8]: 사용자님이 원하던 회색 테두리 색상 적용
+                      className="h-full flex flex-col [&_.ql-toolbar]:border-[#d6d6d8] [&_.ql-toolbar]:rounded-t-[10px] [&_.ql-toolbar]:border-b-0 [&_.ql-toolbar]:p-3 [&_.ql-toolbar_button]:w-9 [&_.ql-toolbar_button]:h-9 [&_.ql-toolbar_button]:p-1.5 [&_.ql-toolbar_button_svg]:!w-6 [&_.ql-toolbar_button_svg]:!h-6 [&_.ql-picker-label]:text-base [&_.ql-picker-item]:text-base [&_.ql-container]:border-[#d6d6d8] [&_.ql-container]:rounded-b-[10px] [&_.ql-container]:flex-1 [&_.ql-container]:overflow-y-auto [&_.ql-editor]:text-[21px] [&_.ql-editor]:leading-relaxed [&_.ql-editor]:font-body-regular"
+                      placeholder="내용을 입력하세요..."
+                    />
+                  </div>
                 </div>
               </section>
 

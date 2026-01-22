@@ -7,12 +7,11 @@ import { CommentSection } from '../components/common/CommentSection';
 import { formatDateRange } from '../utils/dateUtils';
 import { useAuth } from '../hooks/useAuth';
 import type { JSX } from 'react';
+import like from '../assets/like.svg';
+import send from '../assets/send.svg';
+import menu from '../assets/menu.svg';
+import 'react-quill-new/dist/quill.snow.css';
 
-interface JobFilter {
-  id: string;
-  label: string;
-  selected: boolean;
-}
 
 export const PostDetailPage = (): JSX.Element => {
   const { id } = useParams<{ id: string }>();
@@ -20,27 +19,11 @@ export const PostDetailPage = (): JSX.Element => {
   const { isLoggedIn, user } = useAuth();
   const { data: post, isPending, error } = usePost(id || '');
 
-  const [jobFilters, setJobFilters] = useState<JobFilter[]>([
-    { id: "planning", label: "기획", selected: true },
-    { id: "marketing", label: "마케팅", selected: false },
-    { id: "design", label: "디자인", selected: false },
-    { id: "development", label: "개발", selected: true },
-    { id: "startup", label: "창업", selected: false },
-    { id: "arts", label: "예체능", selected: false },
-    { id: "literature", label: "문학", selected: false },
-    { id: "etc", label: "기타", selected: false },
-  ]);
 
   const [likes, setLikes] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
 
-  const handleJobFilterToggle = (id: string) => {
-    setJobFilters(
-      jobFilters.map((filter) =>
-        filter.id === id ? { ...filter, selected: !filter.selected } : filter,
-      ),
-    );
-  };
+
 
   const handleLikeToggle = () => {
     if (!isLoggedIn) {
@@ -116,55 +99,13 @@ export const PostDetailPage = (): JSX.Element => {
                 <img
                   className="relative w-5 h-5"
                   alt="List icon"
-                  src="https://c.animaapp.com/mknojtgvOWAjPV/img/unorderedlist.svg"
+                  src={menu}
                 />
                 <span className="w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
                   게시판으로 돌아가기
                 </span>
               </button>
             </div>
-
-            <aside className="flex flex-col w-full items-start gap-5 mt-8">
-              <h3 className="self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-black text-[length:var(--heading-h2-300-font-size)] leading-[var(--heading-h2-300-line-height)] relative tracking-[var(--heading-h2-300-letter-spacing)] [font-style:var(--heading-h2-300-font-style)]">
-                직무필터
-              </h3>
-              <div className="flex items-center gap-2.5 px-6 py-[31px] relative self-stretch w-full flex-[0_0_auto] rounded-[10px] border border-solid border-[#a7a7aa]">
-                <div className="flex flex-col w-full items-start gap-5 relative">
-                  <div className="flex flex-col items-start gap-[30px] relative self-stretch w-full flex-[0_0_auto]">
-                    {[0, 1, 2, 3].map((rowIndex) => (
-                      <div
-                        key={rowIndex}
-                        className="flex items-center gap-2.5 relative self-stretch w-full flex-[0_0_auto]"
-                      >
-                        {jobFilters
-                          .slice(rowIndex * 2, rowIndex * 2 + 2)
-                          .map((filter) => (
-                            <button
-                              key={filter.id}
-                              onClick={() => handleJobFilterToggle(filter.id)}
-                              className={`${
-                                filter.selected
-                                  ? "bg-primaryprimary-50 border-[#26e1ac]"
-                                  : "bg-gray-scalegray-scale-50 border-[#d6d6d8]"
-                              } flex h-[51px] items-center justify-center gap-[5px] px-2.5 py-[3px] rounded-[10px] border border-solid flex-1 hover:opacity-80 transition-opacity`}
-                            >
-                              <span
-                                className={`${
-                                  filter.selected
-                                    ? "text-gray-scalegray-scale-900"
-                                    : "text-gray-scalegray-scale-300"
-                                } flex-1 font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-[length:var(--body-b1-200-font-size)] text-center leading-[var(--body-b1-200-line-height)] tracking-[var(--body-b1-200-letter-spacing)] [font-style:var(--body-b1-200-font-style)]`}
-                              >
-                                {filter.label}
-                              </span>
-                            </button>
-                          ))}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </aside>
           </aside>
 
           {/* Main Content - Right Column */}
@@ -228,9 +169,12 @@ export const PostDetailPage = (): JSX.Element => {
 
               {/* Post Content */}
               <div className="flex flex-col w-full min-h-[400px] items-start justify-start gap-2.5 p-6 mb-6 rounded-[3px] border border-solid border-[#a7a7aa]">
-                <p className="w-full font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] leading-[var(--body-b2-300-line-height)] relative tracking-[var(--body-b2-300-letter-spacing)] [font-style:var(--body-b2-300-font-style)] whitespace-pre-wrap">
-                  {post.content || post.description}
-                </p>
+                <div className="w-full ql-snow">
+                  <div 
+                      className="ql-editor !p-0 text-[17px] leading-relaxed" 
+                      dangerouslySetInnerHTML={{ __html: post.content || post.description }} 
+                    />
+                  </div>
                 {post.requirements && (
                   <div className="w-full mt-4">
                     <h3 className="font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-black text-[length:var(--heading-h3-200-font-size)] mb-2">
@@ -276,7 +220,7 @@ export const PostDetailPage = (): JSX.Element => {
                   <img
                     className={`relative w-5 h-5 transition-transform ${isLiked ? 'scale-110' : 'scale-100'}`}
                     alt="Thumbs up"
-                    src="https://c.animaapp.com/mknojtgvOWAjPV/img/thumbs-up.svg"
+                    src={like}
                   />
                   <div className="inline-flex items-center gap-1 relative flex-[0_0_auto]">
                     <span className={`w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] ${
@@ -307,7 +251,7 @@ export const PostDetailPage = (): JSX.Element => {
                   <img
                     className="relative w-5 h-5"
                     alt="Send message"
-                    src="https://c.animaapp.com/mknojtgvOWAjPV/img/send.svg"
+                    src={send}
                   />
                   <div className="inline-flex items-center gap-[9px] relative flex-[0_0_auto]">
                     <span className="w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-300 text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]">
