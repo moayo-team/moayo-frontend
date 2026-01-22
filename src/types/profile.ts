@@ -1,60 +1,30 @@
-// 공통적으로 사용되는 학력/경력 등의 베이스 인터페이스
-interface BaseInfo {
+//  공통 
+export type ExtraInfoType = "link" | "file" | "text";
+
+//  추가 정보 
+export interface ExtraInfo {
   id: number;
-  period: string;
-}
-
-// 연락처 정보 타입
-export interface Contact {
-  email: string;
-  phone: string;
-  kakaoId: string;
-}
-
-// 학력 정보 타입
-export interface Education extends BaseInfo {
-  school: string;
-  major: string;
-  subMajor: string | null;
-  isVerified: boolean;
-}
-
-// 경력/활동 정보 타입
-export interface Career extends BaseInfo {
-  role: string;
+  type: ExtraInfoType;
   title: string;
-  startDate: string;
-  organizer: string;
-  participation: string;
-  intro: string;
-  fileName?: string; 
-  link?: string;     
+  value: string;      // link URL / 파일 URL / 텍스트 내용
 }
 
-// 추가 정보 (포트폴리오, 깃허브 등) 타입
-export interface AdditionalInfo {
-  id: number;
-  type: "file" | "link";
-  title: string;
-  description?: string;
-  link: string;
-}
-
-// 태그 타입
+//  태그 
 export interface Tag {
   id: number;
-  title: string;
+  name: string;
+  selected: boolean;
 }
 
-// 최종 프로필 데이터 타입
-export interface ProfileData {
+//  프로필 
+export interface Profile {
   name: string;
-  jobTitle: string;
-  profileImage: string;
-  introduction: string;
-  contact: Contact;
-  education: Education[];
-  careers: Career[];
-  additionalInfo: AdditionalInfo[];
+  birthDate?: string;      // yyyy-mm-dd
+  email?: string;
+  university?: string;
+  major?: string;
+  profileImage?: string;
+  introduction?: string;
   tags: Tag[];
+  extraInfos: ExtraInfo[];
 }

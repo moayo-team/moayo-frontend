@@ -31,28 +31,30 @@ export const DUMMY_PROFILE = {
   careers: [
     {
       id: 1,
-      period: "2022.03 - 현재",
+      period: "2022.03.01 - 2022.04.07",
       role: "선임 디자이너",
       title: "UMC 9th 앱 개발 동아리",
       startDate: "2025-01-13",
       organizer: "한국 너디너리 해커톤..",
       participation: "전반적인 기획과 ui디자인 참여",
-      fileName: "UMC_기획서_최종.pdf",
-      link: "https://www.figma.com/file/...",
-      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
+      fileName: ["UMC_기획서_최종.pdf"],
+      link: ["https://www.figma.com/file/..."],
+      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요",
+      isPublic: true,
 
     },
     {
       id: 2,
-      period: "2020.01013 - 2022.02.13",
+      period: "2020.01.13 - 2022.02.13",
       role: "주니어 기획자",
       title: "UMC 9th 앱 개발 동아리",
       startDate: "2020-01-13",
       organizer: "한국 너디너리 해커톤..",
       participation: "전반적인 기획과 ui디자인 참여",
-      fileName: "UMC_기획서_최종.pdf",
-      link: "https://www.figma.com/file/...",
-      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
+      fileName: ["UMC_기획서_최종.pdf"],
+      link: ["https://www.figma.com/file/..."],
+      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요",
+      isPublic: true,
     },
     {
       id: 3,
@@ -62,8 +64,9 @@ export const DUMMY_PROFILE = {
       startDate: "2020-05-13",
       organizer: "한국 너디너리 해커톤..",
       participation: "전반적인 기획과 ui디자인 참여",
-      fileName: "UMC_기획서_최종.pdf",
-      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
+      fileName: ["UMC_기획서_최종.pdf"],
+      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요",
+      isPublic: false,
     },
     {
       id: 4,
@@ -73,7 +76,8 @@ export const DUMMY_PROFILE = {
       startDate: "2021-01-13",
       organizer: "한국 너디너리 해커톤..",
       participation: "전반적인 기획과 ui디자인 참여",
-      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
+      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요",
+      isPublic: true,
     },
     {
       id: 5,
@@ -83,7 +87,8 @@ export const DUMMY_PROFILE = {
       startDate: "2025-01-13",
       organizer: "한국 너디너리 해커톤..",
       participation: "전반적인 기획과 ui디자인 참여",
-      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요"
+      intro: "저는참여햇어요햇어요햇어요햇엉햇햇햇어요",
+      isPublic: false,
     }
   ],
   additionalInfo: [
