@@ -1,4 +1,4 @@
-//기간 포맷팅
+/** 기간 포맷팅*/
 export const formatPeriod = (value: string) => {
     const nums = value.replace(/[^0-9]/g, "");
     let result = "";
@@ -17,6 +17,17 @@ export const formatPeriod = (value: string) => {
     return result;
 };
 
+/** startDate구하기*/
+export const getStartDateFromPeriod = (period: string): string => {
+  if (!period) return "";
+  
+  const startPart = period.split("-")[0].trim(); 
+  
+  // 정렬을 위해 "YYYY-MM-DD" 형태로 변환 (날짜가 없으면 01일로 가정)
+  const formatted = startPart.replace(/\./g, "-");
+  
+  return formatted; 
+};
 /**기간 유효성 검사 */
 export const validatePeriod = (period: string) => {
     const regex = /^\d{4}\.\d{2}\.\d{2}\s-\s\d{4}\.\d{2}\.\d{2}$/;

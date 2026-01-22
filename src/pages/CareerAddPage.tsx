@@ -4,12 +4,13 @@ import { CircleCheck, FileText, Mic, X } from "lucide-react";
 import { getDisplayName } from "../utils/name";
 import { DUMMY_PROFILE } from "../data/profileData";
 import { useUploadManager } from "../hooks/useUploadManager";
-import { formatPeriod, validatePeriod } from "../utils/format";
+import { formatPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
 
 const CareerAddPage = () => {
     const navigate = useNavigate();
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-   // 커스텀 훅 도입 (파일 3개, 링크 4개 등 제한사항 주입)
+   // 커스텀 훅 (파일 3개, 링크 4개 등 제한사항 주입)
     const { selectedFiles, handleFileUpload, removeFile,
         links, linkInput, setLinkInput, addLink, removeLink, fileInputRef
     } = useUploadManager({
@@ -29,7 +30,8 @@ const CareerAddPage = () => {
         participation: "", //참여형태
         fileName: "", //첨부파일 이름
         link: "", //첨부링크 
-        intro: "" //활동 소개
+        intro: "", //활동 소개
+        isPublic: true, // 기본값은 공개로 설정
     });
 
     //map을 위한 필드 설정
@@ -41,20 +43,48 @@ const CareerAddPage = () => {
         { label: "역할", field: "role" },
     ];
 
-    const handleInputChange = (field: string, value: string) => {
-        let finalValue = value;
-        
-        // 기간 필드인 경우 숫자만 쳐도 자동으로 포맷을 잡아줌
-        if (field === "period") {
-            finalValue = formatPeriod(value);
+    const handleInputChange = (field: string, value: string, e?: React.ChangeEvent<HTMLInputElement>) => {
+        if (field === "period" && e) {
+            const input = e.target;
+            const start = input.selectionStart || 0;
+            const previousValue = newCareer.period;
+            const formattedValue = formatPeriod(value);
+            
+            if (previousValue !== formattedValue) {
+                setNewCareer(prev => ({ ...prev, [field]: formattedValue }));
+
+                // 조건부 커서 보정
+                //  글자 수가 줄어들었거나 (삭제)
+                //  커서 위치가 문자열 중간에 있을 때만 (수정) 
+                const isDeleting = value.length < previousValue.length;
+                const isModifiedInMiddle = start < value.length;
+
+                if (isDeleting || isModifiedInMiddle) {
+                    setTimeout(() => {
+                        if (input) {
+                            input.setSelectionRange(start, start);
+                        }
+                    }, 0);
+                }
+                // 그 외(맨 뒤에서 타이핑하는 경우)에는 브라우저가 커서를 자동으로 맨 뒤로 보내도록 둡니다.
+            }
+            return;
         }
 
-        setNewCareer(prev => ({ ...prev, [field]: finalValue }));
+        setNewCareer(prev => ({ ...prev, [field]: value }));
     };
-    
+        
 
-    const handleSave = () => {
-        // 기간 형식이 올바른지 체크 (YYYY.MM.DD - YYYY.MM.DD)
+    const handleSave = (e: React.MouseEvent) => {
+        e.preventDefault();
+        //이벤트 전파 방지
+        e.stopPropagation();
+        //현재 포커스된 요소가 있다면 해제 (커서 생기는 현상 방지)
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
+        // 기간 형식이 올바른지 체크 (YYY
+        // Y.MM.DD - YYYY.MM.DD)
         if (newCareer.period && !validatePeriod(newCareer.period)) {
             return;
         }
@@ -62,10 +92,10 @@ const CareerAddPage = () => {
         // 모든 정보를 하나의 객체로 합침
         const finalData = {
             ...newCareer,
-            fileName: selectedFiles.length > 0 ? selectedFiles[0].name : "",
-            fileList: selectedFiles.map(f => f.name),
-            link: links.length > 0 ? links[0] : "",
-            allLinks: links
+            startDate: getStartDateFromPeriod(newCareer.period),
+            id: Date.now(),//임시id
+            fileName: selectedFiles.map(f => f.name),
+            link: links,
         };
 
         console.log("최종 전달 데이터:", finalData);
@@ -139,7 +169,14 @@ const CareerAddPage = () => {
         }
     }, [isToastVisible]);
 
-    
+    // 입력 내용에 따라 높이 자동 조절 함수
+    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setAiText(e.target.value);
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "auto"; // 높이 초기화
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`; // 내용 높이에 맞게 설정
+        }
+    };
 
     return (
         <>
@@ -158,8 +195,7 @@ const CareerAddPage = () => {
                 <div className="flex flex-col items-start flex-1 gap-10 lg:gap-[60px] w-full">
 
                     {/**ai 영역 */}
-                    <div className="flex flex-col w-full overflow-hidden items-end gap-6 lg:gap-[33px]">
-
+                    <div className="flex flex-col w-full items-end gap-6 lg:gap-[33px]">
                         {/* 토스트 알림 (생성 완료 시 노출) */}
                         {isToastVisible && !isAIInputOpen && (
                             <div className="flex w-full h-auto min-h-[80px] lg:h-[105px] py-4 lg:py-[20px] px-6 lg:px-[30px] items-center gap-3 
@@ -175,46 +211,66 @@ const CareerAddPage = () => {
                                 </div>
                             </div>
                         )}
+
                         {!isToastVisible && (
-                            <div className="flex flex-col items-start w-full overflow-hidden ">
-                                {/** 상단 가이드 바 (클릭 영역) */}
-                                <div
-                                    className="flex h-auto min-h-[80px] lg:h-[105px] p-4 lg:p-[20px] items-center w-full gap-3 
-                                    border border-[#BCF6E5] rounded-[10px] bg-[#E9FCF7] cursor-pointer"
-                                    onClick={() => setIsAIInputOpen(!isAIInputOpen)}
+                            <div className="flex flex-col w-full items-end">
+                                {/* 입력 컨테이너 (텍스트 영역 전용 배경) */}
+                                <div 
+                                    className={`flex flex-col w-full border border-[#BCF6E5] rounded-[10px] bg-[#E9FCF7] transition-all duration-300
+                                        ${isAIInputOpen ? "p-4 lg:p-[30px]" : "h-auto min-h-[80px] lg:h-[105px] p-4 lg:px-[30px] justify-center cursor-pointer"}`}
+                                    onClick={(e) => {
+                                        if(!isAIInputOpen) {
+                                            e.stopPropagation();
+                                            setIsAIInputOpen(true);
+                                        }
+                                    }}
                                 >
-                                    <span className="flex-1 font-pretendard text-[#1BA07A] text-lg lg:text-[24px] font-medium leading-[130%]">
-                                        {getDisplayName(DUMMY_PROFILE.name)}님이 했던 경험을 자유롭게 서술해주세요. 모아요 AI가 정리해드려요!
-                                    </span>
-                                    <div className="text-[#1BA07A] shrink-0">
-                                        <Mic size="36" />
-                                    </div>
+                                    {!isAIInputOpen ? (
+                                        /* 닫혀있을 때 */
+                                        <div className="flex items-center w-full gap-3">
+                                            <span className="flex-1 font-pretendard text-[#1BA07A] text-lg lg:text-[24px] font-medium leading-[130%]">
+                                                {getDisplayName(DUMMY_PROFILE.name)}님이 했던 경험을 자유롭게 서술해주세요. 모아요 AI가 정리해드려요!
+                                            </span>
+                                            <div className="text-[#1BA07A] shrink-0">
+                                                <Mic size="36" />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        /* 열려있을 때 (텍스트 영역만 포함) */
+                                        <div className="flex w-full gap-3 items-start animate-fadeIn">
+                                            <textarea
+                                                ref={textareaRef}
+                                                className="flex-1 max-h-[135px] outline-none resize-none bg-transparent
+                                                    font-pretendard text-lg lg:text-[24px] font-medium text-[#1BA07A]"
+                                                placeholder={`${getDisplayName(DUMMY_PROFILE.name)}님이 했던 경험을 자유롭게 서술해주세요.`}
+                                                autoFocus
+                                                value={aiText}
+                                                onChange={handleTextareaChange}
+                                                onClick={(e) => e.stopPropagation()} 
+                                            />
+                                            <div className="items-center justify-center text-[#1BA07A] shrink-0 pt-1">
+                                                <Mic size="36" />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/** 펼쳐지는 입력 영역 */}
+                                {/* 버튼 영역  */}
                                 {isAIInputOpen && (
-                                    <div className="flex flex-col h-[200px] lg:h-[244px] p-4 lg:p-[30px] w-full rounded-[10px] border border-[#D6D6D8] bg-white">
-                                        <textarea
-                                            className="w-full h-full outline-none resize-none bg-transparent 
-                                            font-pretendard text-lg lg:text-[24px] font-medium text-[#58575B] placeholder:text-[#969599]"
-                                            placeholder="UMC 0기에서 디자이너로 활동하였고, UI 제작을 담당하였습니다."
-                                            autoFocus
-                                            maxLength={500}
-                                            value={aiText}
-                                            onChange={(e) => setAiText(e.target.value)}
-                                        />
+                                    <div className="mt-6 lg:mt-[33px] animate-fadeIn">
+                                        <button
+                                            className="bg-[#6EEBC7] px-8 py-3 lg:px-[35px] lg:py-[15px] rounded-[10px] 
+                                                font-pretendard font-medium text-lg lg:text-[20px] text-[#343436] shadow-sm hover:brightness-95"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleAISimulate();
+                                            }}
+                                        >
+                                        생성하기
+                                        </button>
                                     </div>
                                 )}
                             </div>
-                        )}
-                        {isAIInputOpen && (<div className="flex justify-end">
-                            <button
-                                className="bg-[#6EEBC7] px-6 py-3 lg:p-[15px] rounded-[10px] 
-                                font-pretendard font-medium text-lg lg:text-[20px] text-[#343436]"
-                                onClick={handleAISimulate}>
-                                생성하기
-                            </button>
-                        </div>
                         )}
                     </div>
 
@@ -231,7 +287,7 @@ const CareerAddPage = () => {
                                     type="text"
                                     maxLength={item.field === "period" ? 23 : undefined}
                                     value={(newCareer as any)[item.field]}
-                                    onChange={(e) => handleInputChange(item.field, e.target.value)}
+                                    onChange={(e) => handleInputChange(item.field, e.target.value, e)}
                                     placeholder="입력해주세요."
                                     className="flex-1 h-[60px] md:h-[100px] p-4 md:p-[20px] 
                                     border rounded-[10px] border-[#D6D6D8] 
@@ -368,6 +424,7 @@ const CareerAddPage = () => {
             </div>
             <div className="flex justify-center w-full mt-10">
                 <button
+                    type="button"
                     onClick={handleSave}
                     className="w-[200px] lg:w-[227px] h-14 lg:h-[71px] 
                     bg-[#26E1AC] rounded-[10px] text-lg lg:text-[20px]

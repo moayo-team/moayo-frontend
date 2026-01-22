@@ -3,7 +3,7 @@ import PublicToggle from "./PublicToggle";
 import { useUploadManager } from "../../hooks/useUploadManager";
 import { FileText, X } from "lucide-react";
 import type { Career } from "../../types/career";
-import { formatPeriod } from "../../utils/format";
+import { formatPeriod, getStartDateFromPeriod } from "../../utils/format";
 
 interface CarrerDetailModalProps {
     onClose: () => void;
@@ -36,32 +36,48 @@ const CarrerDetailModal = ({ data, onClose, onDelete, onSave }: CarrerDetailModa
 
     {/**외부에서 받은 데이터 로컬 state에 동기화 */ }
     useEffect(() => {
-        if (data) {
-            setFormData({
-                title: data.title || "",
-                organizer: data.organizer || "",
-                period: data.period || "",
-                participation: data.participation || "",
-                role: data.role || "",
-                intro: data.intro || "",
-            });
-
-            setIsPublic(data.isPublic ?? true);
-            // fileName (string[]) -> useUploadManager 포맷 ({name: string}[])으로 변환
-            if (data.fileName && Array.isArray(data.fileName)) {
-                setSelectedFiles(data.fileName.map((name: string) => ({ name })));
-            } else {
-                setSelectedFiles([]);
-            }
-
-            // link (string[]) -> useUploadManager 포맷으로 변환
-            if (data.link && Array.isArray(data.link)) {
-                setLinks(data.link);
-            } else {
-                setLinks([]);
-            }
-        }
+        if (!data) return;
+        setFormData({
+            title: data.title || "",
+            organizer: data.organizer || "",
+            period: data.period || "",
+            participation: data.participation || "",
+            role: data.role || "",
+            intro: data.intro || "",
+        });
+        setIsPublic(data.isPublic ?? true);
+        setSelectedFiles(data.fileName?.map((name: string) => ({ name })) || []);
+        setLinks(data.link || []);
     }, [data, setSelectedFiles, setLinks]);
+
+    // 커서 튕김 방지 로직이 포함된 핸들러
+    const handleInputChange = (name: string, value: string, e?: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        let finalValue = value;
+
+        if (name === "period" && e) {
+            const input = e.target as HTMLInputElement;
+            const start = input.selectionStart || 0;
+            const previousValue = formData.period;
+            finalValue = formatPeriod(value);
+
+            if (previousValue !== finalValue) {
+                setFormData(prev => ({ ...prev, [name]: finalValue }));
+
+                // 수정 중이거나 삭제 중일 때 커서 위치 고정
+                const isDeleting = value.length < previousValue.length;
+                const isModifiedInMiddle = start < value.length;
+
+                if (isDeleting || isModifiedInMiddle) {
+                    setTimeout(() => {
+                        input.setSelectionRange(start, start);
+                    }, 0);
+                }
+            }
+            return;
+        }
+
+        setFormData(prev => ({ ...prev, [name]: finalValue }));
+    };
 
     //formData의 타입을 추출
     type FormDataKeys = keyof typeof formData;
@@ -81,6 +97,7 @@ const CarrerDetailModal = ({ data, onClose, onDelete, onSave }: CarrerDetailModa
         const updatedData: Career = {
             ...data,
             ...formData,
+            startDate: getStartDateFromPeriod(formData.period),
             isPublic: isPublic,
             fileName: selectedFiles.map(f => f.name),
             link: links,
@@ -157,16 +174,7 @@ const CarrerDetailModal = ({ data, onClose, onDelete, onSave }: CarrerDetailModa
                                                 maxLength={item.name === "period" ? 23 : undefined}
                                                 value={formData[item.name as keyof typeof formData]}
                                                 placeholder="입력해주세요."
-                                                onChange={(e) => {
-                                                    let val = e.target.value;
-                                                    if (item.name === "period") {
-                                                        val = formatPeriod(val);
-                                                    }
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        [item.name]: val,
-                                                    }));
-                                                }}
+                                                onChange={(e) => handleInputChange(item.name, e.target.value, e)}
                                                 className={`flex-1 h-12 md:h-[80px] px-4 md:px-[20px]
                                                 border rounded-[10px] bordr-[#D6D6D8] bg-transparent
                                                 font-pretendard text-base md:text-[24px] font-medium leading-[130%] text-[#58575B]                             
@@ -322,7 +330,7 @@ const CarrerDetailModal = ({ data, onClose, onDelete, onSave }: CarrerDetailModa
                                         onClick={handleSave}
                                         className="flex-1 md:flex-none px-8 py-3
                                         bg-[#6EEBC7] rounded-[10px] 
-                                        text-base lg:text-[20px] font-pretendard font-medium leading-[140%] text-[@343436]">
+                                        text-[#343436]  text-base lg:text-[20px] font-pretendard font-medium leading-[140%]">
                                         저장하기
                                     </button>
                                 ) : (
@@ -330,14 +338,14 @@ const CarrerDetailModal = ({ data, onClose, onDelete, onSave }: CarrerDetailModa
                                         <button
                                             className="flex-1 md:flex-none px-8 py-3
                                             rounded-[10px] bg-[#D6D6D8]
-                                            font-pretendard text-base lg:text-[20px] font-medium leading-[140%]"
+                                            text-[#343436] font-pretendard text-base lg:text-[20px] font-medium leading-[140%]"
                                             onClick={() => onDelete?.(data.id)}>
                                             삭제하기
                                         </button>
                                         <button
                                             className="flex-1 md:flex-none px-8 py-3
                                             rounded-[10px] bg-[#D6D6D8]
-                                            font-pretendard text-base lg:text-[20px] font-medium leading-[140%]"
+                                            text-[#343436] font-pretendard text-base lg:text-[20px] font-medium leading-[140%]"
                                             onClick={() => setIsEditMode(true)}>
                                             수정하기
                                         </button>

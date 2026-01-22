@@ -26,7 +26,7 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <ProfilePage /> },
           { path: "edit", element: <ProfileEditPage /> },
-          { path: "add-carrer", element: <CareerAddPage />},
+          { path: "add-career", element: <CareerAddPage />},
         ],
       },
     ],

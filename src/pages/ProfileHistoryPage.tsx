@@ -90,8 +90,7 @@ const ProfileHistoryPage = () => {
                 </div>
                 
             </div>
-            <ResumeSection carrers={allResumes} sortOrder={sortOrder}/>
-        </div>
+{/*            <ResumeSection carrers={allResumes} sortOrder={sortOrder}/>*/}        </div>
     </div>
     )
 }

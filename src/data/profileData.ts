@@ -31,7 +31,7 @@ export const DUMMY_PROFILE = {
   careers: [
     {
       id: 1,
-      period: "2022.03 - 현재",
+      period: "2022.03.01 - 2022.04.07",
       role: "선임 디자이너",
       title: "UMC 9th 앱 개발 동아리",
       startDate: "2025-01-13",
@@ -45,7 +45,7 @@ export const DUMMY_PROFILE = {
     },
     {
       id: 2,
-      period: "2020.01013 - 2022.02.13",
+      period: "2020.01.13 - 2022.02.13",
       role: "주니어 기획자",
       title: "UMC 9th 앱 개발 동아리",
       startDate: "2020-01-13",
