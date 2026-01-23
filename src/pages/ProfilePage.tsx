@@ -67,7 +67,6 @@ const ProfilePage = () => {
         onSave={handleSaveCareer}
         onDelete={handleDeleteCareer}
         />
-
     </div>
   );
 }

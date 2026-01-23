@@ -91,6 +91,7 @@ export const DUMMY_PROFILE = {
       isPublic: false,
     }
   ],
+  //careers: [],// 초기이력섹션확인용
   additionalInfo: [
     {
       id: 1,
