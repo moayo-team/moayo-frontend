@@ -1,0 +1,40 @@
+import { Link } from "react-router-dom";
+
+function Navbar() {
+  return (
+    <nav className="h-20 border-b w-full bg-white sticky top-0 z-50 min-w-[1200px]">
+      <div className="max-w-[1440px] mx-auto h-full px-[50px] grid grid-cols-3 items-center">
+        
+        {/* Left: 로고 */}
+        <span className="font-pretendard text-[28px] font-bold leading-[36px] tracking-normal">
+          MOAYO!
+        </span>
+
+        {/* Center: 메뉴 */}
+        <ul className="flex items-center gap-10 h-6 justify-self-center">
+          <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
+            <Link to="/">홈</Link>
+          </li>
+          <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
+            <Link to="/profile">프로필</Link>
+          </li>
+          <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
+            게시판
+          </li>
+          <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
+            <Link to="/message">쪽지함</Link>
+          </li>
+          <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
+            설정
+          </li>
+        </ul>
+
+        <div />
+      </div>
+    </nav>
+  );
+}
+
+
+export default Navbar;
+

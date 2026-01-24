@@ -1,0 +1,121 @@
+import { useState, useCallback, useRef } from 'react';
+
+interface UploadOptions {
+  maxFiles?: number;
+  maxFileSizeMB?: number;
+  allowedTypes?: string[];
+  maxLinks?: number;      // 링크 최대 개수
+  maxLinkLength?: number; // 링크당 최대 글자 수
+  maxLeftText?: number;
+  maxRightText?: number;
+}
+
+export const useUploadManager = (options: UploadOptions = {}) => {
+  const {
+    maxFiles = 4,
+    maxFileSizeMB = 10,
+    allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/gif"],
+    maxLinks = 4,           // 기본값 4개
+    maxLinkLength = 40,      // 기본값 40자
+    maxLeftText = 10,
+    maxRightText = 20,
+  } = options;
+
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [links, setLinks] = useState<string[]>([]);
+  const [linkInput, setLinkInput] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 파일 업로드 로직
+  const handleFileUpload = useCallback((incomingFiles: FileList | null) => {
+    if (!incomingFiles) return;
+    const newFiles = Array.from(incomingFiles);
+
+    if (selectedFiles.length + newFiles.length > maxFiles) {
+      return;
+    }
+
+    const isValid = newFiles.every((file) => {
+      const maxSize = maxFileSizeMB * 1024 * 1024;
+      if (file.size > maxSize) {
+        return false;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        return false;
+      }
+      return true;
+    });
+
+    // (기존 파일 유효성 검사 로직)
+    if (isValid) {
+      setSelectedFiles((prev) => [...prev, ...newFiles]);
+    }
+  }, [selectedFiles, maxFiles, maxFileSizeMB, allowedTypes]);
+
+  //파일 삭제 로직
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // 링크 추가 로직
+  const addLink = useCallback((linkInput: string) => {
+    const trimmedLink = linkInput.trim();
+    if (!trimmedLink) return;
+
+    // 개수 제한 체크
+    if (links.length >= maxLinks) {
+      return false;
+    }
+
+    // 글자 수 제한 체크
+    if (trimmedLink.length > maxLinkLength) {
+      return false;
+    }
+
+    const formattedLink = trimmedLink.startsWith("http") ? trimmedLink : `https://${trimmedLink}`;
+    setLinks((prev) => [...prev, formattedLink]);
+    setLinkInput("");
+  }, [linkInput, links, maxLinks, maxLinkLength]);
+
+  // 링크 삭제
+  const removeLink = (index: number) => {
+    setLinks(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // 일반 텍스트 제한 체크
+  const isTextValid = (text: string, type: 'left' | 'right') => {
+    const limit = type === 'left' ? maxLeftText : maxRightText;
+    return text.length <= limit;
+  };
+
+  // 파일 다운로드 로직 추가 
+  const handleFileDownload = useCallback((file: File | { name: string; url?: string }) => {
+    // File 객체인 경우 (새로 업로드한 파일)
+    if (file instanceof File) {
+      const url = URL.createObjectURL(file);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url); // 메모리 해제
+    } 
+    // 일반 객체인 경우 (이미 서버에 있는 파일 정보)
+    else if (file.url) {
+      const link = document.createElement("a");
+      link.href = file.url;
+      link.download = file.name;
+      link.target = "_blank"; 
+      link.click();
+    } else {
+      alert("파일 다운로드 경로를 찾을 수 없습니다.");
+    }
+  }, []);
+
+  return { 
+    selectedFiles, setSelectedFiles, handleFileUpload, removeFile,
+    links, setLinks, linkInput, setLinkInput, addLink, removeLink, 
+    isTextValid, fileInputRef, handleFileDownload
+  };
+};

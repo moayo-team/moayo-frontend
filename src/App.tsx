@@ -1,8 +1,33 @@
-import "./App.css";
-import MessagePage from "./pages/MessagePage";
+import './App.css'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import HomeLayout from './layouts/HomeLayout';
+import HomePage from './pages/HomePage';
+import ResumeAddPage from './pages/CareerAddPage';
+import ProfileLayout from './layouts/ProfileLayout';
+import ProfilePage from './pages/ProfilePage';
+import ProfileEditPage from './pages/ProfileEditPage';
+import MessagePage from './pages/MessagePage';
+import CareerAddPage from './pages/CareerAddPage';
 
-function App() {
-  return <MessagePage />;
-}
 
-export default App;
+const router = createBrowserRouter([
+     {
+      path: "/",
+      element: <HomeLayout />, 
+      children: [
+        { index: true, element: <HomePage /> },
+        { path: "profile/add-resume", element: <ResumeAddPage /> },
+        { path: "message", element: <MessagePage />}
+        ],
+      },
+      {
+        path: "/profile",
+        element: <ProfileLayout />,
+        children: [
+          { index: true, element: <ProfilePage /> },
+          { path: "edit", element: <ProfileEditPage /> },
+          { path: "add-career", element: <CareerAddPage />},
+        ],
+      },
+    ],
+  );
