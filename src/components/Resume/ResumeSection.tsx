@@ -32,31 +32,30 @@ const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder
 
   return (
     <>
-      <div className="flex flex-col w-full max-w-[1340px] mx-auto gap-[20px] md:gap-[30px] px-4">
+      <div className="flex flex-col w-full gap-[24px]">
         {/**타이틀, 정렬, 추가 */}
-        <div className="flex flex-col w-full relative gap-4 md:gap-0">
-          <span className="text-center text-[#343436] font-pretendard text-[24px] md:text-[32px] font-semibold leading-[130%] tracking-[-0.01em]">
+        <div className="sm:flex-row w-full items-center gap-4 sm:gap-0">
+          <span className="flex justify-center text-center text-[#25221D] font-pretendard text-[20px] md:text-[24px] font-semibold leading-[130%] tracking-normal">
             이력 관리
           </span>
-          <div className="flex justify-end items-center gap-[12px] md:gap-[20px] md:right-0 md:bottom-0">
-
+          <div className="flex justify-end items-center gap-3 sm:gap-4 w-full sm:w-auto">
             {/* 정렬 버튼 */}
             {hasData && (
               <button
                 onClick={() => setSortOrder(sortOrder === 'latest' ? 'oldest' : 'latest')}
-                className="flex items-center gap-[4px] text-[#969599] font-pretendard text-[14px] md:text-[16px] font-medium leading-[150%]"
+                className="flex items-center gap-1 text-[#978B78] font-pretendard text-[14px] md:text-[16px] font-medium leading-[150%] hover:text-[#343436]"
               >
                 {sortOrder === 'latest' ? '최신 순' : '오래된 순'}
-                <ArrowRightLeft size={24} className="aspect-ratio" color="#969599" />
+                <ArrowRightLeft size={16} color="#978B78" />
               </button>
             )}
             {/* 이력 추가 버튼 */}
             <button
               onClick={() => navigate("/profile/add-career")}
-              className="flex w-[100px] md:w-[143px] py-[8px] md:py-[15px] justify-center items-center 
-            bg-[#6EEBC7] rounded-[10px]"
+              className="flex w-[100px] sm:w-[120px] h-[44px] sm:h-[48px] justify-center items-center 
+              bg-[#6EEBC7] rounded-[10px] hover:bg-[#5BD9B5] transition-colors shadow-sm"
             >
-              <span className="text-[#343436] font-pretendard font-medium text-[16px] md:text-[20px]">
+              <span className="text-[#25221D] font-pretendard font-medium text-[14px] sm:text-[16px]">
                 이력 추가
               </span>
             </button>
@@ -65,7 +64,7 @@ const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder
 
         {/**메인 콘텐츠 */}
         {hasData ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[16px] md:gap-[24px] w-full max-w-[1340px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[16px] w-full">
             {sortedCarrers.map((career) => (
               <CarrerCard
                 key={career.id}
@@ -76,15 +75,15 @@ const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder
           </div>
         ):(
           <div className="flex flex-col justify-center items-center 
-              w-full min-h-[200px] md:min-h-[300px] p-6 md:py-[40px]
-              border rounded-[10px] border-dashed border-[#717074]">
+              w-full min-h-[200px] sm:min-h-[240px] p-8 gap-4
+              border rounded-[10px] border-dashed border-[#5F5749]">
               <div className="flex h-[88px] gap-[20px] justify-center items-center shrink-0 self-stretch">
                 <img
                   src={MascotIcon}
-                  className="w-[60px] md:w-[80px] h-auto object-contain"
+                  className="w-[50px] sm:w-[60px] h-auto object-contain"
                   alt="mascot"
                 />
-                <span className="font-pretendard text-[18px] md:text-[24px] font-medium leading-[130%] text-[#444446]
+                <span className="font-pretendard text-[16px] sm:text-[18px] font-medium leading-[130%] text-[#7C7160]
                 text-center md:text-left break-keep">
                   {getDisplayName(DUMMY_PROFILE.name)}님의 활동경험을 알려주세요!
                 </span>
