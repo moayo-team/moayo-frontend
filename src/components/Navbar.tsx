@@ -1,31 +1,39 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 function Navbar() {
+  const baseClass =
+    "font-roboto text-base leading-6 cursor-pointer transition-colors";
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    [
+      baseClass,
+      isActive ? "font-bold text-[#25221D]" : "font-normal text-[#5F5749]",
+    ].join(" ");
+
   return (
-    <nav className="h-20 border-b w-full bg-white sticky top-0 z-50 min-w-[1200px]">
+    <nav className="h-20 border-b w-full bg-white sticky top-0 z-50">
       <div className="max-w-[1440px] mx-auto h-full px-[50px] grid grid-cols-3 items-center">
-        
-        {/* Left: 로고 */}
         <span className="font-pretendard text-[28px] font-bold leading-[36px] tracking-normal">
           MOAYO!
         </span>
 
-        {/* Center: 메뉴 */}
         <ul className="flex items-center gap-10 h-6 justify-self-center">
-          <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
-            <Link to="/">홈</Link>
+          <li>
+            <NavLink to="/" end className={linkClass}>
+              홈
+            </NavLink>
           </li>
-          <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
-            <Link to="/profile">프로필</Link>
+          <li>
+            <NavLink to="/profile" className={linkClass}>
+              프로필
+            </NavLink>
           </li>
-          <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
+          <li className="font-roboto font-normal text-base leading-6 cursor-pointer text-[#5F5749]">
             게시판
           </li>
-          <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
-            <Link to="/message">쪽지함</Link>
-          </li>
-          <li className="font-roboto font-normal text-base leading-6 cursor-pointer">
-            설정
+          <li>
+            <NavLink to="/message" className={linkClass}>
+              쪽지함
+            </NavLink>
           </li>
         </ul>
 
@@ -35,6 +43,4 @@ function Navbar() {
   );
 }
 
-
 export default Navbar;
-
