@@ -59,7 +59,7 @@ const PostCard = ({ post, onDelete, onEdit, isDeleting }: PostCardProps): JSX.El
   };
 
   return (
-    <article className="flex flex-col w-full max-w-[502px] min-h-[276px] items-center justify-center gap-2.5 p-6 relative bg-gray-scalewhite rounded-[10px] border border-solid border-[#a7a7aa]">
+    <article className="flex flex-col w-full min-h-[220px] p-6 relative bg-white rounded-[10px] border border-solid border-gray-scalegray-scale-100 shadow-sm hover:shadow-md transition-all">
       <div className="flex flex-col w-full min-h-[212px] items-center justify-between relative">
         <div className="flex flex-col items-start gap-[21px] relative self-stretch w-full flex-[0_0_auto]">
           <header className="flex flex-col items-start gap-[3px] relative self-stretch w-full flex-[0_0_auto]">
@@ -234,7 +234,7 @@ export const MyPostsPage = (): JSX.Element => {
     <div className="relative w-full min-h-screen bg-white pb-20">
       <NavigationBar />
       
-      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-32">
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Sidebar - Left Column */}
           <aside className="w-full lg:w-[280px] flex-shrink-0 order-2 lg:order-1">
@@ -259,7 +259,7 @@ export const MyPostsPage = (): JSX.Element => {
                 </div>
               </div>
               <button 
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/board')}
                 className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-gray-scale30 rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                 type="button"
                 aria-label="게시판으로 돌아가기"

@@ -85,4 +85,6 @@ export const NavigationBar = (): JSX.Element => {
       </div>
     </nav>
   );
-};
+}
+
+export default NavigationBar;

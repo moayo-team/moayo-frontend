@@ -68,7 +68,7 @@ export const PostDetailPage = (): JSX.Element => {
     <div className="relative w-full min-h-screen bg-white pb-20">
       <NavigationBar />
       
-      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Sidebar - Left Column */}
           <aside className="w-full lg:w-[280px] flex-shrink-0 order-2 lg:order-1">

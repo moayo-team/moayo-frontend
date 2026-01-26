@@ -1,23 +1,17 @@
-import ThreadListItem from "./messageCard";
-import type { ChatParticipants } from "../../types/message";
+import MessageBubble from "./messageBubble";
+import type { Message } from "../../types/message";
 
 type Props = {
-  threads: ChatParticipants[];
-  selectedThreadId: string;
-  onSelectThread: (id: string) => void;
+  messages: Message[];
+  currentUserId: string;
 };
 
-export default function ThreadList({ threads, selectedThreadId, onSelectThread }: Props) {
+export default function MessageList({ messages, currentUserId }: Props) {
   return (
-    <div className="h-full min-h-0 overflow-y-auto p-4 space-y-3">
-      {threads.map((t) => (
-        <ThreadListItem
-          key={t.id}
-          thread={t}
-          active={t.id === selectedThreadId}
-          onClick={() => onSelectThread(t.id)}
-        />
+    <>
+      {messages.map((m) => (
+        <MessageBubble key={m.id} message={m} currentUserId={currentUserId} />
       ))}
-    </div>
+    </>
   );
 }

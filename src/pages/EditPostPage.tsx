@@ -146,7 +146,7 @@ export const EditPostPage = (): JSX.Element => {
     <div className="relative w-full min-h-screen bg-white pb-20">
       <NavigationBar />
 
-      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-32">
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex justify-center">
           {/* Main Content */}
           <main className="flex-1">

@@ -6,7 +6,6 @@ import HomePage from './pages/HomePage';
 import ResumeAddPage from './pages/CareerAddPage';
 import ProfileLayout from './layouts/ProfileLayout';
 import ProfilePage from './pages/ProfilePage';
-import ProfileEditPage from './pages/ProfileEditPage';
 import MessagePage from './pages/MessagePage';
 import CareerAddPage from './pages/CareerAddPage';
 import { BoardPage } from './pages/BoardPage';
@@ -53,8 +52,7 @@ const router = createBrowserRouter([
       element: <ProfileLayout />,
         children: [
           { index: true, element: <ProfilePage /> },
-          { path: "edit", element: <ProfileEditPage /> },
-          { path: "add-career", element: <CareerAddPage /> },
+          { path: "add-career", element: <CareerAddPage />},
         ],
       }
     ],

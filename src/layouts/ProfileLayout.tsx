@@ -5,8 +5,8 @@ const ProfileLayout = () => {
   return (
     <div className="flex flex-col w-full min-h-screen bg-white">
       <NavigationBar />
-        <main className="flex-1 w-full mt-[70px] pb-[100px] overflow-x-auto flex flex-col items-center">
-          <div className="w-full min-w-0">
+        <main className="flex-1 w-full mt-[70px] pb-[100px] flex justify-center">
+          <div className="w-full max-w-[1024px] px-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>       
         </main>
