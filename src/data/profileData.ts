@@ -1,33 +1,31 @@
-import profilePhoto from "../assets/profile_photo.svg";
 
 export const DUMMY_PROFILE = {
   name: "김주연",
-  jobTitle: "디자이너, 기획자",
-  profileImage: profilePhoto,
-  introduction: "자기소개를 해주세요. 자기소개를 해주세요. 자기소개를 해주세요. 자기소개를 해주세요.",
-  contact: {
-    email: "rwd4533@naver.com",
-    phone: "010-9341-3333",
-    kakaoId: "bladkfjfd",
-  },
-  education: [
-    {
-      id: 1,
-      period: "22.3 ~",
-      school: "이화여자대학교",
-      major: "커뮤니케이션 미디어학부 재학중",
-      subMajor: "융합 콘텐츠학과 복수전공",
-      isVerified: true, // 학력인증 완료 표시용
-    },
-    {
-      id: 2,
-      period: "22.3 ~",
-      school: "이화여자대학교",
-      major: "커뮤니케이션 미디어학부 재학중",
-      subMajor: null,
-      isVerified: true, // 학력인증 완료 표시용
-    }
+  profileImage: null,
+  introduction: null,
+  details:[
+    { id: "birth", label: "생년월일", value: "2003.09.25"},
+    { id: "school", label: "학력", value: "한양대학교", isVerified: false },
+    { id: "major", label: "학과", value: "경영학과" },
+    { id: "email", label: "이메일", value: "" }, 
+    { id: "phone", label: "전화번호", value: "010-9341-4533" },
   ],
+  additionalDetails: [],
+  tags: [
+    {id:1, title:"디자인"}, 
+    {id:2, title: "기획"},
+  ],
+  // profileImage: null, //초기화면용
+  // introduction: null, //초기화면용
+  // details:[{ id: "birth", label: "생년월일", value: null},
+  //   { id: "school", label: "학력", value: null, isVerified: false },
+  //   { id: "major", label: "학과", value: null },
+  //   { id: "email", label: "이메일", value: null }, 
+  //   { id: "phone", label: "전화번호", value: null },], //초기화면용
+  // tags:[], //초기화면용
+  // //careers: [],// 초기화면용
+  // additionalDetails: [], // 초기화면용
+
   careers: [
     {
       id: 1,
@@ -91,21 +89,5 @@ export const DUMMY_PROFILE = {
       isPublic: false,
     }
   ],
-  //careers: [],// 초기이력섹션확인용
-  additionalInfo: [
-    {
-      id: 1,
-      type: "file",
-      title: "2025 포트폴리오",
-      description: "프로덕트 디자이너",
-      link: "#", 
-    },
-    {
-      id: 2,
-      type: "link",
-      title: "Github",
-      link: "https://github.com/...", 
-    }
-  ],
-  tags: [{id:1, title:"디자인"}, {id:2, title: "기획"},{id:3, title: "기획"},{id:4, title: "기획"}]
+  
 };

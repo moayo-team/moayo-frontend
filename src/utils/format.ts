@@ -33,3 +33,11 @@ export const validatePeriod = (period: string) => {
     const regex = /^\d{4}\.\d{2}\.\d{2}\s-\s\d{4}\.\d{2}\.\d{2}$/;
     return regex.test(period);
 };
+
+/**생일 포맷팅 */
+export const formatBirthDate = (value: string) => {
+    const nums = value.replace(/[^0-9]/g, ""); // 숫자만 추출
+    if (nums.length <= 4) return nums;
+    if (nums.length <= 6) return `${nums.slice(0, 4)}.${nums.slice(4)}`;
+    return `${nums.slice(0, 4)}.${nums.slice(4, 6)}.${nums.slice(6, 8)}`;
+};
