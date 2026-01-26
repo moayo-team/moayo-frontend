@@ -1,0 +1,257 @@
+@import "tailwindcss";
+
+/* 핵심: 이 줄이 있어야 src 폴더 내의 파일들을 스캔하여 정렬/레이아웃 클래스를 생성합니다. */
+@source "./src";
+
+@theme {
+  /* --- [1] 색상 설정 통합 --- */
+  /* 기존 tailwind.config.js에 있던 색상들을 여기로 가져왔습니다. */
+  --color-gray-scale30: var(--gray-scale30);
+  --color-gray-scalebk: var(--gray-scalebk);
+  --color-gray-scalegray-scale-100: var(--gray-scalegray-scale-100);
+  --color-gray-scalegray-scale-200: var(--gray-scalegray-scale-200);
+  --color-gray-scalegray-scale-300: var(--gray-scalegray-scale-300);
+  --color-gray-scalegray-scale-400: var(--gray-scalegray-scale-400);
+  --color-gray-scalegray-scale-50: var(--gray-scalegray-scale-50);
+  --color-gray-scalegray-scale-500: var(--gray-scalegray-scale-500);
+  --color-gray-scalegray-scale-600: var(--gray-scalegray-scale-600);
+  --color-gray-scalegray-scale-700: var(--gray-scalegray-scale-700);
+  --color-gray-scalegray-scale-800: var(--gray-scalegray-scale-800);
+  --color-gray-scalegray-scale-900: var(--gray-scalegray-scale-900);
+  --color-gray-scalewhite: var(--gray-scalewhite);
+
+  --color-primaryprimary-100: var(--primaryprimary-100);
+  --color-primaryprimary-200: var(--primaryprimary-200);
+  --color-primaryprimary-300: var(--primaryprimary-300);
+  --color-primaryprimary-400: var(--primaryprimary-400);
+  --color-primaryprimary-50: var(--primaryprimary-50);
+  --color-primaryprimary-500: var(--primaryprimary-500);
+  --color-primaryprimary-600: var(--primaryprimary-600);
+  --color-primaryprimary-700: var(--primaryprimary-700);
+  --color-primaryprimary-800: var(--primaryprimary-800);
+  --color-primaryprimary-900: var(--primaryprimary-900);
+
+  /* --- [2] 폰트 설정 통합 --- */
+  --font-300: var(--300-font-family);
+  --font-body-b1-100: var(--body-b1-100-font-family);
+  --font-body-b1-200: var(--body-b1-200-font-family);
+  --font-body-b2-100: var(--body-b2-100-font-family);
+  --font-body-b2-200: var(--body-b2-200-font-family);
+  --font-body-b2-300: var(--body-b2-300-font-family);
+  --font-body-b3-100: var(--body-b3-100-font-family);
+  --font-body-b3-200: var(--body-b3-200-font-family);
+  --font-body-b4-100: var(--body-b4-100-font-family);
+  --font-body-medium: var(--body-medium-font-family);
+  --font-body-regular: var(--body-regular-font-family);
+  --font-caption-01-100: var(--caption-01-100-font-family);
+  --font-caption-01-200: var(--caption-01-200-font-family);
+  --font-display-large: var(--display-large-font-family);
+  --font-heading-h1-100: var(--heading-h1-100-font-family);
+  --font-heading-h1-200: var(--heading-h1-200-font-family);
+  --font-heading-h2-100: var(--heading-h2-100-font-family);
+  --font-heading-h2-200: var(--heading-h2-200-font-family);
+  --font-heading-h2-300: var(--heading-h2-300-font-family);
+  --font-heading-h3-100: var(--heading-h3-100-font-family);
+  --font-heading-h3-200: var(--heading-h3-200-font-family);
+  --font-heading-h3-300: var(--heading-h3-300-font-family);
+
+  /* --- [3] 애니메이션 설정 통합 --- */
+  --animate-spin: spin 1s linear infinite;
+  --animate-fade-in: fade-in 1s var(--animation-delay, 0s) ease forwards;
+  --animate-fade-up: fade-up 1s var(--animation-delay, 0s) ease forwards;
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+  --animate-shimmer: shimmer 8s infinite;
+
+  @keyframes spin { to { transform: rotate(1turn); } }
+  @keyframes fade-in { 0% { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+  @keyframes fade-up { 0% { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+  @keyframes marquee { 0% { transform: translate(0); } to { transform: translateX(calc(-100% - var(--gap))); } }
+  @keyframes marquee-vertical { 0% { transform: translateY(0); } to { transform: translateY(calc(-100% - var(--gap))); } }
+  @keyframes shimmer { 
+    0%, 90%, to { background-position: calc(-100% - var(--shimmer-width)) 0; }
+    30%, 60% { background-position: calc(100% + var(--shimmer-width)) 0; }
+  }
+  @keyframes image-glow {
+    0% { opacity: 0; animation-timing-function: cubic-bezier(0.74, 0.25, 0.76, 1); }
+    10% { opacity: 0.7; animation-timing-function: cubic-bezier(0.12, 0.01, 0.08, 0.99); }
+    to { opacity: 0.4; }
+  }
+}
+
+/* --- [4] 유틸리티 레이어 (기존 코드 유지) --- */
+@layer base {
+  button, input, select, textarea {
+    @apply appearance-none bg-transparent border-0 outline-none;
+  }
+  
+  /* ✅ 정렬 깨짐 방지: v4에서는 테두리 기본 색상이 투명할 수 있으므로 명시 */
+  *, ::before, ::after {
+    border-color: var(--gray-scalegray-scale-200, #e5e7eb); 
+  }
+}
+
+@layer components {
+  .all-\[unset\] {
+    all: unset;
+  }
+}
+
+/* --- [5] CSS 변수 정의 (기존 내용 유지) --- */
+:root {
+  --300-font-family: "Pretendard", Helvetica;
+  --300-font-size: 16px;
+  --300-font-style: normal;
+  --300-font-weight: 600;
+  --300-letter-spacing: 0px;
+  --300-line-height: 150%;
+  --body-b1-100-font-family: "Pretendard", Helvetica;
+  --body-b1-100-font-size: 18px;
+  --body-b1-100-font-style: normal;
+  --body-b1-100-font-weight: 500;
+  --body-b1-100-letter-spacing: 0px;
+  --body-b1-100-line-height: 150%;
+  --body-b1-200-font-family: "Pretendard", Helvetica;
+  --body-b1-200-font-size: 18px;
+  --body-b1-200-font-style: normal;
+  --body-b1-200-font-weight: 400;
+  --body-b1-200-letter-spacing: 0px;
+  --body-b1-200-line-height: 150%;
+  --body-b2-100-font-family: "Pretendard", Helvetica;
+  --body-b2-100-font-size: 16px;
+  --body-b2-100-font-style: normal;
+  --body-b2-100-font-weight: 600;
+  --body-b2-100-letter-spacing: 0px;
+  --body-b2-100-line-height: 150%;
+  --body-b2-200-font-family: "Pretendard", Helvetica;
+  --body-b2-200-font-size: 16px;
+  --body-b2-200-font-style: normal;
+  --body-b2-200-font-weight: 500;
+  --body-b2-200-letter-spacing: 0px;
+  --body-b2-200-line-height: 150%;
+  --body-b2-300-font-family: "Pretendard", Helvetica;
+  --body-b2-300-font-size: 16px;
+  --body-b2-300-font-style: normal;
+  --body-b2-300-font-weight: 400;
+  --body-b2-300-letter-spacing: 0px;
+  --body-b2-300-line-height: 150%;
+  --body-b3-100-font-family: "Pretendard", Helvetica;
+  --body-b3-100-font-size: 14px;
+  --body-b3-100-font-style: normal;
+  --body-b3-100-font-weight: 500;
+  --body-b3-100-letter-spacing: 0px;
+  --body-b3-100-line-height: 150%;
+  --body-b3-200-font-family: "Pretendard", Helvetica;
+  --body-b3-200-font-size: 14px;
+  --body-b3-200-font-style: normal;
+  --body-b3-200-font-weight: 400;
+  --body-b3-200-letter-spacing: 0px;
+  --body-b3-200-line-height: 150%;
+  --body-b4-100-font-family: "Pretendard", Helvetica;
+  --body-b4-100-font-size: 12px;
+  --body-b4-100-font-style: normal;
+  --body-b4-100-font-weight: 500;
+  --body-b4-100-letter-spacing: -0.12px;
+  --body-b4-100-line-height: 150%;
+  --body-medium-font-family: "SUIT", Helvetica;
+  --body-medium-font-size: 14px;
+  --body-medium-font-style: normal;
+  --body-medium-font-weight: 500;
+  --body-medium-letter-spacing: 0px;
+  --body-medium-line-height: 22px;
+  --body-regular-font-family: "SUIT", Helvetica;
+  --body-regular-font-size: 14px;
+  --body-regular-font-style: normal;
+  --body-regular-font-weight: 400;
+  --body-regular-letter-spacing: 0px;
+  --body-regular-line-height: 22px;
+  --caption-01-100-font-family: "Pretendard", Helvetica;
+  --caption-01-100-font-size: 10px;
+  --caption-01-100-font-style: normal;
+  --caption-01-100-font-weight: 500;
+  --caption-01-100-letter-spacing: 0px;
+  --caption-01-100-line-height: 150%;
+  --caption-01-200-font-family: "Pretendard", Helvetica;
+  --caption-01-200-font-size: 10px;
+  --caption-01-200-font-style: normal;
+  --caption-01-200-font-weight: 400;
+  --caption-01-200-letter-spacing: 0px;
+  --caption-01-200-line-height: 150%;
+  --display-large-font-family: "Pretendard", Helvetica;
+  --display-large-font-size: 48px;
+  --display-large-font-style: normal;
+  --display-large-font-weight: 700;
+  --display-large-letter-spacing: -0.48px;
+  --display-large-line-height: 120.00000476837158%;
+  --gray-scale30: rgba(250, 250, 250, 1);
+  --gray-scalebk: rgba(0, 0, 0, 1);
+  --gray-scalegray-scale-100: rgba(214, 214, 216, 1);
+  --gray-scalegray-scale-200: rgba(195, 194, 197, 1);
+  --gray-scalegray-scale-300: rgba(167, 167, 170, 1);
+  --gray-scalegray-scale-400: rgba(150, 149, 153, 1);
+  --gray-scalegray-scale-50: rgba(242, 242, 242, 1);
+  --gray-scalegray-scale-500: rgba(124, 123, 128, 1);
+  --gray-scalegray-scale-600: rgba(113, 112, 116, 1);
+  --gray-scalegray-scale-700: rgba(88, 87, 91, 1);
+  --gray-scalegray-scale-800: rgba(68, 68, 70, 1);
+  --gray-scalegray-scale-900: rgba(52, 52, 54, 1);
+  --gray-scalewhite: rgba(255, 255, 255, 1);
+  --heading-h1-100-font-family: "Pretendard", Helvetica;
+  --heading-h1-100-font-size: 32px;
+  --heading-h1-100-font-style: normal;
+  --heading-h1-100-font-weight: 700;
+  --heading-h1-100-letter-spacing: -0.32px;
+  --heading-h1-100-line-height: 129.99999523162842%;
+  --heading-h1-200-font-family: "Pretendard", Helvetica;
+  --heading-h1-200-font-size: 32px;
+  --heading-h1-200-font-style: normal;
+  --heading-h1-200-font-weight: 600;
+  --heading-h1-200-letter-spacing: -0.32px;
+  --heading-h1-200-line-height: 129.99999523162842%;
+  --heading-h2-100-font-family: "Pretendard", Helvetica;
+  --heading-h2-100-font-size: 24px;
+  --heading-h2-100-font-style: normal;
+  --heading-h2-100-font-weight: 700;
+  --heading-h2-100-letter-spacing: 0px;
+  --heading-h2-100-line-height: 129.99999523162842%;
+  --heading-h2-200-font-family: "Pretendard", Helvetica;
+  --heading-h2-200-font-size: 24px;
+  --heading-h2-200-font-style: normal;
+  --heading-h2-200-font-weight: 600;
+  --heading-h2-200-letter-spacing: 0px;
+  --heading-h2-200-line-height: 129.99999523162842%;
+  --heading-h2-300-font-family: "Pretendard", Helvetica;
+  --heading-h2-300-font-size: 24px;
+  --heading-h2-300-font-style: normal;
+  --heading-h2-300-font-weight: 500;
+  --heading-h2-300-letter-spacing: 0px;
+  --heading-h2-300-line-height: 129.99999523162842%;
+  --heading-h3-100-font-family: "Pretendard", Helvetica;
+  --heading-h3-100-font-size: 20px;
+  --heading-h3-100-font-style: normal;
+  --heading-h3-100-font-weight: 600;
+  --heading-h3-100-letter-spacing: 0px;
+  --heading-h3-100-line-height: 139.9999976158142%;
+  --heading-h3-200-font-family: "Pretendard", Helvetica;
+  --heading-h3-200-font-size: 20px;
+  --heading-h3-200-font-style: normal;
+  --heading-h3-200-font-weight: 500;
+  --heading-h3-200-letter-spacing: 0px;
+  --heading-h3-200-line-height: 139.9999976158142%;
+  --heading-h3-300-font-family: "Pretendard", Helvetica;
+  --heading-h3-300-font-size: 20px;
+  --heading-h3-300-font-style: normal;
+  --heading-h3-300-font-weight: 500;
+  --heading-h3-300-letter-spacing: 0px;
+  --heading-h3-300-line-height: 139.9999976158142%;
+  --primaryprimary-100: rgba(188, 246, 229, 1);
+  --primaryprimary-200: rgba(155, 241, 217, 1);
+  --primaryprimary-300: rgba(110, 235, 199, 1);
+  --primaryprimary-400: rgba(81, 231, 189, 1);
+  --primaryprimary-50: rgba(233, 252, 247, 1);
+  --primaryprimary-500: rgba(38, 225, 172, 1);
+  --primaryprimary-600: rgba(35, 205, 157, 1);
+  --primaryprimary-700: rgba(27, 160, 122, 1);
+  --primaryprimary-800: rgba(21, 124, 95, 1);
+  --primaryprimary-900: rgba(16, 95, 72, 1);
+}

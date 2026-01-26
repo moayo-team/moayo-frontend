@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from "react";
 import { usePost } from '../hooks/usePosts';
-import { NavigationBar } from '../components/layout/NavigationBar';
+import { NavigationBar } from '../components/Navbar';
 import { Badge } from '../components/common/Badge';
 import { CommentSection } from '../components/common/CommentSection';
 import { formatDateRange } from '../utils/dateUtils';

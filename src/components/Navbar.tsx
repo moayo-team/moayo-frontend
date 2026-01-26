@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 import type { JSX } from 'react';
-import logo from '../../assets/pavicon.png';
+import logo from '../assets/pavicon.png';
 
 export const NavigationBar = (): JSX.Element => {
   const navigate = useNavigate();
@@ -10,9 +10,9 @@ export const NavigationBar = (): JSX.Element => {
   
   const navigationItems = [
     { id: 1, label: "홈", path: "/" },
-    { id: 2, label: "프로필", path: "#" },
-    { id: 3, label: "게시판", path: "/" },
-    { id: 4, label: "쪽지", path: "#" },
+    { id: 2, label: "프로필", path: "/profile" },
+    { id: 3, label: "게시판", path: "/board" },
+    { id: 4, label: "쪽지", path: "/message" },
   ];
 
   return (

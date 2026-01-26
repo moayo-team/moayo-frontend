@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { NavigationBar } from '../components/layout/NavigationBar';
+import { NavigationBar } from '../components/Navbar';
 import { useAuth } from '../hooks/useAuth';
 import { usePosts, useDeletePost } from '../hooks/usePosts';
 import { Badge } from '../components/common/Badge';

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { NavigationBar } from '../components/layout/NavigationBar';
+import { NavigationBar } from '../components/Navbar';
 import { usePost, useUpdatePost } from '../hooks/usePosts';
 import { SuccessModal } from '../components/common/SuccessModal';
 import type { JSX } from 'react';
