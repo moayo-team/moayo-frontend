@@ -20,14 +20,12 @@ export default function MessageBubble({ message, currentUserId }: Props) {
       <div className={isMine ? "max-w-[70%] text-right" : "max-w-[70%]"}>
         <div
           className={[
-            "inline-block rounded-2xl px-5 py-3 text-sm leading-relaxed",
-            isMine
-              ? "bg-primary-300 text-gray-900 rounded-tr-xl"
-              : "bg-primary-50 text-gray-900 rounded-tl-xl",
+            "inline-block rounded-2xl px-5 py-3 text-sm leading-relaxed text-[#25221D]",
+            isMine ? "bg-[#6EEBC7] rounded-tr-xl" : "bg-[#E9FCF7] rounded-tl-xl",
           ].join(" ")}
         >
           {message.is_deleted ? (
-            <span className="text-gray-400">삭제된 메시지입니다.</span>
+            <span className="text-gray-500">삭제된 메시지입니다.</span>
           ) : (
             message.content
           )}

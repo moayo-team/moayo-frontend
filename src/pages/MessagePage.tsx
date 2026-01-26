@@ -1,13 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ThreadList from "../components/messages/threadList";
 import ChatPanel from "../components/messages/chatPanel";
 import type { ChatParticipants, Message } from "../types/message";
 
 export default function MessagePage() {
-  // 임시 사용자 ID
   const currentUserId = "u_me";
 
-  // 더미 데이터
   const threads: ChatParticipants[] = useMemo(
     () => [
       {
@@ -78,16 +76,29 @@ export default function MessagePage() {
     setDraft("");
   };
 
+  const BASE_WIDTH = 403 + 24 + 904;
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      setScale(Math.min(1, (w - 40) / BASE_WIDTH));
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <main className="flex-1 min-h-0">
-        <div className="mx-auto w-full max-w-screen-2xl h-full px-4 sm:px-6 lg:px-12">
-          <h1 className="mt-6 mb-6 text-[28px] font-bold leading-[36px] tracking-normal">
+    <div className="bg-white">
+      <main className="w-full flex justify-center">
+        <div className="origin-top-left" style={{ transform: `scale(${scale})` }}>
+          <h1 className="text-[28px] font-bold leading-[36px] tracking-normal mb-[24px]">
             쪽지함 목록
           </h1>
 
-          <div className="flex flex-col md:flex-row gap-6 min-h-0 h-[calc(100%-72px)]">
-            <aside className="md:w-[clamp(280px,28vw,403px)] w-full border border-gray-200 rounded-[10px] overflow-hidden min-h-0 bg-white">
+          <div className="flex flex-row gap-6">
+            <aside className="w-[403px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden p-[31px_24px]">
               <ThreadList
                 threads={threads}
                 selectedThreadId={selectedThreadId}
@@ -95,7 +106,7 @@ export default function MessagePage() {
               />
             </aside>
 
-            <section className="flex-1 border border-gray-200 rounded-[10px] overflow-hidden min-h-0 bg-white">
+            <section className="w-[904px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden">
               <ChatPanel
                 thread={selectedThread}
                 messages={chatMessages}

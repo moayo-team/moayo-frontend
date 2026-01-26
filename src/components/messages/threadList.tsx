@@ -9,7 +9,7 @@ type Props = {
 
 export default function ThreadList({ threads, selectedThreadId, onSelectThread }: Props) {
   return (
-    <div className="h-full min-h-0 overflow-y-auto p-4 space-y-3">
+    <div className="h-full min-h-0 space-y-[10px]">
       {threads.map((t) => (
         <ThreadListItem
           key={t.id}

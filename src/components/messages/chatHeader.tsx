@@ -19,7 +19,6 @@ export default function ChatHeader({ thread }: Props) {
 
       <div className="flex items-center gap-3 text-xs text-gray-600">
         <button className="hover:text-gray-900">프로필 바로가기</button>
-        <button className="hover:text-gray-900">신고</button>
       </div>
     </div>
   );
