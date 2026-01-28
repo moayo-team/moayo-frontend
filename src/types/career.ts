@@ -33,3 +33,5 @@ export interface Careeritems {
   updatedAt: string;
 
 }
+
+

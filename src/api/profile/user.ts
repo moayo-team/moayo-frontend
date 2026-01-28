@@ -1,5 +1,4 @@
-import type { UserResponse } from "../types/user";
-import axiosInstance from "./axios";
+import type { UserResponse } from "../../types/user";
 
 export const getUserMe = async (): Promise<UserResponse> => {
     /*

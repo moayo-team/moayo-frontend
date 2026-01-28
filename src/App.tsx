@@ -34,7 +34,7 @@ const router = createBrowserRouter([
       element: <HomeLayout />, 
       children: [
         { index: true, element: <HomePage /> },
-        { path: "profile/add-resume", element: <ResumeAddPage /> },
+        { path: "profile/add-craeer", element: <CareerAddPage /> },
         { path: "board", element: <BoardPage /> }, 
         { path: "post/:id", element: <PostDetailPage /> },
         { path: "create", element: <CreatePostPage /> },

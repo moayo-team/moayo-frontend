@@ -1,5 +1,6 @@
-import type { CareerResponse } from "../types/career";
-import axiosInstance from "./axios";
+import type { CareerResponse } from "../../types/career";
+
+
 
 export const getExperiences = async(
     sort: 'LATEST' | 'OLDEST' = 'LATEST',

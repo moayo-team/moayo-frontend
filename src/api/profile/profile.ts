@@ -1,7 +1,6 @@
-import { type CreateProfileRequest, type ProfileCreateResponse, type ProfileResponse, type UpdateProfileRequest, type UpdateProfileResponse } from "../types/profile";
-import axiosInstance from "./axios";
+import type { CreateProfileRequest, ProfileCreateResponse, ProfileResponse, UpdateProfileRequest, UpdateProfileResponse } from "../../types/profile";
 
-/**프로필 생성 */
+
 export const createProfile = async (profileData: CreateProfileRequest): Promise<ProfileCreateResponse> => {
     /*
     const response = await axiosInstance.post<ProfileCreateResponse>('/api/v1/profiles', profileData);
