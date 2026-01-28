@@ -24,7 +24,7 @@ export default function MessageBubble({ message, currentUserId }: Props) {
             isMine ? "bg-[#6EEBC7] rounded-tr-xl" : "bg-[#E9FCF7] rounded-tl-xl",
           ].join(" ")}
         >
-          {message.is_deleted ? (
+          {message.isDeleted ? (
             <span className="text-gray-500">삭제된 메시지입니다.</span>
           ) : (
             message.content

@@ -1,81 +1,77 @@
 import { useEffect, useMemo, useState } from "react";
 import ThreadList from "../components/messages/threadList";
 import ChatPanel from "../components/messages/chatPanel";
-import type { ChatParticipants, Message } from "../types/message";
+import { useChatRoom } from "../hooks/useChatRoom";
+import type { ChatParticipants } from "../types/message";
+
+type ThreadUI = {
+  id: string; // 이 값을 roomId로 사용(=chatRoomId)
+  name: string;
+  role: string;
+  preview: string;
+  unread?: boolean;
+};
 
 export default function MessagePage() {
   const currentUserId = "u_me";
 
+  // UI용 더미 스레드
   const threads: ChatParticipants[] = useMemo(
     () => [
       {
-        id: "t1",
+        id: "p1",               
+        chatRoomId: "101",        
+        userId: currentUserId,
+        lastReadMessageId: "",
+        createdAt: new Date(),
+
         name: "김주연",
         role: "디자이너",
         preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
         unread: true,
       },
-      { id: "t2", name: "김주연", role: "디자이너", preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다." },
-      { id: "t3", name: "김주연", role: "디자이너", preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다." },
-      { id: "t4", name: "김주연", role: "디자이너", preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다." },
-      { id: "t5", name: "김주연", role: "디자이너", preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다." },
-    ],
-    []
-  );
-
-  const initialMessages: Message[] = useMemo(
-    () => [
       {
-        id: "m1",
-        chatRoomId: "t1",
-        senderId: "u_other",
-        content: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
-        is_deleted: false,
+        id: "p2",
+        chatRoomId: "102",
+        userId: currentUserId,
+        lastReadMessageId: "",
         createdAt: new Date(),
+
+        name: "김주연",
+        role: "디자이너",
+        preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
       },
       {
-        id: "m2",
-        chatRoomId: "t1",
-        senderId: currentUserId,
-        content: "네, 안녕하세요. 어떤 내용일까요?",
-        is_deleted: false,
+        id: "p3",
+        chatRoomId: "103",
+        userId: currentUserId,
+        lastReadMessageId: "",
         createdAt: new Date(),
+
+        name: "김주연",
+        role: "디자이너",
+        preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
       },
     ],
     [currentUserId]
   );
 
-  const [selectedThreadId, setSelectedThreadId] = useState<string>(threads[0]?.id ?? "");
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [draft, setDraft] = useState("");
+  // 선택된 스레드(UI 데이터)
+  const [selectedThreadId, setSelectedThreadId] = useState<string>(threads[0]?.chatRoomId ?? "");
 
   const selectedThread = useMemo(
-    () => threads.find((t) => t.id === selectedThreadId),
+    () => threads.find((t) => t.chatRoomId === selectedThreadId),
     [threads, selectedThreadId]
   );
 
-  const chatMessages = useMemo(
-    () => messages.filter((m) => m.chatRoomId === selectedThreadId),
-    [messages, selectedThreadId]
-  );
+  // ✅ STOMP는 roomId = chat_room_id
+  const { connected, messages, input, setInput, send } = useChatRoom({
+    roomId: selectedThreadId,
+    wsUrl: "http://15.164.218.67.nip.io/ws-chat",
+    // SockJS면 wsUrl을 http://15.166.111.nip.io/ws-chat 로 바꾸고 client를 SockJS 모드로
+  });
 
-  const handleSend = () => {
-    const text = draft.trim();
-    if (!text) return;
-
-    const newMsg: Message = {
-      id: `m_${Date.now()}`,
-      chatRoomId: selectedThreadId,
-      senderId: currentUserId,
-      content: text,
-      is_deleted: false,
-      createdAt: new Date(),
-    };
-
-    setMessages((prev) => [...prev, newMsg]);
-    setDraft("");
-  };
-
+  // ====== 기존 scale 로직 유지 ======
   const BASE_WIDTH = 403 + 24 + 904;
   const [scale, setScale] = useState(1);
 
@@ -88,6 +84,7 @@ export default function MessagePage() {
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
+  // ==================================
 
   return (
     <div className="bg-white">
@@ -109,11 +106,12 @@ export default function MessagePage() {
             <section className="w-[904px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden">
               <ChatPanel
                 thread={selectedThread}
-                messages={chatMessages}
-                draft={draft}
-                onDraftChange={setDraft}
-                onSend={handleSend}
+                messages={messages}
+                draft={input}
+                onDraftChange={setInput}
+                onSend={send}
                 currentUserId={currentUserId}
+                connected={connected}
               />
             </section>
           </div>

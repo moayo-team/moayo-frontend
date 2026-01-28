@@ -1,10 +1,10 @@
-//ChatParticipants 수정 X
+//ChatParticipants 수정 O
 export type ChatParticipants = {
   id: string;
-  name: string;
-  role: string;
-  preview: string;
-  unread?: boolean;
+  chatRoomId: string;
+  userId: string;
+  lastReadMessageId: string;
+  createdAt: Date;
 };
 
 //message erd v0보고 수정
@@ -13,6 +13,7 @@ export type Message = {
   chatRoomId: string;
   senderId: string;
   content: string;
-  is_deleted: boolean;
+  isDeleted: boolean;
+  deletedAt: Date;
   createdAt: Date;
 };

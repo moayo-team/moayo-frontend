@@ -11,6 +11,7 @@ type Props = {
   onDraftChange: (v: string) => void;
   onSend: () => void;
   currentUserId: string;
+  connected?: boolean;
 };
 
 export default function ChatPanel({
@@ -20,13 +21,14 @@ export default function ChatPanel({
   onDraftChange,
   onSend,
   currentUserId,
+  connected = true,
 }: Props) {
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages.length, thread?.id]);
+  }, [messages.length, thread?.chatRoomId]);
 
   return (
     <div className="h-full min-h-0 flex flex-col">
@@ -43,7 +45,12 @@ export default function ChatPanel({
       </div>
 
       <div className="px-6 py-4 border-t border-gray-200">
-        <MessageComposer draft={draft} onDraftChange={onDraftChange} onSend={onSend} />
+        <MessageComposer
+          draft={draft}
+          onDraftChange={onDraftChange}
+          onSend={onSend}
+          disabled={!connected}
+        />
       </div>
     </div>
   );
