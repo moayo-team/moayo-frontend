@@ -3,7 +3,6 @@ import '../index.css'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import HomeLayout from './layouts/HomeLayout';
 import HomePage from './pages/HomePage';
-import ResumeAddPage from './pages/CareerAddPage';
 import ProfileLayout from './layouts/ProfileLayout';
 import ProfilePage from './pages/ProfilePage';
 import MessagePage from './pages/MessagePage';
@@ -27,6 +26,7 @@ const queryClient = new QueryClient({
     },
   },
 });
+
 
 const router = createBrowserRouter([
      {
