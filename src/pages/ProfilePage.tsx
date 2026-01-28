@@ -21,6 +21,13 @@ const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
 
+  // [개선] 별도의 state 대신 useMemo를 사용하여 데이터로부터 직접 유도
+  const isDetailsEmpty = useMemo(() => 
+    profileData.details.every(item => !item.value), 
+    [profileData.details]
+  );
+
+  // 초기 로딩 시 비어있으면 편집 모드로 전환
   useEffect(() => {
     // if (isDetailsEmpty) {
     //   setIsEditing(true);
@@ -96,7 +103,7 @@ const ProfilePage = () => {
   }, [profileData]);
 
 
-  //  프로필 정보 변경 핸들러
+  // 프로필 정보 변경 핸들러
   const handleProfileChange = useCallback((id: string, value: any) => {
     setProfileData((prev: any) => {
       if (["name", "profileImage", "introduction", "tags", "school_verified", "additionalDetails"].includes(id)) {
@@ -159,7 +166,6 @@ const ProfilePage = () => {
     setIsEditing((prev) => !prev);
   };
 
-  // 이력 수정(저장) 핸들러
   const handleSaveCareer = (updatedData: Career) => {
     setAllCareers((prev) =>
       prev.map((career) => (career.id === updatedData.id ? updatedData : career))
@@ -171,6 +177,7 @@ const ProfilePage = () => {
     setAllCareers((prev) => prev.filter((career) => career.id !== id));
   };
 
+  // [오류 해결] location.state 처리를 위한 단일 useEffect
   useEffect(() => {
     // 프로필 수정 정보 반영
     if (location.state?.updatedProfile) {
@@ -179,16 +186,16 @@ const ProfilePage = () => {
       navigate(location.pathname, { replace: true, state: { ...location.state, updatedProfile: null } });
     }
 
-    //  CareerAddPage에서 넘어온 신규 이력 반영
-    if (location.state?.newResume) {
-      const newCareer = location.state.newResume;
+    if (updatedProfile) {
+      setProfileData(updatedProfile);
+    }
 
-      // 최신 상태와 중복을 체크
+    if (newResume) {
       setAllCareers((prev) => {
-        const isExist = prev.some(item => item.id === newCareer.id);
-        if (isExist) return prev; // 이미 존재하면 기존 리스트 반환
-        return [newCareer, ...prev]; // 존재하지 않으면 추가
+        if (prev.some(item => item.id === newResume.id)) return prev;
+        return [newResume, ...prev];
       });
+    }
 
       navigate(location.pathname, { replace: true, state: {} });
     }
@@ -222,4 +229,4 @@ const ProfilePage = () => {
   );
 }
 
-export default ProfilePage
+export default ProfilePage;

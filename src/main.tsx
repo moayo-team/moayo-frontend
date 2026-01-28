@@ -1,12 +1,17 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App'
+import App from './App' // 만약 App이 export default가 아니라면 { App }으로 수정
 import './index.css'
 
-const root = document.getElementById('root')!
+// 1. 질문자님이 추가한 Quill 에디터 스타일을 상대방 파일에 가져옵니다.
+import 'react-quill-new/dist/quill.snow.css';
 
-ReactDOM.createRoot(root).render(
+// 2. 상대방의 ID인 'root'를 사용합니다.
+const rootElement = document.getElementById('root')!;
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <App />
+    {/* 질문자님이 index.tsx에서 사용하던 App 렌더링 방식을 그대로 가져옵니다. */}
+    <App /> 
   </React.StrictMode>
 )
