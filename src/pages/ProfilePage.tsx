@@ -3,9 +3,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import ResumeSection from "../components/Resume/ResumeSection";
 import type { Career } from "../types/career";
 import InfoSection from "../components/Profile/InfoSection";
-import { createProfile, getProfile, updateProfile } from "../apis/profile";
-import { getExperiences } from "../apis/experiences";
-import { getUserMe } from "../apis/user";
+import { createProfile, getProfile, updateProfile } from "../api/profile/profile";
+import { getExperiences } from "../api/profile/experiences";
+import { getUserMe } from "../api/profile/user";
 import type { ProfileResult } from "../types/profile";
 
 const ProfilePage = () => {
@@ -21,11 +21,10 @@ const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
 
-  // [개선] 별도의 state 대신 useMemo를 사용하여 데이터로부터 직접 유도
-  const isDetailsEmpty = useMemo(() => 
-    profileData.details.every(item => !item.value), 
-    [profileData.details]
-  );
+  const isDetailsEmpty = useMemo(() => {
+    if (!profileData?.details) return true;
+    return profileData.details.every((item: any) => !item.value);
+  }, [profileData]);
 
   // 초기 로딩 시 비어있으면 편집 모드로 전환
   useEffect(() => {
@@ -71,9 +70,8 @@ const ProfilePage = () => {
           })
         }
 
-        // 이력 목록 매핑 (Careeritems -> Career)
         if (careerRes.items) {
-          const mappedCareers: Career[] = careerRes.items.map((item) => ({
+          const mappedCareers: Career[] = careerRes.items.map(item => ({
             id: item.resumeId,
             title: item.title,
             organizer: item.organization,
@@ -84,11 +82,10 @@ const ProfilePage = () => {
             intro: item.summary || "",
             isPublic: true,
           }));
+
           setAllCareers(mappedCareers);
         }
 
-      } catch (error) {
-        console.error("데이터 로딩 실패.", error);
       } finally {
         setLoading(false);
       }
@@ -97,10 +94,19 @@ const ProfilePage = () => {
     initData();
   }, [sortOrder]);
 
-  const isDetailsEmpty = useMemo(() => {
-    if (!profileData || !profileData.details) return true;
-    return profileData.details.every((item: any) => !item.value);
-  }, [profileData]);
+
+  useEffect(() => {
+    if (location.state?.newResume) {
+      const newResume = location.state.newResume;
+
+      setAllCareers(prev => {
+        if (prev.some(c => String(c.id) === String(newResume.id))) return prev;
+        return [newResume, ...prev];
+      });
+
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
 
   // 프로필 정보 변경 핸들러
@@ -144,7 +150,6 @@ const ProfilePage = () => {
             setProfileData((prev: ProfileResult | any) => ({ ...prev, id: response.result.id }));
           }
         } else {
-          // 기존에 만든 updateProfile(PATCH) 호출
           await updateProfile(requestBody);
           alert("프로필이 수정되었습니다.");
         }
@@ -154,7 +159,6 @@ const ProfilePage = () => {
         if (status === 400) {
           alert("입력 형식이 올바르지 않거나 필수 항목이 누락되었습니다.");
         } else if (status === 409) {
-          // 명세서: CONFLICT-409 (이미 생성된 프로필)
           alert("이미 생성된 프로필이 존재합니다.");
         } else {
           alert("서버 통신 중 오류가 발생했습니다.");
@@ -177,37 +181,12 @@ const ProfilePage = () => {
     setAllCareers((prev) => prev.filter((career) => career.id !== id));
   };
 
-  // [오류 해결] location.state 처리를 위한 단일 useEffect
-  useEffect(() => {
-    // 프로필 수정 정보 반영
-    if (location.state?.updatedProfile) {
-      setProfileData(location.state.updatedProfile);
-      // 반영 후 state 초기화
-      navigate(location.pathname, { replace: true, state: { ...location.state, updatedProfile: null } });
-    }
-
-    if (updatedProfile) {
-      setProfileData(updatedProfile);
-    }
-
-    if (newResume) {
-      setAllCareers((prev) => {
-        if (prev.some(item => item.id === newResume.id)) return prev;
-        return [newResume, ...prev];
-      });
-    }
-
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-
-  }, [location.state, navigate, location.pathname]);
-
   //로딩 및 에러 처리UI
   if (loading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
   if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
 
 
-      const from = location.state?.from || "/profile"
+  const from = location.state?.from || "/profile"
 
   return (
     <div className="flex flex-col gap-12 w-full">
