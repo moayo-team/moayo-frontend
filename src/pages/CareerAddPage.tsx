@@ -10,7 +10,6 @@ const CareerAddPage = () => {
     const navigate = useNavigate();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // 커스텀 훅 (파일 3개, 링크 4개 등 제한사항 주입)
     const { selectedFiles, handleFileUpload, removeFile,
         links, linkInput, setLinkInput, addLink, removeLink, fileInputRef
     } = useUploadManager({
@@ -66,7 +65,6 @@ const CareerAddPage = () => {
                         }
                     }, 0);
                 }
-                // 그 외(맨 뒤에서 타이핑하는 경우)에는 브라우저가 커서를 자동으로 맨 뒤로 보내도록 둡니다.
             }
             return;
         }
@@ -83,8 +81,7 @@ const CareerAddPage = () => {
         if (document.activeElement instanceof HTMLElement) {
             document.activeElement.blur();
         }
-        // 기간 형식이 올바른지 체크 (YYY
-        // Y.MM.DD - YYYY.MM.DD)
+        // 기간 형식이 올바른지 체크 (YYYY.MM.DD - YYYY.MM.DD)
         if (newCareer.period && !validatePeriod(newCareer.period)) {
             return;
         }

@@ -7,11 +7,12 @@ import SchoolVerifyModal from "./SchoolVerifyModal";
 import TagSelectModal from "./TagSelectModal";
 import { getDisplayName } from "../../utils/name";
 import MascotIcon from "../../assets/white.svg"
+import type { ProfileResult } from "../../types/profile";
 
 interface ProfileDetailsProps {
     isEditing: boolean;
     isDetailsEmpty: boolean;
-    data: any;
+    data: ProfileResult | any;
     onDataChange: (field: string, value: any) => void;
 }
 
@@ -223,7 +224,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
 
         if (id === "birth") {
             const formattedValue = formatBirthDate(newValue);
-            const start = input.selectionStart || 0;
+            const start = input.selectionStart || 0; //커서위치
 
             // 값이 변경되는 경우에만 업데이트
             if (currentValue !== formattedValue) {
