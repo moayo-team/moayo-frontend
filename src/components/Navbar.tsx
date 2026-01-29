@@ -6,7 +6,7 @@ import logo from '../assets/pavicon.png';
 export const NavigationBar = (): JSX.Element => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isLoggedIn, login, logout } = useAuth();
+  const {user, isLoggedIn, logout } = useAuth();
   
   const navigationItems = [
     { id: 1, label: "홈", path: "/" },
@@ -74,9 +74,9 @@ export const NavigationBar = (): JSX.Element => {
               </button>
             </>
           ) : (
-            <button
-              onClick={login}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-primaryprimary-300 rounded-[10px] font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-gray-scalegray-scale-900 hover:bg-primaryprimary-400 transition-colors text-sm sm:text-base whitespace-nowrap"
+            <button 
+              onClick={() => navigate('/login')} // [수정] 클릭 시 /login 페이지로 이동
+              className="cursor-pointer"
             >
               로그인
             </button>
