@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { NavigationBar } from '../components/Navbar';
-import { PostsList } from '../features/board/PostsList';
-import { JobFilter } from '../features/board/JobFilter';
+import { PostsList } from '../components/Board/PostsList';
+import { JobFilter } from '../components/Board/JobFilter';
 import { useFilters } from '../hooks/useFilters';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';

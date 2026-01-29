@@ -31,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser));
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         localStorage.removeItem('user');
       }
