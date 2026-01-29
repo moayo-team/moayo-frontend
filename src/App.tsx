@@ -7,6 +7,7 @@ import ProfileLayout from './layouts/ProfileLayout';
 import ProfilePage from './pages/ProfilePage';
 import MessagePage from './pages/MessagePage';
 import CareerAddPage from './pages/CareerAddPage';
+import LoginPage from './pages/LoginPage';
 import { BoardPage } from './pages/BoardPage';
 import { PostDetailPage } from './pages/PostDetailPage';
 import { CreatePostPage } from './pages/CreatePostPage';
@@ -16,6 +17,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthProvider';
 import 'react-quill-new/dist/quill.snow.css';
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +36,7 @@ const router = createBrowserRouter([
       element: <HomeLayout />, 
       children: [
         { index: true, element: <HomePage /> },
+        { path: "login", element: <LoginPage /> },
         { path: "profile/add-craeer", element: <CareerAddPage /> },
         { path: "board", element: <BoardPage /> }, 
         { path: "post/:id", element: <PostDetailPage /> },
