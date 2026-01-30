@@ -13,7 +13,9 @@ apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
     if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // 중요: 혹시 모를 앞뒤 따옴표(")를 제거합니다.
+      const cleanToken = token.replace(/^"(.*)"$/, '$1'); 
+      config.headers.Authorization = `Bearer ${cleanToken}`;
     }
     return config;
   },
