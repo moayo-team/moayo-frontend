@@ -1,20 +1,22 @@
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  // ★ 프록시 설정(vite.config.ts)을 타기 위해 도메인을 지우고 '/api'로 설정합니다.
+  baseURL: '/api/v1', 
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // 쿠키 기반 세션/리프레시 토큰 사용 시 필수
+  withCredentials: true,
 });
 
 // 요청 인터셉터: 모든 요청에 저장된 액세스 토큰 삽입
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    // 주석 해제 및 수정
+    const token = localStorage.getItem('accessToken'); 
     if (token && config.headers) {
-      // 중요: 혹시 모를 앞뒤 따옴표(")를 제거합니다.
-      const cleanToken = token.replace(/^"(.*)"$/, '$1'); 
+      // 따옴표 제거 로직 포함
+      const cleanToken = token.startsWith('"') ? JSON.parse(token) : token;
       config.headers.Authorization = `Bearer ${cleanToken}`;
     }
     return config;

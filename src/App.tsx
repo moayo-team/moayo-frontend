@@ -16,7 +16,6 @@ import { MyPostsPage } from './pages/MyPostsPage';
 import { QueryClient } from '@tanstack/react-query';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthProvider';
-import { GoogleCallback } from './pages/GoogleCallback';
 import 'react-quill-new/dist/quill.snow.css';
 
 
@@ -39,7 +38,6 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "login", element: <LoginPage /> },
-      { path: "auth/callback", element: <GoogleCallback /> }, // 콜백은 하나만 존재해야 합니다.
       { path: "board", element: <BoardPage /> }, 
       { path: "post/:id", element: <PostDetailPage /> },
       { path: "create", element: <CreatePostPage /> },
