@@ -16,6 +16,7 @@ import { MyPostsPage } from './pages/MyPostsPage';
 import { QueryClient } from '@tanstack/react-query';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthProvider';
+import { GoogleCallback } from './pages/GoogleCallback';
 import 'react-quill-new/dist/quill.snow.css';
 
 
@@ -45,6 +46,7 @@ const router = createBrowserRouter([
       { path: "my-posts", element: <MyPostsPage /> },
       { path: "message", element: <MessagePage /> },
       { path: "profile/add-career", element: <CareerAddPage /> },
+      { path: "auth/callback", element: <GoogleCallback /> },
     ],
   },
   {
