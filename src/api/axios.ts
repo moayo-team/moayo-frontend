@@ -1,7 +1,7 @@
 import axios from 'axios';
 // Axios 인스턴스 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL + '/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

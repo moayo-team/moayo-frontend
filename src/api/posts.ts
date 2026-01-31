@@ -1,21 +1,17 @@
+import { apiClient } from './client';
 import type { Post, PostDraft } from '../types';
-import { mockPosts } from '../data/mockPosts';
 
-// Get current user from localStorage
-const getCurrentUser = () => {
-  const savedUser = localStorage.getItem('user');
-  if (savedUser) {
-    try {
-      return JSON.parse(savedUser);
-    } catch (error) {
-      return null;
-    }
-  }
-  return null;
+const parsePost = (raw: any): Post => {
+  return {
+    ...raw,
+    createdAt: raw.createdAt ? new Date(raw.createdAt) : new Date(),
+    updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : new Date(),
+    deadline: raw.deadline ? new Date(raw.deadline) : new Date(),
+  } as Post;
 };
 
 export const postsApi = {
-  // Get all posts with optional filters and pagination
+  // Get posts with optional filters and pagination
   getPosts: async (filters?: {
     category?: string;
     tags?: string[];
@@ -23,112 +19,90 @@ export const postsApi = {
     page?: number;
     pageSize?: number;
     createdByCurrentUser?: boolean;
+    sort?: string;
+    order?: string;
+    limit?: number;
   }): Promise<{ posts: Post[]; total: number; totalPages: number }> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
-    let filteredPosts = [...mockPosts];
-    
-    // Filter by current user's posts
+    // If requesting current user's posts, call /posts/me
     if (filters?.createdByCurrentUser) {
-      const currentUser = getCurrentUser();
-      if (currentUser) {
-        filteredPosts = filteredPosts.filter((post) => 
-          post.createdByUserId === currentUser.id
-        );
-      } else {
-        // If not logged in, return empty array
-        filteredPosts = [];
-      }
+      const res = await apiClient.get('/posts/me');
+      const raw = res.data;
+      const posts: Post[] = (raw?.posts || raw?.content || raw || []).map(parsePost);
+      const total = raw?.total || raw?.totalElements || posts.length;
+      const totalPages = raw?.totalPages ?? Math.ceil(total / (filters?.pageSize || 10));
+      return { posts, total, totalPages };
     }
-    
-    // Filter by tags (selected job filters)
-    if (filters?.tags && filters.tags.length > 0) {
-      filteredPosts = filteredPosts.filter((post) =>
-        filters.tags!.some((tag) => post.tags.includes(tag))
-      );
+
+    const params: Record<string, any> = {};
+    if (filters?.page) params.page = filters.page;
+    if (filters?.pageSize) params.pageSize = filters.pageSize;
+    if (filters?.search) params.search = filters.search;
+    if (filters?.category) params.category = filters.category;
+    if (filters?.tags && filters.tags.length > 0) params.tags = filters.tags.join(',');
+    if (filters?.sort) params.sort = filters.sort;
+    if (filters?.order) params.order = filters.order;
+    if (filters?.limit) params.limit = filters.limit;
+
+    const res = await apiClient.get('/posts', { params });
+    const raw = res.data;
+
+    // Support multiple response shapes (Spring pageable or custom)
+    let items: any[] = [];
+    let total = 0;
+    let totalPages = 0;
+
+    if (Array.isArray(raw)) {
+      items = raw;
+      total = raw.length;
+      totalPages = 1;
+    } else if (raw.content) {
+      items = raw.content;
+      total = raw.totalElements ?? raw.total ?? items.length;
+      totalPages = raw.totalPages ?? Math.ceil(total / (filters?.pageSize || 10));
+    } else if (raw.posts) {
+      items = raw.posts;
+      total = raw.total ?? items.length;
+      totalPages = raw.totalPages ?? Math.ceil(total / (filters?.pageSize || 10));
+    } else if (raw.data && Array.isArray(raw.data)) {
+      items = raw.data;
+      total = items.length;
+      totalPages = 1;
+    } else {
+      items = raw.items || [];
+      total = raw.total || items.length;
+      totalPages = raw.totalPages ?? Math.ceil(total / (filters?.pageSize || 10));
     }
-    
-    // Filter by search query
-    if (filters?.search) {
-      const query = filters.search.toLowerCase();
-      filteredPosts = filteredPosts.filter(
-        (post) =>
-          post.title.toLowerCase().includes(query) ||
-          post.description.toLowerCase().includes(query)
-      );
-    }
-    
-    // Pagination
-    const page = filters?.page || 1;
-    const pageSize = filters?.pageSize || 10;
-    const total = filteredPosts.length;
-    const totalPages = Math.ceil(total / pageSize);
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
-    
-    return {
-      posts: paginatedPosts,
-      total,
-      totalPages,
-    };
+
+    const posts: Post[] = (items || []).map(parsePost);
+    return { posts, total, totalPages };
   },
 
-  // Get a single post by ID
+  // Get single post
   getPost: async (id: string): Promise<Post> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const post = mockPosts.find((p) => p.id === id);
-    if (!post) {
-      throw new Error('Post not found');
-    }
-    return post;
+    const res = await apiClient.get(`/posts/${id}`);
+    return parsePost(res.data);
   },
 
-  // Create a new post
+  // Create post
   createPost: async (post: PostDraft): Promise<Post> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
-    const currentUser = getCurrentUser();
-    
-    const newPost: Post = {
+    const payload = {
       ...post,
-      id: String(mockPosts.length + 1),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdByUserId: currentUser?.id || null,
-      author: currentUser ? {
-        name: currentUser.name,
-        username: currentUser.email.split('@')[0],
-        avatar: currentUser.avatar,
-      } : undefined,
+      deadline: post.deadline instanceof Date ? post.deadline.toISOString() : post.deadline,
     };
-    mockPosts.unshift(newPost);
-    return newPost;
+    const res = await apiClient.post('/posts', payload);
+    return parsePost(res.data);
   },
 
-  // Update an existing post
+  // Update post
   updatePost: async (id: string, post: Partial<PostDraft>): Promise<Post> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const index = mockPosts.findIndex((p) => p.id === id);
-    if (index === -1) {
-      throw new Error('Post not found');
-    }
-    mockPosts[index] = {
-      ...mockPosts[index],
-      ...post,
-      updatedAt: new Date(),
-    };
-    return mockPosts[index];
+    const payload = { ...post } as any;
+    if (payload.deadline instanceof Date) payload.deadline = payload.deadline.toISOString();
+    const res = await apiClient.patch(`/posts/${id}`, payload);
+    return parsePost(res.data);
   },
 
-  // Delete a post
+  // Delete post
   deletePost: async (id: string): Promise<void> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const index = mockPosts.findIndex((p) => p.id === id);
-    if (index === -1) {
-      throw new Error('Post not found');
-    }
-    mockPosts.splice(index, 1);
+    await apiClient.delete(`/posts/${id}`);
   },
 };

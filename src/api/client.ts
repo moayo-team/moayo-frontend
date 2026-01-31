@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  // ★ 프록시 설정(vite.config.ts)을 타기 위해 도메인을 지우고 '/api'로 설정합니다.
-  baseURL: import.meta.env.VITE_API_BASE_URL + '/api/v1',
+  // base URL은 환경 변수에서 그대로 사용합니다 (환경에 이미 `/api/v1`이 포함될 수 있음).
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
