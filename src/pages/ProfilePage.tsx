@@ -1,4 +1,3 @@
-
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import ResumeSection from "../components/Resume/ResumeSection";
@@ -11,12 +10,10 @@ import { useProfileData } from "../hooks/useProfileQueries";
 import { useProfileSave } from "../hooks/useProfileMutation";
 import type { ProfileFormData } from "../types/profileForm";
 
-
 const ProfilePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
-
 
   // 상태 관리
   const [isEditing, setIsEditing] = useState(false);
@@ -103,7 +100,7 @@ const ProfilePage = () => {
   }, [profileData]);
 
 
-  // 핸들러 함수들
+  //  핸들러 함수들
   const handleProfileChange = useCallback((id: string, value: any) => {
     setProfileData((prev: any) => {
       if (["name", "profileImage", "introduction", "tags", "school_verified", "additionalDetails"].includes(id)) {
@@ -132,9 +129,11 @@ const ProfilePage = () => {
         { profileData, initialIndexItemIds },
         {
           onSuccess: async () => {
+            // ★ 여기가 실행되어야 버튼이 바뀝니다.
             setIsEditing(false);
             await refreshUser();
           }
+          // 실패 시에는 아무것도 안 하므로(onError에서 alert만 뜸) 버튼이 유지됨 -> 정상 동작
         }
       );
     } else {
@@ -142,17 +141,17 @@ const ProfilePage = () => {
     }
   };
 
-  // 이력 수정(저장) 핸들러
   const handleSaveCareer = (updatedData: Career) => {
     setAllCareers((prev) =>
       prev.map((career) => (career.id === updatedData.id ? updatedData : career))
     );
   };
-  // 이력 삭제 핸들러
+
   const handleDeleteCareer = (id: string | number) => {
     setAllCareers((prev) => prev.filter((career) => career.id !== id));
   };
-  // 렌더링
+
+  //  렌더링
   if (isLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
   if (isError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;
   if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
@@ -177,16 +176,15 @@ const ProfilePage = () => {
         onModeChange={handleModeChange}
       />
 
-
-      <ResumeSection 
-        carrers={allCareers} 
+      <ResumeSection
+        carrers={allCareers}
         sortOrder={sortOrder}
-        setSortOrder={setSortOrder} 
+        setSortOrder={setSortOrder}
         onSave={handleSaveCareer}
         onDelete={handleDeleteCareer}
-        />
+      />
     </div>
   );
 }
 
-export default ProfilePage
+export default ProfilePage;

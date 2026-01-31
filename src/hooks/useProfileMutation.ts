@@ -36,6 +36,11 @@ export const useProfileSave = () => {
             const rawPhone =
                 profileData.details.find((d: any) => d.id === "phone")?.value || "";
 
+            const getValueOrNull = (id: string) => {
+                const val = profileData.details.find((d: any) => d.id === id)?.value;
+                return val && val.trim() !== "" ? val : null; // 빈 문자열이면 null 반환
+            };
+
             const requestBody = {
                 name: profileData.name,
                 phoneNumber: rawPhone.replace(/-/g, ""),

@@ -10,8 +10,7 @@ interface AuthContextType {
   setIsLoggedIn: (val: boolean) => void;
   login: () => void;
   logout: () => Promise<void>;
-  refreshUser: () => Promise<void>;
-
+  refreshUser: () => Promise<void>; 
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -28,10 +27,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (urlAccessToken) {
       console.log('🌐 URL에서 토큰 발견:', urlAccessToken);
-
+      
       // 토큰 저장
       localStorage.setItem('accessToken', urlAccessToken);
-
+      
       // 주소창의 지저분한 토큰 제거 (사용자 경험 개선)
       window.history.replaceState({}, document.title, window.location.pathname);
 
@@ -39,18 +38,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       apiClient.get('/profiles/me', {
         headers: { Authorization: `Bearer ${urlAccessToken}` }
       })
-        .then(({ data }) => {
-          const userData = data.result || data;
-          localStorage.setItem('user', JSON.stringify(userData));
-          setUser(userData);
-          setIsLoggedIn(true);
-          console.log('✅ 로그인 성공 (AuthProvider 처리)');
-        })
-        .catch((err) => {
-          console.error('❌ 프로필 로드 실패:', err);
-          // 토큰이 잘못되었으면 삭제
-          localStorage.removeItem('accessToken');
-        });
+      .then(({ data }) => {
+        const userData = data.result || data;
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        setIsLoggedIn(true);
+        console.log('✅ 로그인 성공 (AuthProvider 처리)');
+      })
+      .catch((err) => {
+        console.error('❌ 프로필 로드 실패:', err);
+        // 토큰이 잘못되었으면 삭제
+        localStorage.removeItem('accessToken');
+      });
 
       return; // URL 토큰 처리 시 아래 로직 건너뜀
     }
@@ -58,12 +57,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 2. 기존 로직 (새로고침 시 로컬 스토리지에서 복구)
     const savedUser = localStorage.getItem('user');
     const token = localStorage.getItem('accessToken');
-
+    
     if (savedUser && token) {
       try {
         setUser(JSON.parse(savedUser));
         setIsLoggedIn(true);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         localStorage.clear();
       }
@@ -89,7 +88,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  //  사용자 정보 갱신
   const refreshUser = useCallback(async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) return;
@@ -99,20 +97,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { Authorization: `Bearer ${token}` }
       });
       const userData = data.result || data;
+      
+      // 로컬 스토리지 및 상태 업데이트
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
-      setIsLoggedIn(true);
-      console.log('✅ 사용자 정보 갱신 완료');
+      console.log('🔄 사용자 정보 갱신 완료');
     } catch (error) {
       console.error('❌ 사용자 정보 갱신 실패:', error);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
-      setUser(null);
-      setIsLoggedIn(false);
     }
   }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn, setUser, setIsLoggedIn, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, isLoggedIn, setUser, setIsLoggedIn, login, logout,refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

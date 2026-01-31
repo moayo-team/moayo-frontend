@@ -12,7 +12,7 @@ export const createProfile = async (profileData: CreateProfileRequest): Promise<
 /**프로필 조회 */
 export const getProfile = async (): Promise<ProfileResponse> => {
   const response = await axiosInstance.get<ProfileResponse>(
-    "/api/v1/profiles/me"
+    "/profiles/me"
   );
   return response.data;
 };

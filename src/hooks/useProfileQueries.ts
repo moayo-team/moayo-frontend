@@ -1,4 +1,3 @@
-// hooks/useProfileQueries.ts
 import { useQuery } from "@tanstack/react-query";
 import { getProfile } from "../api/profile/profile";
 import axios from "axios";
