@@ -1,49 +1,95 @@
-import React, { useState, useCallback } from 'react';
-import type { ReactNode } from 'react';
-import type { User, AuthContextType } from '../types/auth';
-import { AuthContext } from '../hooks/useAuth';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { logoutApi } from '../api/auth';
+import { apiClient } from '../api/client'; // apiClient 추가
+import type { User } from '../types/auth';
 
-const MOCK_USER: User = {
-  id: '1',
-  name: '김주연',
-  email: 'user@example.com',
-  avatar: 'https://ui-avatars.com/api/?name=김주연&background=E9FCEF&color=26E1AC&size=128',
-  school: '서울대학교',
-  department: '디자인학과',
-};
+interface AuthContextType {
+  user: User | null;
+  isLoggedIn: boolean;
+  setUser: (user: User | null) => void;
+  setIsLoggedIn: (val: boolean) => void;
+  login: () => void;
+  logout: () => Promise<void>;
+}
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+// eslint-disable-next-line react-refresh/only-export-components
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const login = useCallback(() => {
-    setUser(MOCK_USER);
-    localStorage.setItem('user', JSON.stringify(MOCK_USER));
-  }, []);
+  useEffect(() => {
+    // 1. URL에서 토큰 확인 (백엔드가 메인 페이지 '/'로 리다이렉트 시킬 경우 대비)
+    const searchParams = new URLSearchParams(window.location.search);
+    const urlAccessToken = searchParams.get('accessToken');
 
-  const logout = useCallback(() => {
-    setUser(null);
-    localStorage.removeItem('user');
-  }, []);
+    if (urlAccessToken) {
+      console.log('🌐 URL에서 토큰 발견:', urlAccessToken);
+      
+      // 토큰 저장
+      localStorage.setItem('accessToken', urlAccessToken);
+      
+      // 주소창의 지저분한 토큰 제거 (사용자 경험 개선)
+      window.history.replaceState({}, document.title, window.location.pathname);
 
-  // 초기 로드 로직
-  React.useEffect(() => {
+      // 프로필 정보 즉시 요청
+      apiClient.get('/profiles/me', {
+        headers: { Authorization: `Bearer ${urlAccessToken}` }
+      })
+      .then(({ data }) => {
+        const userData = data.result || data;
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        setIsLoggedIn(true);
+        console.log('✅ 로그인 성공 (AuthProvider 처리)');
+      })
+      .catch((err) => {
+        console.error('❌ 프로필 로드 실패:', err);
+        // 토큰이 잘못되었으면 삭제
+        localStorage.removeItem('accessToken');
+      });
+
+      return; // URL 토큰 처리 시 아래 로직 건너뜀
+    }
+
+    // 2. 기존 로직 (새로고침 시 로컬 스토리지에서 복구)
     const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    const token = localStorage.getItem('accessToken');
+    
+    if (savedUser && token) {
       try {
         setUser(JSON.parse(savedUser));
+        setIsLoggedIn(true);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
-        localStorage.removeItem('user');
+      } catch (e) {
+        localStorage.clear();
       }
     }
   }, []);
 
-  const value: AuthContextType = {
-    user,
-    isLoggedIn: !!user,
-    login,
-    logout,
-  };
+  const login = useCallback(() => {
+    // 백엔드의 구글 인증 시작점으로 리다이렉트
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/oauth/google`;
+  }, []);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const logout = useCallback(async () => {
+    try {
+      await logoutApi();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      setUser(null);
+      setIsLoggedIn(false);
+      window.location.href = '/';
+    }
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, isLoggedIn, setUser, setIsLoggedIn, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

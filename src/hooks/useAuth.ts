@@ -1,14 +1,16 @@
-// src/hooks/useAuth.ts
-import { createContext, useContext } from 'react';
-import type { AuthContextType } from '../types/auth';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthProvider'; // AuthProvider에서 생성된 컨텍스트를 가져옴
 
-// Context 객체 자체는 JSX가 아니므로 .ts 파일에 존재 가능합니다.
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
+/**
+ * 전역 인증 상태를 사용하기 위한 커스텀 훅
+ */
 export const useAuth = () => {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
+    // 이 에러가 발생한다면 App.tsx에서 AuthProvider로 감싸지 않았음을 의미합니다.
     throw new Error('useAuth must be used within an AuthProvider');
   }
+  
   return context;
 };
