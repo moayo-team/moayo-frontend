@@ -1,15 +1,25 @@
+import type { ProfileFormData } from "../../types/profileForm";
 import ProfileDetails from "./ProfileDetails";
 
 
-interface InfoProps {
+interface InfoSectionProps {
     isEditing: boolean;
     isDetailsEmpty:boolean;
-    data: any;
-    onDataChange: (field: string, value: any) => void;
+    data: ProfileFormData;
+     onDataChange: (
+    id:
+      | keyof ProfileFormData
+      | "school"
+      | "major"
+      | "email"
+      | "phone"
+      | "school_verified",
+    value: any
+  ) => void;
     onModeChange: () => void;
 }
 
-const InfoSection = ({ isEditing, isDetailsEmpty, data, onDataChange, onModeChange }: InfoProps) => {   
+const InfoSection = ({ isEditing, isDetailsEmpty, data, onDataChange, onModeChange }: InfoSectionProps) => {   
 
     //  버튼 텍스트 결정 로직
     const getButtonText = () => {

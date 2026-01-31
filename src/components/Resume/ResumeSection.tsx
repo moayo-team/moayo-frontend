@@ -5,8 +5,8 @@ import type { Career } from "../../types/career";
 import { useNavigate } from "react-router-dom";
 import { ArrowRightLeft } from "lucide-react";
 import MascotIcon from "../../assets/white.svg"
-import { DUMMY_PROFILE } from "../../data/profileData";
 import { getDisplayName } from "../../utils/name";
+import { DUMMY_PROFILE } from "../../data/ProfileData";
 
 interface ResumeSectionProps {
   carrers: Career[];
