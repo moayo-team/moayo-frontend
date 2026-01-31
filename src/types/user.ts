@@ -2,6 +2,7 @@ export interface UserResult {
     id: number;
     email: string;
     name: string;
+    phoneNumber: string;
 }
 
 export interface UserResponse {

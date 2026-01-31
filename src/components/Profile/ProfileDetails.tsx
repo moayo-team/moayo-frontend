@@ -7,13 +7,23 @@ import SchoolVerifyModal from "./SchoolVerifyModal";
 import TagSelectModal from "./TagSelectModal";
 import { getDisplayName } from "../../utils/name";
 import MascotIcon from "../../assets/white.svg"
-import type { ProfileResult } from "../../types/profile";
+import type { ProfileFormData, ProfileTagItem } from "../../types/profileForm";
 
 interface ProfileDetailsProps {
     isEditing: boolean;
     isDetailsEmpty: boolean;
-    data: ProfileResult | any;
-    onDataChange: (field: string, value: any) => void;
+    data: ProfileFormData;
+
+    onDataChange: (
+        id:
+            | keyof ProfileFormData
+            | "school"
+            | "major"
+            | "email"
+            | "phone"
+            | "school_verified",
+        value: any
+    ) => void;
 }
 
 const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: ProfileDetailsProps) => {
@@ -162,34 +172,37 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
 
 
     //기존 리스트 수정/삭제 로직
-    const updateCustomField = (id: string, key: 'label' | 'value', val: string) => {
-        if (!uploadManager.isTextValid(val, key === 'label' ? 'left' : 'right')) return;
-
-        const updated = data.additionalDetails.map((item: any) =>
+    const updateCustomField = (id: number | string, key: "label" | "value", val: string) => {
+        const updated = data.additionalDetails.map((item) =>
             item.id === id ? { ...item, [key]: val } : item
         );
         onDataChange("additionalDetails", updated);
     };
 
-    const getValue = (id: string) => {
-        return data.details.find((item: any) => item.id === id)?.value || "";
+
+    const getValue = (id: "school" | "major" | "email" | "phone") => {
+        return data.details.find((item) => item.id === id)?.value || "";
     };
 
     //태그 삭제 핸들러
-    const handleDeleteTag = (tagId: any, e: React.MouseEvent) => {
+    const handleDeleteTag = (tagId: number, e: React.MouseEvent) => {
         e.stopPropagation();
         const newTags = data.tags.filter((t: any) => t.id !== tagId);
         onDataChange("tags", newTags);
     };
 
 
-    const fieldConfig = [
-        { label: "생년월일", id: "birth", value: getValue("birth") },
-        { label: "학력", id: "school", value: getValue("school") },
-        { label: "학과", id: "major", value: getValue("major") },
-        { label: "이메일", id: "email", value: getValue("email"), max: 30 },
-        { label: "전화번호", id: "phone", value: getValue("phone"), max: 11 },
-    ];
+    const fieldConfig: {
+        label: string;
+        id: "school" | "major" | "email" | "phone";
+        value: string;
+        max?: number;
+    }[]= [
+            { label: "학력", id: "school", value: getValue("school") },
+            { label: "학과", id: "major", value: getValue("major") },
+            { label: "이메일", id: "email", value: getValue("email"), max: 30 },
+            { label: "전화번호", id: "phone", value: getValue("phone"), max: 11 },
+        ];
 
     //프로필 사진 미리보기 및 부모 상태 반영 
     useEffect(() => {
@@ -214,32 +227,21 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
         onDataChange("school_verified", true);
     };
 
-    const handleTagComplete = (newTags: any[]) => {
+    const handleTagComplete = (newTags: ProfileTagItem[]) => {
         onDataChange("tags", newTags);
     };
 
-    const handleBasicInfoChange = (e: React.ChangeEvent<HTMLInputElement>, id: string, currentValue: string) => {
+    const handleBasicInfoChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+        id: "school" | "major" | "email" | "phone",
+        currentValue: string
+    ) => {
         const input = e.target;
         const newValue = input.value;
 
-        if (id === "birth") {
+        if (id === "phone") {
             const formattedValue = formatBirthDate(newValue);
-            const start = input.selectionStart || 0; //커서위치
-
-            // 값이 변경되는 경우에만 업데이트
-            if (currentValue !== formattedValue) {
-                onDataChange(id, formattedValue);
-
-                //커서 위치 보정
-                const isDeleting = newValue.length < currentValue.length;
-                const isModifiedInMiddle = start < newValue.length;
-
-                if (isDeleting || isModifiedInMiddle) {
-                    setTimeout(() => {
-                        input.setSelectionRange(start, start);
-                    }, 0);
-                }
-            }
+            onDataChange(id, formattedValue);
         } else {
             onDataChange(id, newValue);
         }
@@ -266,6 +268,12 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                 src={data.profileImage || defaultImage}
                                 alt="프로필 이미지"
                                 className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    if (target.src !== defaultImage) {
+                                        target.src = defaultImage;
+                                    }
+                                }}
                             />
                         </div>
                         {isEditing && (
@@ -377,8 +385,8 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                         className={`bg-transparent w-full text-center outline-none text-[#423C33] font-medium text-[14px] lg:text-[16px] 
                                             ${isEditing ? "cursor-text" : "cursor-default"}`} />
                                 </div>
-                                <div className="flex flex-1 h-full px-[15px] md:px-[30px] items-center justify-between border border-[#FBFAF9] 
-                                    rounded-r-[10px] bg-white relative overflow-hidden">
+                                <div className="flex flex-1 h-full px-[15px] md:px-[30px] items-center justify-between border border-[#D6D6D8] 
+                                    rounded-r-[10px] bg-white relative overflow-hidden ">
                                     {item.type === 'file' || item.type === "link" ? (
                                         <div className="flex items-center justify-between w-full">
                                             <span className="text-[#25221D] text-[14px] lg:text-[16px] truncate">

@@ -10,6 +10,7 @@ interface AuthContextType {
   setIsLoggedIn: (val: boolean) => void;
   login: () => void;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>; 
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -87,8 +88,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    try {
+      const { data } = await apiClient.get('/profiles/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const userData = data.result || data;
+      
+      // 로컬 스토리지 및 상태 업데이트
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      console.log('🔄 사용자 정보 갱신 완료');
+    } catch (error) {
+      console.error('❌ 사용자 정보 갱신 실패:', error);
+    }
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn, setUser, setIsLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoggedIn, setUser, setIsLoggedIn, login, logout,refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
