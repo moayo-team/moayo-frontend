@@ -4,71 +4,81 @@ import ChatPanel from "../components/messages/chatPanel";
 import { useChatRoom } from "../hooks/useChatRoom";
 import type { ChatParticipants } from "../types/message";
 
-type ThreadUI = {
-  id: string; // 이 값을 roomId로 사용(=chatRoomId)
-  name: string;
-  role: string;
-  preview: string;
-  unread?: boolean;
-};
-
 export default function MessagePage() {
   const currentUserId = "u_me";
 
-  // UI용 더미 스레드
-  const threads: ChatParticipants[] = useMemo(
-    () => [
-      {
-        id: "p1",               
-        chatRoomId: "101",        
-        userId: currentUserId,
-        lastReadMessageId: "",
-        createdAt: new Date(),
+  // ✅ 더미 스레드: ChatParticipants + UI 필드(옵션) 교차 타입
+  const threads = useMemo(
+    () =>
+      [
+        {
+          id: "p1",
+          chatRoomId: "101",
+          userId: currentUserId,
+          lastReadMessageId: "",
+          createdAt: new Date(),
 
-        name: "김주연",
-        role: "디자이너",
-        preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
-        unread: true,
-      },
-      {
-        id: "p2",
-        chatRoomId: "102",
-        userId: currentUserId,
-        lastReadMessageId: "",
-        createdAt: new Date(),
+          name: "김주연",
+          role: "디자이너",
+          preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
+          unread: true,
+        },
+        {
+          id: "p2",
+          chatRoomId: "102",
+          userId: currentUserId,
+          lastReadMessageId: "",
+          createdAt: new Date(),
 
-        name: "김주연",
-        role: "디자이너",
-        preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
-      },
-      {
-        id: "p3",
-        chatRoomId: "103",
-        userId: currentUserId,
-        lastReadMessageId: "",
-        createdAt: new Date(),
+          name: "김주연",
+          role: "디자이너",
+          preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
+        },
+        {
+          id: "p3",
+          chatRoomId: "103",
+          userId: currentUserId,
+          lastReadMessageId: "",
+          createdAt: new Date(),
 
-        name: "김주연",
-        role: "디자이너",
-        preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
-      },
-    ],
+          name: "김주연",
+          role: "디자이너",
+          preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
+        },
+      ] as Array<
+        ChatParticipants & {
+          name?: string;
+          role?: string;
+          preview?: string;
+          unread?: boolean;
+        }
+      >,
     [currentUserId]
   );
 
-  // 선택된 스레드(UI 데이터)
-  const [selectedThreadId, setSelectedThreadId] = useState<string>(threads[0]?.chatRoomId ?? "");
-
-  const selectedThread = useMemo(
-    () => threads.find((t) => t.chatRoomId === selectedThreadId),
-    [threads, selectedThreadId]
+  /**
+   * ✅ 중요:
+   * ThreadList는 "t.id" 기준으로 선택(active) 처리함.
+   * 그런데 STOMP는 "chatRoomId"가 roomId임.
+   * → MessagePage에서 두 값을 분리 관리한다.
+   */
+  const [selectedParticipantId, setSelectedParticipantId] = useState<string>(
+    threads[0]?.id ?? ""
   );
 
-  // ✅ STOMP는 roomId = chat_room_id
-  const { connected, messages, input, setInput, send } = useChatRoom({
-    roomId: selectedThreadId,
-    wsUrl: "http://15.164.218.67.nip.io/ws-chat",
-    // SockJS면 wsUrl을 http://15.166.111.nip.io/ws-chat 로 바꾸고 client를 SockJS 모드로
+  const selectedThread = useMemo(
+    () => threads.find((t) => t.id === selectedParticipantId),
+    [threads, selectedParticipantId]
+  );
+
+  // ✅ STOMP roomId는 chatRoomId
+  const selectedRoomId = selectedThread?.chatRoomId ?? "";
+
+  // ✅ useChatRoom은 기존 그대로 사용 (토큰 전달 X)
+  const { connected, messages, input, setInput, send, debug } = useChatRoom({
+    roomId: selectedRoomId,
+    wsUrl: import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws-chat",
+    currentUserId,
   });
 
   // ====== 기존 scale 로직 유지 ======
@@ -94,18 +104,32 @@ export default function MessagePage() {
             쪽지함 목록
           </h1>
 
+          {/* ✅ 연결/구독 확인용 (원하면 삭제 가능) */}
+          <div className="mb-3 text-xs text-gray-500">
+            <div>
+              상태: {connected ? "✅ connected" : "⏳ connecting..."} / roomId:{" "}
+              {selectedRoomId || "-"}
+            </div>
+            <div>
+              lastEvent: {debug?.lastEvent ?? "-"} / lastError:{" "}
+              {debug?.lastError ?? "-"} / messages:{" "}
+              {debug?.messageCount ?? messages.length}
+            </div>
+          </div>
+
           <div className="flex flex-row gap-6">
             <aside className="w-[403px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden p-[31px_24px]">
+              {/* ✅ ThreadList는 id 기준으로 선택 */}
               <ThreadList
                 threads={threads}
-                selectedThreadId={selectedThreadId}
-                onSelectThread={setSelectedThreadId}
+                selectedThreadId={selectedParticipantId}
+                onSelectThread={setSelectedParticipantId}
               />
             </aside>
 
             <section className="w-[904px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden">
               <ChatPanel
-                thread={selectedThread}
+                thread={selectedThread as any}
                 messages={messages}
                 draft={input}
                 onDraftChange={setInput}

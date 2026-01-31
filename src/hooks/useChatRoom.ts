@@ -1,95 +1,114 @@
-// src/hooks/useChatRoom.ts
 import { useEffect, useMemo, useState } from "react";
-import { type Message } from "../types/message";
+import type { Message } from "../types/message";
 import { StompChatClient } from "../lib/stompChatClient";
 
 type UseChatRoomOptions = {
   roomId?: string;
-  wsUrl?: string;        // default 제공
-  accessToken?: string;  // 추후 JWT
-};
-
-type IncomingMessageDto = {
-  id: string;
-  chatRoomId: string;
-  senderId: string;
-  content: string;
-  isDeleted: boolean;
-  deletedAt: string | null; // 서버는 보통 string/null
-  createdAt: string;
+  wsUrl?: string;
+  accessToken?: string;
+  currentUserId: string; // ✅ 추가
 };
 
 function toDate(v: unknown): Date {
-  // 서버가 null을 줄 수 있으면 정책 필요. 여기서는 "null이면 epoch"로 처리.
   if (v == null) return new Date(0);
   const d = new Date(String(v));
   return isNaN(d.getTime()) ? new Date(0) : d;
 }
 
-function mapIncomingToMessage(dto: IncomingMessageDto): Message {
+function mapIncomingToMessage(dto: any, fallbackRoomId: string): Message {
   return {
-    id: dto.id,
-    chatRoomId: dto.chatRoomId,
-    senderId: dto.senderId,
-    content: dto.content,
-    isDeleted: dto.isDeleted,
-    deletedAt: dto.deletedAt ? toDate(dto.deletedAt) : new Date(0),
-    createdAt: toDate(dto.createdAt),
+    id: dto?.id ?? dto?.messageId ?? `srv_${Date.now()}`,
+    chatRoomId: dto?.chatRoomId ?? dto?.chat_room_id ?? fallbackRoomId,
+    senderId: dto?.senderId ?? dto?.sender_id ?? "",
+    content: dto?.content ?? dto?.message ?? "",
+    isDeleted: dto?.isDeleted ?? dto?.is_deleted ?? false,
+    deletedAt:
+      dto?.deletedAt || dto?.deleted_at
+        ? toDate(dto?.deletedAt ?? dto?.deleted_at)
+        : new Date(0),
+    createdAt: toDate(dto?.createdAt ?? dto?.created_at ?? new Date().toISOString()),
   };
 }
 
 export function useChatRoom({
   roomId,
-  wsUrl = "ws://localhost:8080/ws-chat",
+  wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws-chat",
   accessToken,
+  currentUserId, // ✅
 }: UseChatRoomOptions) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [connected, setConnected] = useState(false);
 
+  const [lastEvent, setLastEvent] = useState<string>("-");
+  const [lastError, setLastError] = useState<string>("");
+
   const client = useMemo(() => {
     return new StompChatClient(wsUrl, {
-      onConnected: () => setConnected(true),
-      onDisconnected: () => setConnected(false),
-      onError: (e) => console.error("[STOMP ERROR]", e),
+      onConnected: () => {
+        console.log("[STOMP] ✅ connected", wsUrl);
+        setConnected(true);
+        setLastEvent(`connected: ${wsUrl}`);
+      },
+      onDisconnected: () => {
+        console.log("[STOMP] ⛔ disconnected");
+        setConnected(false);
+        setLastEvent("disconnected");
+      },
+      onError: (e) => {
+        console.error("[STOMP] ❌ error", e);
+        setLastError(String((e as any)?.message ?? e));
+        setLastEvent("error");
+      },
     });
   }, [wsUrl]);
 
-  // connect / disconnect lifecycle
   useEffect(() => {
+    console.log("[STOMP] connect() start", { wsUrl, hasToken: !!accessToken });
+    setLastEvent("connecting...");
+
     client.setAccessToken(accessToken);
     client.connect();
 
     return () => {
+      console.log("[STOMP] disconnect()");
       client.disconnect().catch(console.error);
     };
-  }, [client, accessToken]);
+  }, [client, accessToken, wsUrl]);
 
-  // subscribe per room
   useEffect(() => {
-    if (!roomId) return;
-    if (!connected) return;
+    if (!roomId) {
+      console.log("[STOMP] roomId 없음 → 구독 스킵");
+      return;
+    }
+    if (!connected) {
+      console.log("[STOMP] 아직 미연결 → 구독대기", { roomId });
+      return;
+    }
+
+    console.log("[STOMP] 📡 subscribe roomId =", roomId);
+    setLastEvent(`subscribe: ${roomId}`);
 
     client.subscribeRoom(roomId, (body) => {
-      // 서버가 단일 메시지를 보내는 케이스를 기본으로 가정
-      // (만약 배열로 보내면 아래 분기에서 처리)
+      console.log("[STOMP] 📩 recv raw:", body);
+
       if (Array.isArray(body)) {
-        const mapped = body.map((x) => mapIncomingToMessage(x as IncomingMessageDto));
+        const mapped = body.map((x) => mapIncomingToMessage(x, roomId));
         setMessages((prev) => [...prev, ...mapped]);
+        setLastEvent(`recv(array): +${mapped.length}`);
         return;
       }
 
-      const dto = body as IncomingMessageDto;
-      const msg = mapIncomingToMessage(dto);
-
+      const msg = mapIncomingToMessage(body, roomId);
       setMessages((prev) => {
-        // 중복 방지(서버 echo + optimistic update 대비)
         if (prev.some((p) => p.id === msg.id)) return prev;
         return [...prev, msg];
       });
+      setLastEvent(`recv: ${msg.id}`);
     });
 
     return () => {
+      console.log("[STOMP] unsubscribe()");
       client.unsubscribe();
     };
   }, [client, roomId, connected]);
@@ -100,18 +119,39 @@ export function useChatRoom({
     const content = input.trim();
     if (!content) return;
 
-    // 전송 payload: 백엔드 DTO에 맞춰 조정
-    // 기본: content만 전송 (senderId는 서버가 인증/JWT로 판별한다고 가정)
+    // ✅ 내 메시지는 senderId = currentUserId 로 넣어야 오른쪽 버블로 감
+    const tempId = `temp_${Date.now()}`;
+    const optimistic: Message = {
+      id: tempId,
+      chatRoomId: roomId,
+      senderId: currentUserId, // ✅ 여기!
+      content,
+      isDeleted: false,
+      deletedAt: new Date(0),
+      createdAt: new Date(),
+    };
+
+    setMessages((prev) => [...prev, optimistic]);
+    setLastEvent(`send(optimistic): ${tempId}`);
+
     const payload = { content };
+    console.log("[STOMP] 📤 publish", {
+      roomId,
+      destination: `/app/chat/rooms/${roomId}`,
+      payload,
+    });
 
-    // 만약 서버가 senderId를 요구하면:
-    // const payload = { content, senderId: currentUserId };
+    try {
+      client.publish(roomId, payload);
+      setLastEvent(`published: ${roomId}`);
+    } catch (e) {
+      console.error("[STOMP] publish error", e);
+      setLastError(String((e as any)?.message ?? e));
+      setLastEvent("publish error");
+    }
 
-    client.publish(roomId, payload);
     setInput("");
   };
-
-  const resetMessages = () => setMessages([]);
 
   return {
     connected,
@@ -119,6 +159,12 @@ export function useChatRoom({
     input,
     setInput,
     send,
-    resetMessages,
+    debug: {
+      wsUrl,
+      roomId,
+      lastEvent,
+      lastError,
+      messageCount: messages.length,
+    },
   };
 }

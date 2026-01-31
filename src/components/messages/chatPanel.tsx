@@ -32,7 +32,7 @@ export default function ChatPanel({
 
   return (
     <div className="h-full min-h-0 flex flex-col">
-      <ChatHeader thread={thread} />
+      <ChatHeader thread={thread as any} />
 
       <div
         ref={scrollAreaRef}

@@ -2,9 +2,14 @@ import ThreadListItem from "./messageCard";
 import type { ChatParticipants } from "../../types/message";
 
 type Props = {
-  threads: ChatParticipants[];
-  selectedThreadId: string;
-  onSelectThread: (id: string) => void;
+  threads: (ChatParticipants & {
+    name?: string;
+    role?: string;
+    preview?: string;
+    unread?: boolean;
+  })[];
+  selectedThreadId: string;            //chatRoomId
+  onSelectThread: (roomId: string) => void;
 };
 
 export default function ThreadList({ threads, selectedThreadId, onSelectThread }: Props) {
@@ -14,8 +19,8 @@ export default function ThreadList({ threads, selectedThreadId, onSelectThread }
         <ThreadListItem
           key={t.id}
           thread={t}
-          active={t.id === selectedThreadId}
-          onClick={() => onSelectThread(t.id)}
+          active={t.chatRoomId === selectedThreadId}     //chatRoomId 비교
+          onClick={() => onSelectThread(t.chatRoomId)}   //chatRoomId 전달
         />
       ))}
     </div>

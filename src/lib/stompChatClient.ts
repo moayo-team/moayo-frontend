@@ -7,14 +7,10 @@ type Handlers = {
 };
 
 export class StompChatClient {
-  publish(_roomId: string, _payload: { content: string; }) {
-      throw new Error("Method not implemented.");
-  }
-  private client: Client;
-  private subscription?: StompSubscription;
-
   private wsUrl: string;
   private handlers: Handlers;
+  private client: Client;
+  private sub?: StompSubscription;
   private accessToken?: string;
 
   constructor(wsUrl: string, handlers: Handlers = {}) {
@@ -22,18 +18,27 @@ export class StompChatClient {
     this.handlers = handlers;
 
     this.client = new Client({
-      brokerURL: this.wsUrl, // 예: ws://localhost:8080/ws-chat
-      reconnectDelay: 3000,
-      heartbeatIncoming: 10000,
-      heartbeatOutgoing: 10000,
-      debug: undefined,
+      brokerURL: wsUrl,
+      reconnectDelay: 2000,
+      debug: () => {},
+
+      onConnect: () => {
+        console.log("[STOMP] ✅ CONNECTED", wsUrl);
+        this.handlers.onConnected?.();
+      },
+      onDisconnect: () => {
+        console.log("[STOMP] ⛔ DISCONNECTED");
+        this.handlers.onDisconnected?.();
+      },
+      onStompError: (frame) => {
+        console.error("[STOMP] ❌ STOMP ERROR", frame);
+        this.handlers.onError?.(frame);
+      },
+      onWebSocketError: (evt) => {
+        console.error("[STOMP] ❌ WS ERROR", evt);
+        this.handlers.onError?.(evt);
+      },
     });
-
-    this.client.onConnect = () => this.handlers.onConnected?.();
-    this.client.onDisconnect = () => this.handlers.onDisconnected?.();
-
-    this.client.onStompError = (frame) => this.handlers.onError?.(frame);
-    this.client.onWebSocketError = (evt) => this.handlers.onError?.(evt);
   }
 
   setAccessToken(token?: string) {
@@ -45,23 +50,24 @@ export class StompChatClient {
       ? { Authorization: `Bearer ${this.accessToken}` }
       : {};
 
-    if (!this.client.active) this.client.activate();
+    console.log("[STOMP] connect() brokerURL =", this.wsUrl);
+    this.client.activate();
   }
 
   async disconnect() {
-    this.unsubscribe();
-    if (this.client.active) await this.client.deactivate();
+    this.sub?.unsubscribe();
+    this.sub = undefined;
+    await this.client.deactivate();
   }
 
-  subscribeRoom(roomId: string, onMessage: (body: unknown, raw: IMessage) => void) {
-    if (!this.client.connected) {
-      throw new Error("STOMP not connected. Wait for onConnected before subscribe.");
-    }
-
+  // ✅ 구독: /topic/chat/rooms/{roomId}
+  subscribeRoom(roomId: string, onMessage: (body: any, raw: IMessage) => void) {
     const topic = `/topic/chat/rooms/${roomId}`;
+    console.log("[STOMP] subscribe topic =", topic);
 
-    this.unsubscribe();
-    this.subscription = this.client.subscribe(topic, (msg) => {
+    this.sub?.unsubscribe();
+    this.sub = this.client.subscribe(topic, (msg) => {
+      console.log("[STOMP] 📩 RAW BODY =", msg.body);
       try {
         onMessage(JSON.parse(msg.body), msg);
       } catch {
@@ -71,16 +77,17 @@ export class StompChatClient {
   }
 
   unsubscribe() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-      this.subscription = undefined;
-    }
+    this.sub?.unsubscribe();
+    this.sub = undefined;
   }
 
-  publishToRoom(roomId: string, payload: unknown) {
-    if (!this.client.connected) throw new Error("STOMP not connected.");
-
+  // ✅ 전송: /app/chat/rooms/{roomId}
+  publish(roomId: string, payload: unknown) {
     const destination = `/app/chat/rooms/${roomId}`;
+
+    console.log("[STOMP] 📤 publish destination =", destination);
+    console.log("[STOMP] 📤 publish payload =", payload);
+
     this.client.publish({
       destination,
       body: JSON.stringify(payload),

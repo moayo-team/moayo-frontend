@@ -1,7 +1,7 @@
 import type { ChatParticipants } from "../../types/message";
 
 type Props = {
-  thread?: ChatParticipants;
+  thread?: ChatParticipants & { name?: string };
 };
 
 export default function ChatHeader({ thread }: Props) {

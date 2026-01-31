@@ -1,7 +1,12 @@
 import type { ChatParticipants } from "../../types/message";
 
 type Props = {
-  thread: ChatParticipants;
+  thread: ChatParticipants & {
+    name?: string;
+    role?: string;
+    preview?: string;
+    unread?: boolean;
+  };
   active: boolean;
   onClick: () => void;
 };
@@ -29,7 +34,7 @@ export default function ThreadListItem({ thread, active, onClick }: Props) {
                 textColor,
               ].join(" ")}
             >
-              {thread.name}
+              {thread.name ?? "-"}
             </span>
             <span
               className={[
@@ -37,7 +42,7 @@ export default function ThreadListItem({ thread, active, onClick }: Props) {
                 textColor,
               ].join(" ")}
             >
-              {thread.role}
+              {thread.role ?? ""}
             </span>
           </div>
 
@@ -47,7 +52,7 @@ export default function ThreadListItem({ thread, active, onClick }: Props) {
               textColor,
             ].join(" ")}
           >
-            {thread.preview}
+            {thread.preview ?? ""}
           </p>
         </div>
 
