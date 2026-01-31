@@ -1,12 +1,16 @@
 import axios from 'axios';
-// Axios 인스턴스 
+
+
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL + '/api/v1',
   withCredentials: true,
+
   headers: {
     'Content-Type': 'application/json',
-  }, timeout: 5000, // 5초 이상 응답 없으면 타임아웃 
+  },
+  timeout: 5000,
 });
+
 // 요청 인터셉터 설정 
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -15,9 +19,11 @@ axiosInstance.interceptors.request.use(
     
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+
     }
+
     return config;
-  }, (error) => {
+  },(error) => {
     // 요청 에러 처리 
     return Promise.reject(error);
   })
@@ -34,4 +40,5 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 export default axiosInstance;

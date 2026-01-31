@@ -1,54 +1,142 @@
-import { useLocation, useNavigate} from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
-import { DUMMY_PROFILE } from "../data/profileData";
+
+import { useLocation, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import ResumeSection from "../components/Resume/ResumeSection";
 import type { Career } from "../types/career";
 import InfoSection from "../components/Profile/InfoSection";
+import { useAuth } from "../hooks/useAuth";
+
+// 커스텀 훅 Import
+import { useProfileData } from "../hooks/useProfileQueries";
+import { useProfileSave } from "../hooks/useProfileMutation";
+import type { ProfileFormData } from "../types/profileForm";
+
 
 const ProfilePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
 
-  const [profileData, setProfileData] = useState(DUMMY_PROFILE);
-  const [isEditing, setIsEditing] = useState(false); 
+
+  // 상태 관리
+  const [isEditing, setIsEditing] = useState(false);
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
-  const [allCareers, setAllCareers] = useState<Career[]>(DUMMY_PROFILE.careers);
-  const [isDetailsEmpty, setisDetailsEmpty] = useState(
-      profileData.details.every(item => !item.value)
-  );  
+  const [profileData, setProfileData] = useState<any>(null);
+  const [initialIndexItemIds, setInitialIndexItemIds] = useState<number[]>([]);
+  const [allCareers, setAllCareers] = useState<Career[]>([]);
+
+  const isInitialized = useRef(false);
+
+  // 데이터 조회 훅
+  const {
+    user, profile, tags, indexItems, isLoading, isError
+  } = useProfileData();
+
+  // 데이터 저장 훅
+  const { mutate: saveProfile, isPending: isSaving } = useProfileSave();
+
+  // 서버 데이터 -> 로컬 상태 동기화
+  useEffect(() => {
+
+    if (!user) return;
+
+   const mappedTags = tags?.map((t) => ({
+      id: t.id,
+      title: t.name,
+    })) ?? [];
+
+    const mappedItems =
+      indexItems?.map((i) => ({
+        id: i.id,
+        label: i.indexKey,
+        value: i.indexValue,
+        type: i.itemType,
+      })) ?? [];
+
+    setInitialIndexItemIds(mappedItems.map((i) => i.id));
+
+    const formData: ProfileFormData = {
+      id: profile?.id ?? null,
+      name: user.name,
+      profileImage: profile?.imageUrl ?? "",
+      introduction: profile?.bio ?? "",
+
+      tags: mappedTags,
+      additionalDetails: mappedItems,
+
+      details: [
+        { id: "school", label: "학력", value: profile?.university ?? "" },
+        { id: "major", label: "학과", value: profile?.major ?? "" },
+        { id: "email", label: "이메일", value: user.email ?? "" },
+        { id: "phone", label: "전화번호", value: user.phoneNumber ?? "" },
+      ],
+    };
+
+    setProfileData(formData);
+  }, [user, profile, tags, indexItems]);
 
   useEffect(() => {
-    if (isDetailsEmpty) {
-      setIsEditing(true);
-    }
-  }, []);
+    if (!user || isInitialized.current) return;
 
-  //  프로필 정보 변경 핸들러
+    if (!profile?.id) setIsEditing(true);
+    else setIsEditing(false);
+
+    isInitialized.current = true;
+  }, [user, profile]);
+
+
+  // 이력서 생성 페이지 복귀 처리
+  useEffect(() => {
+    if (location.state?.newResume) {
+      const newResume = location.state.newResume;
+      setAllCareers(prev => {
+        if (prev.some(c => String(c.id) === String(newResume.id))) return prev;
+        return [newResume, ...prev];
+      });
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
+
+  const isDetailsEmpty = useMemo(() => {
+    if (!profileData?.details) return true;
+    return profileData.details.every((item: any) => !item.value);
+  }, [profileData]);
+
+
+  // 핸들러 함수들
   const handleProfileChange = useCallback((id: string, value: any) => {
-    setProfileData((prev) => {
-      if (["name", "profileImage", "introduction", "tags", "school_verified","additionalDetails"].includes(id)) {
-        // 이전 값과 새로운 값이 같다면 상태를 업데이트하지 않음
+    setProfileData((prev: any) => {
+      if (["name", "profileImage", "introduction", "tags", "school_verified", "additionalDetails"].includes(id)) {
         if (prev[id as keyof typeof prev] === value) return prev;
         return { ...prev, [id]: value };
       }
-
-      const updatedDetails = prev.details.map((item) =>
+      const updatedDetails = prev.details.map((item: any) =>
         item.id === id ? { ...item, value: value } : item
       );
-
-      // 상세 정보 데이터가 실제로 변했는지 확인 
-      const isSame = prev.details.find(d => d.id === id)?.value === value;
-      if (isSame) return prev;
-
       return { ...prev, details: updatedDetails };
     });
   }, []);
 
-  //  편집/저장 버튼 클릭 핸들러
   const handleModeChange = () => {
     if (isEditing) {
-      setisDetailsEmpty(false)
-      setIsEditing(false); 
+      // 유효성 검사
+      const inputName = profileData.name || "";
+      const rawPhone = profileData.details.find((d: any) => d.id === "phone")?.value || "";
+      const cleanPhone = rawPhone.replace(/-/g, "");
+
+      if (inputName.length > 6) return alert("이름은 최대 6글자까지만 입력 가능합니다.");
+      if (cleanPhone.length > 11) return alert("전화번호 형식이 올바르지 않습니다.");
+
+      // 저장 요청
+      saveProfile(
+        { profileData, initialIndexItemIds },
+        {
+          onSuccess: async () => {
+            setIsEditing(false);
+            await refreshUser();
+          }
+        }
+      );
     } else {
       setIsEditing(true);
     }
@@ -60,46 +148,35 @@ const ProfilePage = () => {
       prev.map((career) => (career.id === updatedData.id ? updatedData : career))
     );
   };
-  
   // 이력 삭제 핸들러
   const handleDeleteCareer = (id: string | number) => {
     setAllCareers((prev) => prev.filter((career) => career.id !== id));
   };
-
-  useEffect(() => {
-    // 프로필 수정 정보 반영
-    if (location.state?.updatedProfile) {
-      setProfileData(location.state.updatedProfile);
-      // 반영 후 state 초기화
-    navigate(location.pathname, { replace: true, state: { ...location.state, updatedProfile: null } });
-    }
-
-    //  CareerAddPage에서 넘어온 신규 이력 반영
-    if (location.state?.newResume) {
-      const newCareer = location.state.newResume;
-
-      // 최신 상태와 중복을 체크
-      setAllCareers((prev) => {
-        const isExist = prev.some(item => item.id === newCareer.id);
-        if (isExist) return prev; // 이미 존재하면 기존 리스트 반환
-        return [newCareer, ...prev]; // 존재하지 않으면 추가
-      });
-
-      // 데이터 반영 후 즉시 state를 비워주어 useEffect 재실행 시 데이터가 없도록 합니다.
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-      
-  }, [location.state, navigate, location.pathname]);
+  // 렌더링
+  if (isLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
+  if (isError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;
+  if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
 
   return (
     <div className="flex flex-col gap-12 w-full">
-    
+      {/* 저장 중 로딩 표시 */}
+      {isSaving && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex flex-col justify-center items-center cursor-wait">
+          <div className="bg-white px-6 py-4 rounded-xl shadow-xl flex flex-col items-center gap-2">
+            <div className="w-6 h-6 border-2 border-[#6EEBC7] border-t-transparent rounded-full animate-spin"></div>
+            <span className="font-pretendard text-[#342F28] font-medium">저장 중입니다...</span>
+          </div>
+        </div>
+      )}
+
       <InfoSection
         isEditing={isEditing}
         isDetailsEmpty={isDetailsEmpty}
         data={profileData}
         onDataChange={handleProfileChange}
-        onModeChange={handleModeChange}/>
+        onModeChange={handleModeChange}
+      />
+
 
       <ResumeSection 
         carrers={allCareers} 
