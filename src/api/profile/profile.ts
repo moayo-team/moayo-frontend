@@ -1,61 +1,75 @@
-import type { BaseResponse, CreateIndexItemResponse, CreateProfileRequest, DeleteIndexItemResponse, IndexItemDetailData, IndexItemListResponse, InterestTagListResponse, ProfileCreateResponse, ProfileResponse, UpdateInterestTagsRequest, UpdateInterestTagsResponse, UpdateProfileRequest, UpdateProfileResponse } from "../../types/profile";
-import axiosInstance from "../axios";
+import type {
+    BaseResponse,
+    CreateIndexItemResponse,
+    CreateProfileRequest,
+    DeleteIndexItemResponse,
+    IndexItemDetailData,
+    IndexItemListResponse,
+    InterestTagListResponse,
+    ProfileCreateResponse,
+    ProfileResponse,
+    UpdateInterestTagsRequest,
+    UpdateInterestTagsResponse,
+    UpdateProfileRequest,
+    UpdateProfileResponse
+} from "../../types/profile";
+import { apiClient } from "../client";
 
 
-export const createProfile = async (profileData: CreateProfileRequest): Promise<ProfileCreateResponse> => {  
-    const response = await axiosInstance.post<ProfileCreateResponse>('/profiles/me', profileData);
-    
+export const createProfile = async (profileData: CreateProfileRequest): Promise<ProfileCreateResponse> => {
+    const response = await apiClient.post<ProfileCreateResponse>('/api/v1/profiles/me', profileData);
+
     return response.data;
-    
+
 }
 
 /**프로필 조회 */
 export const getProfile = async (): Promise<ProfileResponse> => {
-  const response = await axiosInstance.get<ProfileResponse>(
-    "/profiles/me"
-  );
-  return response.data;
+    const response = await apiClient.get<ProfileResponse>(
+        "/api/v1/profiles/me"
+    );
+    return response.data;
 };
 
 /**관심 태그 조회 */
 export const getInterestTags = async (): Promise<InterestTagListResponse> => {
-    const response = await axiosInstance.get<InterestTagListResponse>('/users/me/interest-tags');
+    const response = await apiClient.get<InterestTagListResponse>('/api/v1/users/me/interest-tags');
 
     return response.data;
 
 }
 /**추가 항목 조회 */
 export const getIndexItems = async (): Promise<IndexItemListResponse> => {
-    const response = await axiosInstance.get<IndexItemListResponse>('/profiles/me/index-items');
+    const response = await apiClient.get<IndexItemListResponse>('/api/v1/profiles/me/index-items');
 
     return response.data;
 
 }
 /**프로필 수정 */
 export const updateProfile = async (profileData: UpdateProfileRequest): Promise<UpdateProfileResponse> => {
-    const response = await axiosInstance.patch<UpdateProfileResponse>('/profiles/me', profileData);
+    const response = await apiClient.patch<UpdateProfileResponse>('/api/v1/profiles/me', profileData);
 
     return response.data;
 }
 
 /**관심 태그 수정 */
 export const updateInterestTags = async (
-  data: UpdateInterestTagsRequest
+    data: UpdateInterestTagsRequest
 ): Promise<UpdateInterestTagsResponse> => {
-  const response = await axiosInstance.put<UpdateInterestTagsResponse>(
-    "/users/me/interest-tags",
-    data
-  );
-  return response.data;
+    const response = await apiClient.put<UpdateInterestTagsResponse>(
+        "/api/v1/users/me/interest-tags",
+        data
+    );
+    return response.data;
 };
 
 
 
 /**추가 항목 수정 */
 export const updateIndexItem = async (
-  itemId: number, 
-  detailData: IndexItemDetailData, 
-  file?: File | null
+    itemId: number,
+    detailData: IndexItemDetailData,
+    file?: File | null
 ): Promise<BaseResponse<null>> => {
     const formData = new FormData();
 
@@ -66,12 +80,12 @@ export const updateIndexItem = async (
         formData.append("file", file);
     }
 
-    const response = await axiosInstance.patch<BaseResponse<null>>(
-        `/profiles/me/index-items/${itemId}`,
+    const response = await apiClient.patch<BaseResponse<null>>(
+        `/api/v1/profiles/me/index-items/${itemId}`,
         formData,
         {
             headers: {
-                "Content-Type": undefined 
+                "Content-Type": undefined
             },
         }
     );
@@ -82,35 +96,35 @@ export const updateIndexItem = async (
 
 /**추가 항목 생성 */
 export const createIndexItem = async (
-  detailData: IndexItemDetailData,
-  file?: File | null
+    detailData: IndexItemDetailData,
+    file?: File | null
 ): Promise<CreateIndexItemResponse> => {
-  const formData = new FormData();
+    const formData = new FormData();
 
-  formData.append("data", JSON.stringify(detailData));
+    formData.append("data", JSON.stringify(detailData));
 
-  if (file) {
-    formData.append("file", file);
-  }
-
-  const response = await axiosInstance.post<CreateIndexItemResponse>(
-    '/profiles/me/index-items',
-    formData,
-    {
-      headers: {
-        "Content-Type": undefined 
-      },
+    if (file) {
+        formData.append("file", file);
     }
-  );
 
-  return response.data;
+    const response = await apiClient.post<CreateIndexItemResponse>(
+        '/api/v1/profiles/me/index-items',
+        formData,
+        {
+            headers: {
+                "Content-Type": undefined
+            },
+        }
+    );
+
+    return response.data;
 };
 
 /** 추가 항목 삭제 */
 export const deleteIndexItem = async (itemId: number): Promise<DeleteIndexItemResponse> => {
-  const response = await axiosInstance.delete<DeleteIndexItemResponse>(
-    `/profiles/me/index-items/${itemId}`
-  );
+    const response = await apiClient.delete<DeleteIndexItemResponse>(
+        `/api/v1/profiles/me/index-items/${itemId}`
+    );
 
-  return response.data;
+    return response.data;
 };

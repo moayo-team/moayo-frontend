@@ -31,7 +31,7 @@ export type ProfileCreateResponse = BaseResponse<ProfileCreateResult>;
 /**조회 */
 //프로필 조회 응답
 export interface UserInfo {
-  id: number;
+  id: number | string;
   name: string;
   email: string;
   phoneNumber: string | null;

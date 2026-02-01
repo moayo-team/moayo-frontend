@@ -129,11 +129,9 @@ const ProfilePage = () => {
         { profileData, initialIndexItemIds },
         {
           onSuccess: async () => {
-            // ★ 여기가 실행되어야 버튼이 바뀝니다.
             setIsEditing(false);
             await refreshUser();
           }
-          // 실패 시에는 아무것도 안 하므로(onError에서 alert만 뜸) 버튼이 유지됨 -> 정상 동작
         }
       );
     } else {

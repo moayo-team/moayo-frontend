@@ -41,6 +41,9 @@ export interface AuthContextType {
    * 서버 세션 종료 및 로컬 스토리지 정리를 수행합니다.
    */
   logout: () => Promise<void>;
+
+  completeLogin: (token: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 /**

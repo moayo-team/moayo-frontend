@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import defaultImage from "../../assets/profile_photo.svg"
 import { FileText, ImageIcon, Paperclip, Pencil, Plus, X } from "lucide-react";
-import { formatBirthDate } from "../../utils/format";
+import { formatBirthDate, formatPhoneNumber } from "../../utils/format";
 import { useUploadManager } from "../../hooks/useUploadManager";
 import SchoolVerifyModal from "./SchoolVerifyModal";
 import TagSelectModal from "./TagSelectModal";
@@ -201,7 +201,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
             { label: "학력", id: "school", value: getValue("school") },
             { label: "학과", id: "major", value: getValue("major") },
             { label: "이메일", id: "email", value: getValue("email"), max: 30 },
-            { label: "전화번호", id: "phone", value: getValue("phone"), max: 11 },
+            { label: "전화번호", id: "phone", value: getValue("phone"), max: 13 },
         ];
 
     //프로필 사진 미리보기 및 부모 상태 반영 
@@ -240,7 +240,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
         const newValue = input.value;
 
         if (id === "phone") {
-            const formattedValue = formatBirthDate(newValue);
+            const formattedValue = formatPhoneNumber(newValue);
             onDataChange(id, formattedValue);
         } else {
             onDataChange(id, newValue);
