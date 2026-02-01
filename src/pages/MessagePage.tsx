@@ -2,83 +2,33 @@ import { useEffect, useMemo, useState } from "react";
 import ThreadList from "../components/messages/threadList";
 import ChatPanel from "../components/messages/chatPanel";
 import { useChatRoom } from "../hooks/useChatRoom";
-import type { ChatParticipants } from "../types/message";
+import { useChatRooms } from "../hooks/useChatRooms";
+import type { ChatRoomSummary } from "../types/message";
 
 export default function MessagePage() {
-  const currentUserId = "u_me";
+  const currentUserId = Number(import.meta.env.VITE_MOAYO_USER_ID || 1);
 
-  // ✅ 더미 스레드: ChatParticipants + UI 필드(옵션) 교차 타입
-  const threads = useMemo(
-    () =>
-      [
-        {
-          id: "p1",
-          chatRoomId: "101",
-          userId: currentUserId,
-          lastReadMessageId: "",
-          createdAt: new Date(),
+  // ✅ 진짜 채팅방 목록
+  const { rooms, loading, error } = useChatRooms();
 
-          name: "김주연",
-          role: "디자이너",
-          preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
-          unread: true,
-        },
-        {
-          id: "p2",
-          chatRoomId: "102",
-          userId: currentUserId,
-          lastReadMessageId: "",
-          createdAt: new Date(),
+  // ✅ 선택 상태: roomId 기준
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
-          name: "김주연",
-          role: "디자이너",
-          preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
-        },
-        {
-          id: "p3",
-          chatRoomId: "103",
-          userId: currentUserId,
-          lastReadMessageId: "",
-          createdAt: new Date(),
+  // rooms가 처음 로드되면 첫 방 자동 선택
+  useEffect(() => {
+    if (selectedRoomId == null && rooms.length > 0) {
+      setSelectedRoomId(rooms[0].roomId);
+    }
+  }, [rooms, selectedRoomId]);
 
-          name: "김주연",
-          role: "디자이너",
-          preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
-        },
-      ] as Array<
-        ChatParticipants & {
-          name?: string;
-          role?: string;
-          preview?: string;
-          unread?: boolean;
-        }
-      >,
-    [currentUserId]
+  const selectedRoom: ChatRoomSummary | undefined = useMemo(
+    () => rooms.find((r) => r.roomId === selectedRoomId),
+    [rooms, selectedRoomId]
   );
 
-  /**
-   * ✅ 중요:
-   * ThreadList는 "t.id" 기준으로 선택(active) 처리함.
-   * 그런데 STOMP는 "chatRoomId"가 roomId임.
-   * → MessagePage에서 두 값을 분리 관리한다.
-   */
-  const [selectedParticipantId, setSelectedParticipantId] = useState<string>(
-    threads[0]?.id ?? ""
-  );
-
-  const selectedThread = useMemo(
-    () => threads.find((t) => t.id === selectedParticipantId),
-    [threads, selectedParticipantId]
-  );
-
-  // ✅ STOMP roomId는 chatRoomId
-  const selectedRoomId = selectedThread?.chatRoomId ?? "";
-
-  // ✅ useChatRoom은 기존 그대로 사용 (토큰 전달 X)
-  const { connected, messages, input, setInput, send, debug } = useChatRoom({
+  // ✅ 채팅방 메시지 목록 + STOMP는 roomId로
+  const { connected, debug, messages, input, setInput, send } = useChatRoom({
     roomId: selectedRoomId,
-    wsUrl: import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws-chat",
-    currentUserId,
   });
 
   // ====== 기존 scale 로직 유지 ======
@@ -103,33 +53,20 @@ export default function MessagePage() {
           <h1 className="text-[28px] font-bold leading-[36px] tracking-normal mb-[24px]">
             쪽지함 목록
           </h1>
-
-          {/* ✅ 연결/구독 확인용 (원하면 삭제 가능) */}
-          <div className="mb-3 text-xs text-gray-500">
-            <div>
-              상태: {connected ? "✅ connected" : "⏳ connecting..."} / roomId:{" "}
-              {selectedRoomId || "-"}
-            </div>
-            <div>
-              lastEvent: {debug?.lastEvent ?? "-"} / lastError:{" "}
-              {debug?.lastError ?? "-"} / messages:{" "}
-              {debug?.messageCount ?? messages.length}
-            </div>
-          </div>
-
           <div className="flex flex-row gap-6">
             <aside className="w-[403px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden p-[31px_24px]">
-              {/* ✅ ThreadList는 id 기준으로 선택 */}
               <ThreadList
-                threads={threads}
-                selectedThreadId={selectedParticipantId}
-                onSelectThread={setSelectedParticipantId}
+                // ✅ 이제 더미가 아니라 rooms
+                threads={rooms}
+                selectedRoomId={selectedRoomId}
+                onSelectRoom={setSelectedRoomId}
               />
             </aside>
 
             <section className="w-[904px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden">
               <ChatPanel
-                thread={selectedThread as any}
+                // ChatHeader가 room summary를 받을 수 있게 나중에 thread 타입 정리 권장
+                thread={selectedRoom}
                 messages={messages}
                 draft={input}
                 onDraftChange={setInput}

@@ -1,12 +1,13 @@
-import type { Message } from "../../types/message";
+import type { ChatMessage } from "../../types/message";
 
 type Props = {
-  message: Message;
-  currentUserId: string;
+  message: ChatMessage;
+  currentUserId: number;
 };
 
-function formatHHMM(date: Date): string {
-  const d = date instanceof Date ? date : new Date(date);
+function formatHHMM(v: string | Date): string {
+  const d = v instanceof Date ? v : new Date(v);
+  if (Number.isNaN(d.getTime())) return "--:--";
   const hh = String(d.getHours()).padStart(2, "0");
   const mm = String(d.getMinutes()).padStart(2, "0");
   return `${hh}:${mm}`;

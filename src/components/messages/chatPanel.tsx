@@ -2,15 +2,15 @@ import { useEffect, useRef } from "react";
 import ChatHeader from "./chatHeader";
 import MessageList from "./messageList";
 import MessageComposer from "./messageinput";
-import type { ChatParticipants, Message } from "../../types/message";
+import type { ChatMessage, ChatRoomSummary } from "../../types/message";
 
 type Props = {
-  thread?: ChatParticipants;
-  messages: Message[];
+  thread?: ChatRoomSummary;      // ✅ rooms API 기반으로 통일
+  messages: ChatMessage[];       // ✅ 명확히
   draft: string;
   onDraftChange: (v: string) => void;
   onSend: () => void;
-  currentUserId: string;
+  currentUserId: number;
   connected?: boolean;
 };
 
@@ -28,11 +28,11 @@ export default function ChatPanel({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages.length, thread?.chatRoomId]);
+  }, [messages.length, thread?.roomId]); // ✅ chatRoomId -> roomId
 
   return (
     <div className="h-full min-h-0 flex flex-col">
-      <ChatHeader thread={thread as any} />
+      <ChatHeader thread={thread} />
 
       <div
         ref={scrollAreaRef}
@@ -49,7 +49,7 @@ export default function ChatPanel({
           draft={draft}
           onDraftChange={onDraftChange}
           onSend={onSend}
-          disabled={!connected}
+          disabled={!connected || !thread} // ✅ 방 선택 안되면 비활성화
         />
       </div>
     </div>

@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(() => {
     // 백엔드의 구글 인증 시작점으로 리다이렉트
-    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/oauth/google`;
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/oauth/google`;
   }, []);
 
   const logout = useCallback(async () => {

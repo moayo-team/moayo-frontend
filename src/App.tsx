@@ -3,11 +3,11 @@ import '../index.css'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import HomeLayout from './layouts/HomeLayout';
 import HomePage from './pages/HomePage';
-import ResumeAddPage from './pages/CareerAddPage';
 import ProfileLayout from './layouts/ProfileLayout';
 import ProfilePage from './pages/ProfilePage';
 import MessagePage from './pages/MessagePage';
 import CareerAddPage from './pages/CareerAddPage';
+import LoginPage from './pages/LoginPage';
 import { BoardPage } from './pages/BoardPage';
 import { PostDetailPage } from './pages/PostDetailPage';
 import { CreatePostPage } from './pages/CreatePostPage';
@@ -16,6 +16,7 @@ import { MyPostsPage } from './pages/MyPostsPage';
 import { QueryClient } from '@tanstack/react-query';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthProvider';
+import { GoogleCallback } from './pages/GoogleCallback';
 import 'react-quill-new/dist/quill.snow.css';
 
 const queryClient = new QueryClient({
@@ -28,36 +29,38 @@ const queryClient = new QueryClient({
   },
 });
 
+
 const router = createBrowserRouter([
-     {
-      path: "/",
-      element: <HomeLayout />, 
-      children: [
-        { index: true, element: <HomePage /> },
-        { path: "profile/add-resume", element: <ResumeAddPage /> },
-        { path: "board", element: <BoardPage /> }, 
-        { path: "post/:id", element: <PostDetailPage /> },
-        { path: "create", element: <CreatePostPage /> },
-        { path: "edit/:id", element: <EditPostPage /> },
-        { path: "my-posts", element: <MyPostsPage /> },
-        { path: "message", element: <MessagePage /> }
-      ],
-    },
-    {
-      path: "/profile",
-      element: <ProfileLayout />,
-        children: [
-          { index: true, element: <ProfilePage /> },
-          { path: "add-career", element: <CareerAddPage />},
-        ],
-      }
+  {
+    path: "/",
+    element: <HomeLayout />, 
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: "login", element: <LoginPage /> },
+      { path: "board", element: <BoardPage /> }, 
+      { path: "post/:id", element: <PostDetailPage /> },
+      { path: "create", element: <CreatePostPage /> },
+      { path: "edit/:id", element: <EditPostPage /> },
+      { path: "my-posts", element: <MyPostsPage /> },
+      { path: "message", element: <MessagePage /> },
+      { path: "profile/add-career", element: <CareerAddPage /> },
+      { path: "auth/callback", element: <GoogleCallback /> },
     ],
-  );
+  },
+  {
+    path: "/profile",
+    element: <ProfileLayout />,
+    children: [
+      { index: true, element: <ProfilePage /> },
+      { path: "add-career", element: <CareerAddPage />},
+    ],
+  },
+]);
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
+      <AuthProvider> {/* 모든 라우트를 감싸고 있어야 합니다. */}
         <RouterProvider router={router} />
       </AuthProvider>
     </QueryClientProvider>

@@ -1,18 +1,17 @@
-import type { ChatParticipants } from "../../types/message";
+import type { ChatRoomSummary } from "../../types/message";
 
 type Props = {
-  thread: ChatParticipants & {
-    name?: string;
-    role?: string;
-    preview?: string;
-    unread?: boolean;
-  };
+  thread: ChatRoomSummary;
   active: boolean;
   onClick: () => void;
 };
 
 export default function ThreadListItem({ thread, active, onClick }: Props) {
   const textColor = active ? "text-[#25221D]" : "text-[#5F5749]";
+
+  const title = `User #${thread.opponentUserId}`;
+  const preview = thread.lastMessageContent ?? "";
+  const unread = thread.hasUnread;
 
   return (
     <button
@@ -34,16 +33,11 @@ export default function ThreadListItem({ thread, active, onClick }: Props) {
                 textColor,
               ].join(" ")}
             >
-              {thread.name ?? "-"}
+              {title}
             </span>
-            <span
-              className={[
-                "text-[12px] font-bold leading-[145%] tracking-[-0.01em] shrink-0",
-                textColor,
-              ].join(" ")}
-            >
-              {thread.role ?? ""}
-            </span>
+
+            {/* role은 서버에 없어서 일단 비워둠 */}
+            {/* 필요하면 나중에 opponentUserRole 같은 필드가 생길 때 추가 */}
           </div>
 
           <p
@@ -52,11 +46,11 @@ export default function ThreadListItem({ thread, active, onClick }: Props) {
               textColor,
             ].join(" ")}
           >
-            {thread.preview ?? ""}
+            {preview}
           </p>
         </div>
 
-        {thread.unread && (
+        {unread && (
           <span className="mt-1 inline-block h-3 w-3 shrink-0 rounded-full bg-red-500" />
         )}
       </div>

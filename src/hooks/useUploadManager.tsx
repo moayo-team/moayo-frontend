@@ -46,7 +46,7 @@ export const useUploadManager = (options: UploadOptions = {}) => {
       return true;
     });
 
-    // (기존 파일 유효성 검사 로직)
+    // 기존 파일 유효성 검사 로직
     if (isValid) {
       setSelectedFiles((prev) => [...prev, ...newFiles]);
     }

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import type { Post } from '../../types';
-import { Badge } from '../../components/common/Badge';
+import { Badge } from '../common/Badge';
 import { formatDateRange } from '../../utils/dateUtils';
 import { useAuth } from '../../hooks/useAuth';
 import type { JSX } from 'react';

@@ -1,4 +1,5 @@
 import { Client, type IMessage, type StompSubscription } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 type Handlers = {
   onConnected?: () => void;
@@ -7,23 +8,25 @@ type Handlers = {
 };
 
 export class StompChatClient {
-  private wsUrl: string;
+  private httpUrl: string;               // ✅ wsUrl이 아니라 httpUrl
   private handlers: Handlers;
   private client: Client;
   private sub?: StompSubscription;
   private accessToken?: string;
 
-  constructor(wsUrl: string, handlers: Handlers = {}) {
-    this.wsUrl = wsUrl;
+  constructor(httpUrl: string, handlers: Handlers = {}) {
+    this.httpUrl = httpUrl;
     this.handlers = handlers;
 
     this.client = new Client({
-      brokerURL: wsUrl,
+
+      webSocketFactory: () => new SockJS(this.httpUrl),
+
       reconnectDelay: 2000,
       debug: () => {},
 
       onConnect: () => {
-        console.log("[STOMP] ✅ CONNECTED", wsUrl);
+        console.log("[STOMP] ✅ CONNECTED (SockJS)", this.httpUrl);
         this.handlers.onConnected?.();
       },
       onDisconnect: () => {
@@ -46,11 +49,12 @@ export class StompChatClient {
   }
 
   connect() {
+    // ✅ 이 Authorization은 "HTTP 헤더"가 아니라 STOMP CONNECT 프레임 헤더로 전송됨
     this.client.connectHeaders = this.accessToken
       ? { Authorization: `Bearer ${this.accessToken}` }
       : {};
 
-    console.log("[STOMP] connect() brokerURL =", this.wsUrl);
+    console.log("[STOMP] connect() SockJS url =", this.httpUrl);
     this.client.activate();
   }
 
@@ -60,14 +64,11 @@ export class StompChatClient {
     await this.client.deactivate();
   }
 
-  // ✅ 구독: /topic/chat/rooms/{roomId}
   subscribeRoom(roomId: string, onMessage: (body: any, raw: IMessage) => void) {
     const topic = `/topic/chat/rooms/${roomId}`;
-    console.log("[STOMP] subscribe topic =", topic);
 
     this.sub?.unsubscribe();
     this.sub = this.client.subscribe(topic, (msg) => {
-      console.log("[STOMP] 📩 RAW BODY =", msg.body);
       try {
         onMessage(JSON.parse(msg.body), msg);
       } catch {
@@ -81,15 +82,9 @@ export class StompChatClient {
     this.sub = undefined;
   }
 
-  // ✅ 전송: /app/chat/rooms/{roomId}
   publish(roomId: string, payload: unknown) {
-    const destination = `/app/chat/rooms/${roomId}`;
-
-    console.log("[STOMP] 📤 publish destination =", destination);
-    console.log("[STOMP] 📤 publish payload =", payload);
-
     this.client.publish({
-      destination,
+      destination: `/app/chat/rooms/${roomId}`,
       body: JSON.stringify(payload),
     });
   }
