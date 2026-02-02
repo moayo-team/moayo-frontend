@@ -6,8 +6,8 @@ import logo from '../assets/pavicon.png';
 export const NavigationBar = (): JSX.Element => {
   const navigate = useNavigate();
   const location = useLocation();
-  const {user, isLoggedIn, logout } = useAuth();
-  
+  const { user, isLoggedIn, logout } = useAuth();
+
   const navigationItems = [
     { id: 1, label: "홈", path: "/" },
     { id: 2, label: "프로필", path: "/profile" },
@@ -22,7 +22,7 @@ export const NavigationBar = (): JSX.Element => {
       aria-label="Main navigation"
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-        <button 
+        <button
           onClick={() => navigate('/')}
           className="flex items-center gap-2 sm:gap-4 hover:opacity-80 transition-opacity cursor-pointer"
         >
@@ -41,12 +41,11 @@ export const NavigationBar = (): JSX.Element => {
             <button
               key={item.id}
               onClick={() => item.path !== "#" && navigate(item.path)}
-              className={`relative w-fit font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-black text-[length:var(--body-b1-200-font-size)] tracking-[var(--body-b1-200-letter-spacing)] leading-[var(--body-b1-200-line-height)] whitespace-nowrap [font-style:var(--body-b1-200-font-style)] hover:opacity-70 transition-opacity ${
-                (item.path === "/" && location.pathname === "/") || 
-                (item.path !== "/" && location.pathname.startsWith(item.path) && item.path !== "#")
-                  ? "opacity-100 font-bold" 
+              className={`relative w-fit font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-black text-[length:var(--body-b1-200-font-size)] tracking-[var(--body-b1-200-letter-spacing)] leading-[var(--body-b1-200-line-height)] whitespace-nowrap [font-style:var(--body-b1-200-font-style)] hover:opacity-70 transition-opacity ${(item.path === "/" && location.pathname === "/") ||
+                  (item.path !== "/" && location.pathname.startsWith(item.path) && item.path !== "#")
+                  ? "opacity-100 font-bold"
                   : "opacity-70"
-              }`}
+                }`}
             >
               {item.label}
             </button>
@@ -54,16 +53,17 @@ export const NavigationBar = (): JSX.Element => {
         </div>
 
         <div className="flex items-center gap-3">
-          {isLoggedIn ? (
+          {isLoggedIn && user ? (
             <>
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2 cursor-pointer"
+                  onClick={() => navigate('/profile')}>
                 <img
                   className="w-8 h-8 rounded-full object-cover"
-                  alt={user?.name}
-                  src={user?.avatar}
+                  alt={user.name}
+                  src={user.avatar || "src/assets/profile_photo.svg"}
                 />
                 <span className="font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-900 text-sm">
-                  {user?.name}
+                  {user.name}
                 </span>
               </div>
               <button
@@ -74,8 +74,8 @@ export const NavigationBar = (): JSX.Element => {
               </button>
             </>
           ) : (
-            <button 
-              onClick={() => navigate('/login')} // [수정] 클릭 시 /login 페이지로 이동
+            <button
+              onClick={() => navigate('/login')}
               className="cursor-pointer"
             >
               로그인
