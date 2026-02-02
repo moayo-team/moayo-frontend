@@ -2,6 +2,7 @@ import axios from 'axios';
 // Axios 인스턴스 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL + '/api/v1',
+
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -10,11 +11,13 @@ const axiosInstance = axios.create({
 // 요청 인터셉터 설정 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
-    const accessToken = token?.startsWith('"') ? JSON.parse(token) : token;
-    
+    const accessToken = localStorage.getItem('accessToken');
+
     if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+      config.headers?.set(
+        "Authorization",
+        `Bearer ${accessToken}`
+      );
     }
     return config;
   }, (error) => {

@@ -19,6 +19,7 @@ import { AuthProvider } from './context/AuthProvider';
 import { GoogleCallback } from './pages/GoogleCallback';
 import 'react-quill-new/dist/quill.snow.css';
 
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -31,20 +32,33 @@ const queryClient = new QueryClient({
 
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <HomeLayout />, 
-    children: [
-      { index: true, element: <HomePage /> },
-      { path: "login", element: <LoginPage /> },
-      { path: "board", element: <BoardPage /> }, 
-      { path: "post/:id", element: <PostDetailPage /> },
-      { path: "create", element: <CreatePostPage /> },
-      { path: "edit/:id", element: <EditPostPage /> },
-      { path: "my-posts", element: <MyPostsPage /> },
-      { path: "message", element: <MessagePage /> },
-      { path: "profile/add-career", element: <CareerAddPage /> },
-      { path: "auth/callback", element: <GoogleCallback /> },
+     {
+      path: "/",
+      element: <HomeLayout />, 
+      children: [
+        { index: true, element: <HomePage /> },
+        { path: "login", element: <LoginPage /> },
+        { path: "profile/add-craeer", element: <CareerAddPage /> },
+        { path: "board", element: <BoardPage /> }, 
+        { path: "post/:id", element: <PostDetailPage /> },
+        { path: "create", element: <CreatePostPage /> },
+        { path: "edit/:id", element: <EditPostPage /> },
+        { path: "my-posts", element: <MyPostsPage /> },
+        { path: "message", element: <MessagePage /> }
+      ],
+    },
+      {
+      path: "/message",
+      element: <MessagePage />,
+    },
+    {
+      path: "/profile",
+      element: <ProfileLayout />,
+        children: [
+          { index: true, element: <ProfilePage /> },
+          { path: "add-career", element: <CareerAddPage />},
+        ],
+      }
     ],
   },
   {
