@@ -1,4 +1,4 @@
-import axiosInstance from './axios';
+import { apiClient } from './client';
 import type { Comment } from '../types';
 
 const parseComment = (raw: any): Comment => ({
@@ -10,7 +10,7 @@ const parseComment = (raw: any): Comment => ({
 export const commentsApi = {
   // Get comments for a specific post
   getComments: async (postId: string): Promise<Comment[]> => {
-  const res = await axiosInstance.get(`/posts/${postId}/comments`);
+  const res = await apiClient.get(`/posts/${postId}/comments`);
     let raw = res.data;
     // unwrap BaseResponse wrapper if present
     if (raw && raw.result !== undefined) raw = raw.result;
@@ -24,7 +24,7 @@ export const commentsApi = {
   addComment: async (postId: string, content: string, parentId?: string): Promise<Comment> => {
     const payload: any = { content };
     if (parentId) payload.parentId = parentId;
-  const res = await axiosInstance.post(`/posts/${postId}/comments`, payload);
+  const res = await apiClient.post(`/posts/${postId}/comments`, payload);
   let raw = res.data;
   if (raw && raw.result !== undefined) raw = raw.result;
   return parseComment(raw);
@@ -34,10 +34,10 @@ export const commentsApi = {
   deleteComment: async (commentId: string): Promise<void> => {
     // Try common endpoints: /comments/{id} or /posts/comments/{id}
     try {
-      await axiosInstance.delete(`/comments/${commentId}`);
+      await apiClient.delete(`/comments/${commentId}`);
     } catch (err) {
       // fallback
-      await axiosInstance.delete(`/posts/comments/${commentId}`);
+      await apiClient.delete(`/posts/comments/${commentId}`);
     }
   },
 };

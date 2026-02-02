@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { logoutApi, getGoogleLoginUrl } from '../api/auth';
 import { apiClient } from '../api/client'; // apiClient 추가
 import type { User } from '../types/auth';
 
@@ -11,7 +10,21 @@ interface AuthContextType {
   login: () => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>; 
+
 }
+
+export const logoutApi = async () => {
+  return await apiClient.post('/v1/auth/logout');
+};
+
+/**
+ * 토큰 재발급 API
+ * 명세서: POST /api/v1/auth/token/refresh
+ */
+export const refreshTokenApi = async () => {
+  const { data } = await apiClient.post('/v1/auth/token/refresh');
+  return data;
+};
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -74,9 +87,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         setUser(JSON.parse(savedUser));
         setIsLoggedIn(true);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (e) {
-        localStorage.clear();
+      } catch (error) {
+        console.error('Failed to parse saved user:', error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('accessToken'); // 토큰도 같이 제거하는 걸 권장
+        setUser(null);
+        setIsLoggedIn(false);
       }
     }
   }, []);
@@ -84,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = useCallback(() => {
     // 백엔드의 구글 인증 시작점으로 리다이렉트
     // use centralized helper to ensure /api/v1 is included consistently
-    window.location.href = getGoogleLoginUrl();
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/google/login`;
   }, []);
 
   const logout = useCallback(async () => {

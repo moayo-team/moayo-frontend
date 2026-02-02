@@ -1,4 +1,4 @@
-import axiosInstance from './axios';
+import { apiClient } from './client';
 import type { Post, PostDraft } from '../types';
 import { mapLabelToEnum } from '../constants/categories';
 
@@ -82,7 +82,7 @@ export const postsApi = {
   }): Promise<{ posts: Post[]; total: number; totalPages: number }> => {
   // 현재 사용자가 작성한 게시글을 조회하는 경우 '/posts/me' 엔드포인트로 호출
     if (filters?.createdByCurrentUser) {
-  const res = await axiosInstance.get('/posts/me');
+  const res = await apiClient.get('/posts/me');
       const raw = res.data;
       const posts: Post[] = (raw?.posts || raw?.content || raw || []).map(parsePost);
       const total = raw?.total || raw?.totalElements || posts.length;
@@ -106,7 +106,7 @@ export const postsApi = {
     if (filters?.order) params.order = filters.order;
     if (filters?.limit) params.limit = filters.limit;
 
-  const res = await axiosInstance.get('/posts', { params });
+  const res = await apiClient.get('/posts', { params });
   let raw = res.data;
   // 공통 응답 래퍼(BaseResponse) 언랩: { isSuccess, code, message, timestamp, result }
   if (raw && raw.result !== undefined) raw = raw.result;
@@ -144,7 +144,7 @@ export const postsApi = {
 
   // 단일 게시글 조회
   getPost: async (id: string): Promise<Post> => {
-  const res = await axiosInstance.get(`/posts/${id}`);
+  const res = await apiClient.get(`/posts/${id}`);
   let raw = res.data;
   if (raw && raw.result !== undefined) raw = raw.result;
   return parsePost(normalizeServerItem(raw));
@@ -167,7 +167,7 @@ export const postsApi = {
         deadline: formatDateOnly(post.deadline),
       };
 
-  const res = await axiosInstance.post('/posts', backendPayload);
+  const res = await apiClient.post('/posts', backendPayload);
   let raw = res.data;
   // unwrap if BaseResponse
   const unwrapped = raw && raw.result !== undefined ? raw.result : raw;
@@ -206,7 +206,7 @@ export const postsApi = {
   updatePost: async (id: string, post: Partial<PostDraft>): Promise<Post> => {
     const payload = { ...post } as any;
     if (payload.deadline instanceof Date) payload.deadline = payload.deadline.toISOString();
-  const res = await axiosInstance.patch(`/posts/${id}`, payload);
+  const res = await apiClient.patch(`/posts/${id}`, payload);
   let raw = res.data;
   if (raw && raw.result !== undefined) raw = raw.result;
   return parsePost(raw);
@@ -214,6 +214,6 @@ export const postsApi = {
 
   // 게시글 삭제
   deletePost: async (id: string): Promise<void> => {
-  await axiosInstance.delete(`/posts/${id}`);
+  await apiClient.delete(`/posts/${id}`);
   },
 };
