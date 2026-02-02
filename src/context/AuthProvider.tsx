@@ -11,6 +11,7 @@ interface AuthContextType {
   login: () => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>; 
+
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -62,16 +63,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         setUser(JSON.parse(savedUser));
         setIsLoggedIn(true);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (e) {
-        localStorage.clear();
+      } catch (error) {
+        console.error('Failed to parse saved user:', error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('accessToken'); // 토큰도 같이 제거하는 걸 권장
+        setUser(null);
+        setIsLoggedIn(false);
       }
     }
   }, []);
 
   const login = useCallback(() => {
     // 백엔드의 구글 인증 시작점으로 리다이렉트
-    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/oauth/google`;
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/oauth/google`;
   }, []);
 
   const logout = useCallback(async () => {

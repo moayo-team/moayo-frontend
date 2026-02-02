@@ -1,9 +1,9 @@
 import MessageBubble from "./messageBubble";
-import type { Message } from "../../types/message";
+import type { ChatMessage } from "../../types/message";
 
 type Props = {
-  messages: Message[];
-  currentUserId: string;
+  messages: ChatMessage[];
+  currentUserId: number;
 };
 
 export default function MessageList({ messages, currentUserId }: Props) {

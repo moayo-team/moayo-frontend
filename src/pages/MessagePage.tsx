@@ -1,81 +1,37 @@
 import { useEffect, useMemo, useState } from "react";
 import ThreadList from "../components/messages/threadList";
 import ChatPanel from "../components/messages/chatPanel";
-import type { ChatParticipants, Message } from "../types/message";
+import { useChatRoom } from "../hooks/useChatRoom";
+import { useChatRooms } from "../hooks/useChatRooms";
+import type { ChatRoomSummary } from "../types/message";
 
 export default function MessagePage() {
-  const currentUserId = "u_me";
+  const currentUserId = Number(import.meta.env.VITE_MOAYO_USER_ID || 1);
 
-  const threads: ChatParticipants[] = useMemo(
-    () => [
-      {
-        id: "t1",
-        name: "김주연",
-        role: "디자이너",
-        preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
-        unread: true,
-      },
-      { id: "t2", name: "김주연", role: "디자이너", preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다." },
-      { id: "t3", name: "김주연", role: "디자이너", preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다." },
-      { id: "t4", name: "김주연", role: "디자이너", preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다." },
-      { id: "t5", name: "김주연", role: "디자이너", preview: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다." },
-    ],
-    []
+  // ✅ 진짜 채팅방 목록
+  const { rooms, loading, error } = useChatRooms();
+
+  // ✅ 선택 상태: roomId 기준
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+
+  // rooms가 처음 로드되면 첫 방 자동 선택
+  useEffect(() => {
+    if (selectedRoomId == null && rooms.length > 0) {
+      setSelectedRoomId(rooms[0].roomId);
+    }
+  }, [rooms, selectedRoomId]);
+
+  const selectedRoom: ChatRoomSummary | undefined = useMemo(
+    () => rooms.find((r) => r.roomId === selectedRoomId),
+    [rooms, selectedRoomId]
   );
 
-  const initialMessages: Message[] = useMemo(
-    () => [
-      {
-        id: "m1",
-        chatRoomId: "t1",
-        senderId: "u_other",
-        content: "안녕하세요. 이번 팀원 모집 관련해서 연락드립니다.",
-        is_deleted: false,
-        createdAt: new Date(),
-      },
-      {
-        id: "m2",
-        chatRoomId: "t1",
-        senderId: currentUserId,
-        content: "네, 안녕하세요. 어떤 내용일까요?",
-        is_deleted: false,
-        createdAt: new Date(),
-      },
-    ],
-    [currentUserId]
-  );
+  // ✅ 채팅방 메시지 목록 + STOMP는 roomId로
+  const { connected, debug, messages, input, setInput, send } = useChatRoom({
+    roomId: selectedRoomId,
+  });
 
-  const [selectedThreadId, setSelectedThreadId] = useState<string>(threads[0]?.id ?? "");
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [draft, setDraft] = useState("");
-
-  const selectedThread = useMemo(
-    () => threads.find((t) => t.id === selectedThreadId),
-    [threads, selectedThreadId]
-  );
-
-  const chatMessages = useMemo(
-    () => messages.filter((m) => m.chatRoomId === selectedThreadId),
-    [messages, selectedThreadId]
-  );
-
-  const handleSend = () => {
-    const text = draft.trim();
-    if (!text) return;
-
-    const newMsg: Message = {
-      id: `m_${Date.now()}`,
-      chatRoomId: selectedThreadId,
-      senderId: currentUserId,
-      content: text,
-      is_deleted: false,
-      createdAt: new Date(),
-    };
-
-    setMessages((prev) => [...prev, newMsg]);
-    setDraft("");
-  };
-
+  // ====== 기존 scale 로직 유지 ======
   const BASE_WIDTH = 403 + 24 + 904;
   const [scale, setScale] = useState(1);
 
@@ -88,6 +44,7 @@ export default function MessagePage() {
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
+  // ==================================
 
   return (
     <div className="bg-white">
@@ -96,24 +53,26 @@ export default function MessagePage() {
           <h1 className="text-[28px] font-bold leading-[36px] tracking-normal mb-[24px]">
             쪽지함 목록
           </h1>
-
           <div className="flex flex-row gap-6">
             <aside className="w-[403px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden p-[31px_24px]">
               <ThreadList
-                threads={threads}
-                selectedThreadId={selectedThreadId}
-                onSelectThread={setSelectedThreadId}
+                // ✅ 이제 더미가 아니라 rooms
+                threads={rooms}
+                selectedRoomId={selectedRoomId}
+                onSelectRoom={setSelectedRoomId}
               />
             </aside>
 
             <section className="w-[904px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden">
               <ChatPanel
-                thread={selectedThread}
-                messages={chatMessages}
-                draft={draft}
-                onDraftChange={setDraft}
-                onSend={handleSend}
+                // ChatHeader가 room summary를 받을 수 있게 나중에 thread 타입 정리 권장
+                thread={selectedRoom}
+                messages={messages}
+                draft={input}
+                onDraftChange={setInput}
+                onSend={send}
                 currentUserId={currentUserId}
+                connected={connected}
               />
             </section>
           </div>
