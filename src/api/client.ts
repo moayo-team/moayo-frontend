@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  // base URL은 환경 변수에서 그대로 사용합니다 (환경에 이미 `/api/v1`이 포함될 수 있음).
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  // base URL은 환경 변수에서 그대로 사용합니다 
+  baseURL: import.meta.env.VITE_API_BASE_URL + "/api",
   headers: {
     'Content-Type': 'application/json',
   },

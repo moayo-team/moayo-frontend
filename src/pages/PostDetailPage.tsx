@@ -4,6 +4,7 @@ import { usePost } from '../hooks/usePosts';
 import { NavigationBar } from '../components/Navbar';
 import { Badge } from '../components/common/Badge';
 import { CommentSection } from '../components/common/CommentSection';
+// 서버에서 제공하는 dday 값이 있으면 우선 사용합니다.
 import { formatDateRange } from '../utils/dateUtils';
 import { useAuth } from '../hooks/useAuth';
 import type { JSX } from 'react';
@@ -11,7 +12,7 @@ import like from '../assets/like.svg';
 import send from '../assets/send.svg';
 import menu from '../assets/menu.svg';
 import 'react-quill-new/dist/quill.snow.css';
-
+import profile_photo from '../assets/profile_photo.svg'
 
 export const PostDetailPage = (): JSX.Element => {
   const { id } = useParams<{ id: string }>();
@@ -59,9 +60,9 @@ export const PostDetailPage = (): JSX.Element => {
   }
 
   const postDetails = [
-    { label: "모집인원", value: `${post.recruitCount}명` },
+    { label: "모집인원", value: `${post.recruitCount}` },
     { label: "모집포지션", value: post.positions },
-    { label: "마감일", value: formatDateRange(post.createdAt, post.deadline).split(' - ')[1] },
+    { label: "마감일", value: (post as any).dday ?? formatDateRange(post.createdAt, post.deadline).split(' - ')[1] },
   ];
 
   return (
@@ -78,22 +79,20 @@ export const PostDetailPage = (): JSX.Element => {
                   <img
                     className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-full"
                     alt="Profile"
-                    src="https://ui-avatars.com/api/?name=김주연&background=E9FCEF&color=26E1AC&size=152"
+                    src={profile_photo}
                   />
                   <div className="flex flex-col w-full items-center gap-0.5 relative flex-[0_0_auto]">
                     <div className="self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center leading-[var(--heading-h2-300-line-height)] relative tracking-[var(--heading-h2-300-letter-spacing)] [font-style:var(--heading-h2-300-font-style)]">
-                      김주연
                     </div>
                     <div className="flex items-center justify-center gap-[11px] relative self-stretch w-full flex-[0_0_auto]">
                       <div className="w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center leading-[var(--body-b2-300-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-300-letter-spacing)] [font-style:var(--body-b2-300-font-style)]">
-                        디자이너
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
               <button 
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/board')}
                 className="all-[unset] box-border flex items-center justify-center gap-2.5 px-[15px] py-2.5 relative flex-1 self-stretch w-full grow bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
               >
                 <img
@@ -117,7 +116,7 @@ export const PostDetailPage = (): JSX.Element => {
                   <img
                     className="w-[62px] h-[63px] relative object-cover rounded-full"
                     alt={`${post.author?.name || '작성자'} avatar`}
-                    src={post.author?.avatar || 'https://ui-avatars.com/api/?name=User&background=F2F2F2&color=343436&size=128'}
+                    src={post.author?.avatar || profile_photo}
                   />
                   <div className="flex flex-col items-start gap-[3px] relative self-stretch">
                     <div className="mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[length:var(--heading-h2-100-font-size)] leading-[var(--heading-h2-100-line-height)] relative tracking-[var(--heading-h2-100-letter-spacing)] [font-style:var(--heading-h2-100-font-style)]">
@@ -143,7 +142,7 @@ export const PostDetailPage = (): JSX.Element => {
                 <h1 className="flex-1 font-heading-h1-100 font-[number:var(--heading-h1-100-font-weight)] text-black text-[length:var(--heading-h1-100-font-size)] tracking-[var(--heading-h1-100-letter-spacing)] leading-[var(--heading-h1-100-line-height)] [font-style:var(--heading-h1-100-font-style)]">
                   {post.title}
                 </h1>
-                <Badge deadline={post.deadline} />
+                <Badge dday={(post as any).dday} deadline={post.deadline} />
               </div>
 
               {/* Post Details */}

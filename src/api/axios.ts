@@ -3,7 +3,7 @@ import type { BaseResponse } from '../types/profile';
 
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL + "/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -15,8 +15,11 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // 로컬스토리지에 따옴표로 저장된 경우가 있어 JSON.parse 처리
+    const accessToken = token?.startsWith('"') ? JSON.parse(token) : token;
+    if (accessToken) {
+      if (!config.headers) config.headers = {} as any;
+      (config.headers as any).Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },

@@ -49,8 +49,9 @@ export const PostsList = ({ filters }: PostsListProps): JSX.Element => {
   return (
     <section className="w-full max-w-[1023px] mx-auto px-4 sm:px-6 lg:px-0 py-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-[19px]">
-        {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
+        {posts.map((post, idx) => (
+          // Use server id when available; fall back to index-based key to guarantee uniqueness
+          <PostCard key={post.id ?? `post-${idx}`} post={post} />
         ))}
       </div>
     </section>

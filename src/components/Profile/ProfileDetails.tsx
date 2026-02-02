@@ -209,15 +209,26 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
         // 선택된 파일이 있을 때만 실행
         if (profileUpload.selectedFiles.length > 0) {
             const file = profileUpload.selectedFiles[0];
-            const previewUrl = URL.createObjectURL(file);
+                const previewUrl = URL.createObjectURL(file);
 
-            // 현재 이미지와 새로 선택한 이미지가 다를 때만 부모 상태 업데이트
-            if (data.profileImage !== previewUrl) {
-                onDataChange("profileImage", previewUrl);
-            }
+                // 현재 이미지와 새로 선택한 이미지가 다를 때만 부모 상태 업데이트
+                if (data.profileImage !== previewUrl) {
+                    onDataChange("profileImage", previewUrl);
+                }
 
-            // 클린업
-            return () => URL.revokeObjectURL(previewUrl);
+                // 클린업: 사용 중인(부모에 저장된) previewUrl을 실수로 revoke해서
+                // 다른 컴포넌트에서 같은 URL을 사용할 때 ERR_FILE_NOT_FOUND가 발생하지 않게
+                // 부모의 profileImage와 다를 경우에만 revoke 합니다.
+                return () => {
+                    try {
+                        if (data.profileImage !== previewUrl) {
+                            URL.revokeObjectURL(previewUrl);
+                        }
+                    } catch (e) {
+                        // 안전하게 무시
+                        console.debug('Failed to revoke object URL', e);
+                    }
+                };
         }
     }, [profileUpload.selectedFiles]);
 

@@ -5,12 +5,13 @@ import { useAuth } from '../hooks/useAuth';
 import { usePosts, useDeletePost } from '../hooks/usePosts';
 import { Badge } from '../components/common/Badge';
 import { DeleteConfirmationModal } from '../components/common/DeleteConfirmationModal';
-import { formatDateRange } from '../utils/dateUtils';
+// formatDateRange is not used here because we prefer server-provided dday; keep utils for other pages
 import type { JSX } from 'react';
 import leftarr from '../assets/leftarr.svg';
 import rightarr from '../assets/rightarr.svg';
 import vertical_line from '../assets/vertical_line.svg';
 import menu from '../assets/menu.svg';
+import profile_photo from '../assets/profile_photo.svg'
 
 interface PostCardProps {
   post: {
@@ -47,7 +48,7 @@ const stripHtml = (html: string | undefined | null) => {
 
 const PostCard = ({ post, onDelete, onEdit, isDeleting }: PostCardProps): JSX.Element => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const dateRange = formatDateRange(post.createdAt, post.deadline);
+  const serverDDay = (post as any).dday as string | undefined;
 
   const handleDeleteClick = () => {
     setShowDeleteModal(true);
@@ -67,23 +68,15 @@ const PostCard = ({ post, onDelete, onEdit, isDeleting }: PostCardProps): JSX.El
               <h2 className="relative flex-1 mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[length:var(--heading-h2-100-font-size)] tracking-[var(--heading-h2-100-letter-spacing)] leading-[var(--heading-h2-100-line-height)] [font-style:var(--heading-h2-100-font-style)] truncate min-w-0">
                 {post.title}
               </h2>
-              <Badge deadline={post.deadline} />
+              <Badge dday={serverDDay} deadline={post.deadline} />
             </div>
             <div className="inline-flex items-center gap-4 relative flex-[0_0_auto] flex-wrap">
               <p className="relative w-fit mt-[-1.00px] [font-family:'Pretendard-Medium',Helvetica] font-normal text-gray-scalegray-scale-400 text-lg tracking-[0] leading-[18px]">
-                <span className="font-[number:var(--body-b1-100-font-weight)] leading-[var(--body-b1-100-line-height)] underline font-body-b1-100 [font-style:var(--body-b1-100-font-style)] tracking-[var(--body-b1-100-letter-spacing)] text-[length:var(--body-b1-100-font-size)]">
+                <span className="font-[number:var(--body-b1-100-font-weight)] leading-[var(--body-b1-100-line-height)] font-body-b1-100 [font-style:var(--body-b1-100-font-style)] tracking-[var(--body-b1-100-letter-spacing)] text-[length:var(--body-b1-100-font-size)]">
                   {post.author?.name || '익명'}
                 </span>
               </p>
-              <img
-                className="relative w-px h-[19.5px] hidden sm:block"
-                alt=""
-                src={vertical_line}
-                aria-hidden="true"
-              />
-              <time className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)]">
-                {dateRange}
-              </time>
+               {/* Removed time display */}
             </div>
           </header>
           <p className="whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
@@ -244,17 +237,12 @@ export const MyPostsPage = (): JSX.Element => {
                   <img
                     className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-full"
                     alt={`${user?.name || '사용자'} profile`}
-                    src={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=E9FCEF&color=26E1AC&size=152'}
+                    src={user?.avatar || profile_photo}
                   />
                   <div className="flex flex-col w-full items-center gap-0.5 relative flex-[0_0_auto]">
                     <h2 className="relative self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
                       {user?.name || '사용자'}
                     </h2>
-                    <div className="flex items-center justify-center gap-[11px] relative self-stretch w-full flex-[0_0_auto]">
-                      <p className="relative w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap [font-style:var(--body-b2-300-font-style)]">
-                        디자이너
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>

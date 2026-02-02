@@ -6,6 +6,7 @@ import { SuccessModal } from '../components/common/SuccessModal';
 import type { JSX } from 'react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import { CATEGORIES } from '../constants/categories';
 
 interface JobCategory {
   id: string;
@@ -25,16 +26,9 @@ export const CreatePostPage = (): JSX.Element => {
   const [requirements, setRequirements] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const [categories, setCategories] = useState<JobCategory[]>([
-    { id: 'planning', label: '기획', selected: false },
-    { id: 'marketing', label: '마케팅', selected: false },
-    { id: 'design', label: '디자인', selected: false },
-    { id: 'development', label: '개발', selected: false },
-    { id: 'startup', label: '창업', selected: false },
-    { id: 'arts', label: '예체능', selected: false },
-    { id: 'literature', label: '문학', selected: false },
-    { id: 'other', label: '기타', selected: false },
-  ]);
+  const [categories, setCategories] = useState<JobCategory[]>(
+    CATEGORIES.map((c) => ({ ...c, selected: false }))
+  );
 
   const modules = {
     toolbar: [
@@ -87,7 +81,10 @@ export const CreatePostPage = (): JSX.Element => {
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Failed to create post:', error);
-      alert('게시글 등록에 실패했습니다.');
+      // AxiosError 인 경우 서버가 반환한 메시지 사용
+      const anyErr = error as any;
+      const serverMessage = anyErr?.response?.data?.message || anyErr?.message || '게시글 등록에 실패했습니다.';
+      alert(serverMessage);
     }
   };
 

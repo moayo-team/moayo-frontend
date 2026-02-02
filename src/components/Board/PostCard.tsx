@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import type { Post } from '../../types';
 import { Badge } from '../common/Badge';
-import { formatDateRange } from '../../utils/dateUtils';
+// 서버에서 dday를 제공하면 그 값을 우선 사용하고, 없을 때만 클라이언트 계산을 사용합니다.
+// 클라이언트 계산 함수는 utils/dateUtils에서 제공되지만, 여기서는 서버-provided dday를 우선 사용하기 위해 직접 참조합니다.
 import { useAuth } from '../../hooks/useAuth';
 import type { JSX } from 'react';
 
@@ -26,7 +27,7 @@ interface PostCardProps {
 export const PostCard = ({ post }: PostCardProps): JSX.Element => {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
-  const dateRange = formatDateRange(post.createdAt, post.deadline);
+  const serverDDay = (post as any).dday as string | undefined;
   // const positionsArray = post.positions.split(',').map(p => p.trim()).filter(Boolean);
   
   return (
@@ -41,24 +42,15 @@ export const PostCard = ({ post }: PostCardProps): JSX.Element => {
               <h2 className="relative flex-1 mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[length:var(--heading-h2-100-font-size)] tracking-[var(--heading-h2-100-letter-spacing)] leading-[var(--heading-h2-100-line-height)] [font-style:var(--heading-h2-100-font-style)] truncate min-w-0">
                 {post.title}
               </h2>
-              <Badge deadline={post.deadline} />
+              <Badge dday={serverDDay} deadline={post.deadline} />
             </div>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 relative flex-[0_0_auto]">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 relative flex-[0_0_auto]">
               <a
                 href="#"
                 className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] underline whitespace-nowrap [font-style:var(--body-b1-100-font-style)] text-sm sm:text-base"
               >
                 {post.author?.name || '익명'}
               </a>
-              <img
-                className="relative w-px h-[19.5px] hidden sm:block"
-                alt=""
-                src="https://c.animaapp.com/ThzHYGdj/img/vector-203-7.svg"
-                aria-hidden="true"
-              />
-              <time className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)] text-sm sm:text-base">
-                {dateRange}
-              </time>
             </div>
           </header>
           <p className="whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
