@@ -244,7 +244,7 @@ export const MyPostsPage = (): JSX.Element => {
                   <img
                     className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-full"
                     alt={`${user?.name || '사용자'} profile`}
-                    src={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=E9FCEF&color=26E1AC&size=152'}
+                    src={user?.imageUrl || 'https://ui-avatars.com/api/?name=User&background=E9FCEF&color=26E1AC&size=152'}
                   />
                   <div className="flex flex-col w-full items-center gap-0.5 relative flex-[0_0_auto]">
                     <h2 className="relative self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
