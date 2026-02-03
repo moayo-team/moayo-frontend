@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import type { JSX } from 'react';
 import logo from '../assets/pavicon.png';
+import defultProfile from "../assets/profile_photo.svg"
 
 export const NavigationBar = (): JSX.Element => {
   const navigate = useNavigate();
@@ -42,9 +43,9 @@ export const NavigationBar = (): JSX.Element => {
               key={item.id}
               onClick={() => item.path !== "#" && navigate(item.path)}
               className={`relative w-fit font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-black text-[length:var(--body-b1-200-font-size)] tracking-[var(--body-b1-200-letter-spacing)] leading-[var(--body-b1-200-line-height)] whitespace-nowrap [font-style:var(--body-b1-200-font-style)] hover:opacity-70 transition-opacity ${(item.path === "/" && location.pathname === "/") ||
-                  (item.path !== "/" && location.pathname.startsWith(item.path) && item.path !== "#")
-                  ? "opacity-100 font-bold"
-                  : "opacity-70"
+                (item.path !== "/" && location.pathname.startsWith(item.path) && item.path !== "#")
+                ? "opacity-100 font-bold"
+                : "opacity-70"
                 }`}
             >
               {item.label}
@@ -55,15 +56,21 @@ export const NavigationBar = (): JSX.Element => {
         <div className="flex items-center gap-3">
           {isLoggedIn && user ? (
             <>
-              <div className="hidden sm:flex items-center gap-2 cursor-pointer"
-                  onClick={() => navigate('/profile')}>
+              <div className=" sm:flex items-center gap-2 cursor-pointer"
+                onClick={() => navigate('/profile')}>
                 <img
                   className="w-8 h-8 rounded-full object-cover"
-                  alt={user.name}
-                  src={user.avatar || "src/assets/profile_photo.svg"}
+                  alt={user.user.name}
+                  src={user.profile?.imageUrl
+                    ? `${import.meta.env.VITE_API_BASE_URL}${user.profile.imageUrl}`
+                    : defultProfile
+                  }
+                  onError={(e) => {
+                    e.currentTarget.src = defultProfile;
+                  }}
                 />
                 <span className="font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-900 text-sm">
-                  {user.name}
+                  {user.user.name}
                 </span>
               </div>
               <button

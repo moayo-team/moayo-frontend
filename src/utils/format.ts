@@ -41,3 +41,16 @@ export const formatBirthDate = (value: string) => {
     if (nums.length <= 6) return `${nums.slice(0, 4)}.${nums.slice(4)}`;
     return `${nums.slice(0, 4)}.${nums.slice(4, 6)}.${nums.slice(6, 8)}`;
 };
+
+/**폰 번호 */
+export const formatPhoneNumber = (value: string) => {
+  const nums = value.replace(/[^0-9]/g, ""); // 숫자만 남기기
+  
+  if (nums.length <= 3) {
+    return nums;
+  }
+  if (nums.length <= 7) {
+    return `${nums.slice(0, 3)}-${nums.slice(3)}`;
+  }
+  return `${nums.slice(0, 3)}-${nums.slice(3, 7)}-${nums.slice(7, 11)}`;
+};
