@@ -61,7 +61,10 @@ export const NavigationBar = (): JSX.Element => {
                 <img
                   className="w-8 h-8 rounded-full object-cover"
                   alt={user.user.name}
-                  src={user.profile?.imageUrl || defultProfile}
+                  src={user.profile?.imageUrl
+                    ? `${import.meta.env.VITE_API_BASE_URL}${user.profile.imageUrl}`
+                    : defultProfile
+                  }
                   onError={(e) => {
                     e.currentTarget.src = defultProfile;
                   }}

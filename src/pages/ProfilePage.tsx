@@ -24,6 +24,7 @@ const ProfilePage = () => {
 
   const isInitialized = useRef(false);
 
+
   // 데이터 조회 훅
   const {
     user, profile, tags, indexItems, isLoading, isError, documents
@@ -38,7 +39,7 @@ const ProfilePage = () => {
 
     if (!user) return;
 
-   const mappedTags = tags?.map((t) => ({
+    const mappedTags = tags?.map((t) => ({
       id: t.id,
       name: t.name,
     })) ?? [];
@@ -52,6 +53,10 @@ const ProfilePage = () => {
         fileObj: null,
       })) ?? [];
 
+    const matchedDoc = documents?.find(
+      (doc) => doc.fileUrl === profile?.imageUrl
+    );
+
     setInitialIndexItemIds(mappedItems.map((i) => i.id));
 
     const formData: ProfileFormData = {
@@ -59,7 +64,7 @@ const ProfilePage = () => {
       name: user.name,
       profileImage: profile?.imageUrl ?? "",
       imageUrl: profile?.imageUrl ?? "",
-      imageId: documents && documents.length > 0 ? documents[0].id : null,
+      imageId: matchedDoc?.id ?? null,
       introduction: profile?.bio ?? "",
 
       tags: mappedTags,
@@ -105,7 +110,7 @@ const ProfilePage = () => {
 
   const handleProfileChange = useCallback((id: string, value: any) => {
     setProfileData((prev: any) => {
-      if (["name", "profileImage", "introduction", "tags", "school_verified", "additionalDetails", "imageUrl","profileFile"].includes(id)) {
+      if (["name", "profileImage", "introduction", "tags", "school_verified", "additionalDetails", "imageUrl", "profileFile"].includes(id)) {
         if (prev[id as keyof typeof prev] === value) return prev;
         return { ...prev, [id]: value };
       }
@@ -127,14 +132,14 @@ const ProfilePage = () => {
       if (inputName.length > 6) return alert("이름은 최대 6글자까지만 입력 가능합니다.");
       if (cleanPhone.length > 11) return alert("전화번호 형식이 올바르지 않습니다.");
 
-     
+
       // 저장 요청
       saveProfile(
         { profileData, initialIndexItemIds, profileFile: profileData.profileFile },
         {
           onSuccess: async () => {
-            setIsEditing(false);
             await refreshUser();
+            setIsEditing(false);
           }
         }
       );
@@ -187,7 +192,7 @@ const ProfilePage = () => {
         setSortOrder={setSortOrder}
         onSave={handleSaveCareer}
         onDelete={handleDeleteCareer}
-        />
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { logoutApi } from '../api/auth';
 import { apiClient } from '../api/client'; // apiClient 추가
 import type { GetProfileResult } from '../types/profile';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AuthContextType {
   user: GetProfileResult | null;
@@ -19,6 +20,8 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = useQueryClient();  // ← 추가
+
   const [user, setUser] = useState<GetProfileResult | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -30,7 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data } = await apiClient.get('/api/v1/profiles/me', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const freshUser = data.result || data;
+      const freshUser: GetProfileResult = data.result;
 
       // 로컬 스토리지 및 상태 업데이트
       localStorage.setItem('user', JSON.stringify(freshUser));
@@ -81,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.history.replaceState({}, document.title, window.location.pathname);
 
       const { data } = await apiClient.get('api/v1/profiles/me');
-      const userData = data.result || data;
+      const userData: GetProfileResult = data.result;
 
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
@@ -109,6 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('user');
       setUser(null);
       setIsLoggedIn(false);
+      queryClient.clear()
       window.location.href = '/';
     }
   }, []);
