@@ -6,12 +6,18 @@ import './index.css'
 // 1. 질문자님이 추가한 Quill 에디터 스타일을 상대방 파일에 가져옵니다.
 import 'react-quill-new/dist/quill.snow.css';
 
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
+
 // 2. 상대방의 ID인 'root'를 사용합니다.
 const rootElement = document.getElementById('root')!;
+console.log("GOOGLE_CLIENT_ID", import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    {/* 질문자님이 index.tsx에서 사용하던 App 렌더링 방식을 그대로 가져옵니다. */}
-    <App /> 
+    <GoogleOAuthProvider clientId={clientId}>
+      <App />
+    </GoogleOAuthProvider>
   </React.StrictMode>
-)
+);

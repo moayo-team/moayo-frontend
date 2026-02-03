@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { LoginSuccessModal } from '../components/Login/LoginUI';
 import { useAuth } from '../hooks/useAuth';
+import { LoginSuccessModal } from '../components/Login/LoginUI';
 
 export const GoogleCallback = () => {
   const [searchParams] = useSearchParams();

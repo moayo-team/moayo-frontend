@@ -15,10 +15,10 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
 
-  // 상태 관리
   const [isEditing, setIsEditing] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
-  const [profileData, setProfileData] = useState<any>(null);
+  const [sortOrder, setSortOrder] = useState<"latest" | "oldest">("latest");
+  const [profileData, setProfileData] = useState<ProfileFormData | null>(null);
+
   const [initialIndexItemIds, setInitialIndexItemIds] = useState<number[]>([]);
   const [allCareers, setAllCareers] = useState<Career[]>([]);
 
@@ -28,6 +28,7 @@ const ProfilePage = () => {
   const {
     user, profile, tags, indexItems, isLoading, isError, documents
   } = useProfileData();
+
 
   // 데이터 저장 훅
   const { mutate: saveProfile, isPending: isSaving } = useProfileSave();
@@ -102,8 +103,6 @@ const ProfilePage = () => {
     return profileData.details.every((item: any) => !item.value);
   }, [profileData]);
 
-
-  //  핸들러 함수들
   const handleProfileChange = useCallback((id: string, value: any) => {
     setProfileData((prev: any) => {
       if (["name", "profileImage", "introduction", "tags", "school_verified", "additionalDetails", "imageUrl","profileFile"].includes(id)) {
@@ -118,6 +117,7 @@ const ProfilePage = () => {
   }, []);
 
   const handleModeChange = () => {
+    if (!profileData) return;
     if (isEditing) {
       // 유효성 검사
       const inputName = profileData.name || "";
@@ -143,6 +143,7 @@ const ProfilePage = () => {
     }
   };
 
+  // 이력 수정(저장) 핸들러
   const handleSaveCareer = (updatedData: Career) => {
     setAllCareers((prev) =>
       prev.map((career) => (career.id === updatedData.id ? updatedData : career))
@@ -157,6 +158,8 @@ const ProfilePage = () => {
   if (isLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
   if (isError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;
   if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
+  if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
+
 
   return (
     <div className="flex flex-col gap-12 w-full">
@@ -184,9 +187,9 @@ const ProfilePage = () => {
         setSortOrder={setSortOrder}
         onSave={handleSaveCareer}
         onDelete={handleDeleteCareer}
-      />
+        />
     </div>
   );
 }
 
-export default ProfilePage;
+export default ProfilePage

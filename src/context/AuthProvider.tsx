@@ -12,6 +12,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   completeLogin: (token: string) => Promise<void>;
+
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -50,9 +51,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         setUser(JSON.parse(savedUser));
         setIsLoggedIn(true);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (e) {
-        localStorage.clear();
+
+      } catch (error) {
+        console.error('Failed to parse saved user:', error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('accessToken'); // 토큰도 같이 제거하는 걸 권장
+        setUser(null);
+        setIsLoggedIn(false);
       }
     }
 
