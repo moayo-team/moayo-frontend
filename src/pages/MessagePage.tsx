@@ -6,15 +6,11 @@ import { useChatRooms } from "../hooks/useChatRooms";
 import type { ChatRoomSummary } from "../types/message";
 
 export default function MessagePage() {
-  const currentUserId = Number(import.meta.env.VITE_MOAYO_USER_ID || 1);
+  const currentUserId = Number(import.meta.env.VITE_MOAYO_USER_ID || 0);
 
-  // ✅ 진짜 채팅방 목록
   const { rooms, loading, error } = useChatRooms();
-
-  // ✅ 선택 상태: roomId 기준
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
-  // rooms가 처음 로드되면 첫 방 자동 선택
   useEffect(() => {
     if (selectedRoomId == null && rooms.length > 0) {
       setSelectedRoomId(rooms[0].roomId);
@@ -26,12 +22,13 @@ export default function MessagePage() {
     [rooms, selectedRoomId]
   );
 
-  // ✅ 채팅방 메시지 목록 + STOMP는 roomId로
-  const { connected, debug, messages, input, setInput, send } = useChatRoom({
+  const { connected, sending, debug, meId, messages, input, setInput, send } = useChatRoom({
     roomId: selectedRoomId,
+    currentUserId: currentUserId || undefined,
   });
 
-  // ====== 기존 scale 로직 유지 ======
+  const myId = meId ?? currentUserId ?? 0;
+
   const BASE_WIDTH = 403 + 24 + 904;
   const [scale, setScale] = useState(1);
 
@@ -44,7 +41,22 @@ export default function MessagePage() {
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
-  // ==================================
+
+  if (loading) {
+    return (
+      <div className="bg-white p-6">
+        <div className="text-sm text-gray-500">쪽지함 목록 불러오는 중…</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white p-6">
+        <div className="text-sm text-red-600">쪽지함 목록 로드 실패: {String(error)}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white">
@@ -56,8 +68,7 @@ export default function MessagePage() {
           <div className="flex flex-row gap-6">
             <aside className="w-[403px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden p-[31px_24px]">
               <ThreadList
-                // ✅ 이제 더미가 아니라 rooms
-                threads={rooms}
+                threads={rooms as any}
                 selectedRoomId={selectedRoomId}
                 onSelectRoom={setSelectedRoomId}
               />
@@ -65,14 +76,13 @@ export default function MessagePage() {
 
             <section className="w-[904px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden">
               <ChatPanel
-                // ChatHeader가 room summary를 받을 수 있게 나중에 thread 타입 정리 권장
-                thread={selectedRoom}
+                thread={selectedRoom as any}
                 messages={messages}
                 draft={input}
                 onDraftChange={setInput}
                 onSend={send}
-                currentUserId={currentUserId}
-                connected={connected}
+                currentUserId={myId}
+                connected={connected && !sending}
               />
             </section>
           </div>

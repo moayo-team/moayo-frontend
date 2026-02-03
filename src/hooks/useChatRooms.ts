@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiClient } from "../lib/apiClient";
 import type { ChatRoomSummary } from "../types/message";
 
@@ -15,29 +15,30 @@ export function useChatRooms() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchRooms = async () => {
-      setLoading(true);
-      setError("");
-
-      try {
-        const res = await apiClient.get<ApiEnvelope<ChatRoomSummary[]>>("/api/chat/rooms");
-        if (!cancelled) setRooms(res.data.result ?? []);
-      } catch (e: any) {
-        if (!cancelled) setError(String(e?.message ?? e));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchRooms();
-
-    return () => {
-      cancelled = true;
-    };
+  const fetchRooms = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await apiClient.get<ApiEnvelope<ChatRoomSummary[]>>("/api/v1/chat/rooms");
+      setRooms(res.data.result ?? []);
+    } catch (e: any) {
+      setError(String(e?.message ?? e));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { rooms, loading, error, setRooms };
+  useEffect(() => {
+    fetchRooms();
+  }, [fetchRooms]);
+
+  const createRoom = useCallback(async (userBId: number, originPostId: number) => {
+    const res = await apiClient.post<ApiEnvelope<{ roomId: number }>>("/api/v1/chat/rooms", {
+      userBId,
+      originPostId,
+    });
+    return res.data.result.roomId;
+  }, []);
+
+  return { rooms, loading, error, refetch: fetchRooms, createRoom };
 }
