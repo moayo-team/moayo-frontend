@@ -14,7 +14,7 @@ export const getExperiences = async(
         ...(cursor && {cursor}), 
     };
 
-    const response = await axiosInstance.get<CareerResponse>('/api/v1/experiences',{
+    const response = await apiClient.get<CareerResponse>('/api/v1/experiences',{
         params, 
         headers: {
            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,

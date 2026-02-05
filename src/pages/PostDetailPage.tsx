@@ -190,7 +190,7 @@ export const PostDetailPage = (): JSX.Element => {
               {/* Action Buttons */}
               <div className="inline-flex items-center gap-[13px] mb-8 flex-wrap">
                 {/* Edit Button - Only show if it's the user's post */}
-                {isLoggedIn && user && post.createdByUserId === user.id && (
+                {isLoggedIn && user && post.createdByUserId === user.user.id && (
                   <button
                     onClick={() => navigate(`/edit/${post.id}`)}
                     className="inline-flex items-center justify-center gap-[5px] px-3 py-[7px] relative flex-[0_0_auto] bg-primaryprimary-50 hover:bg-primaryprimary-100 cursor-pointer rounded-[5px] transition-colors border-2 border-primaryprimary-500"

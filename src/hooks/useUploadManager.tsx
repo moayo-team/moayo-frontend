@@ -113,9 +113,22 @@ export const useUploadManager = (options: UploadOptions = {}) => {
     }
   }, []);
 
+  const isInputValidByType = (text: string, type: 'link' | 'text', side?: 'left' | 'right') => {
+  if (type === 'link') {
+    return text.length <= maxLinkLength;
+  }
+
+  if (type === 'text') {
+    const limit = side === 'left' ? maxLeftText : maxRightText;
+    return text.length <= limit;
+  }
+
+  return true;
+};
+
   return { 
     selectedFiles, setSelectedFiles, handleFileUpload, removeFile,
     links, setLinks, linkInput, setLinkInput, addLink, removeLink, 
-    isTextValid, fileInputRef, handleFileDownload
+    isTextValid, fileInputRef, handleFileDownload, isInputValidByType
   };
 };

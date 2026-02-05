@@ -1,20 +1,97 @@
-import { X, FileText } from "lucide-react";
+import { X, FileText, Loader2 } from "lucide-react";
 import { useUploadManager } from "../../hooks/useUploadManager";
+import { deleteProfileDocument, getProfileDocuments, uploadProfileDocument } from "../../api/profile/profile";
+import { useEffect, useState } from "react";
+import type { ProfileDocument } from "../../types/profile";
 
 interface ModalProps {
     isOpen: boolean;
     isEditing: boolean;
     onClose: () => void;
     onComplete: (files: File[]) => void;
+    currentProfileImage?: string;
 }
 
-const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete }: ModalProps) => {
+const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProfileImage }: ModalProps) => {
     const {
         selectedFiles,
         handleFileUpload,
         removeFile,
-        fileInputRef
-    } = useUploadManager({});
+        fileInputRef,
+        setSelectedFiles
+    } = useUploadManager({ maxFiles: 3 });
+
+    const [isUploading, setIsUploading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [uploadedDocuments, setUploadedDocuments] = useState<ProfileDocument[]>([]);
+
+    // 목록 조회 
+    const fetchDocuments = async () => {
+        try {
+            setIsLoading(true);
+            const response = await getProfileDocuments();
+            if (response.isSuccess) {
+                const onlyVerifyDocs = response.result.filter((doc: ProfileDocument) => {
+                    return doc.fileUrl !== currentProfileImage;
+                });
+                setUploadedDocuments(onlyVerifyDocs);
+            }
+        } catch (error) {
+            console.error("서류 조회 실패:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (isOpen) fetchDocuments();
+    }, [isOpen]);
+
+    // 서버 파일 삭제
+    const handleDeleteServerFile = async (documentId: number) => {
+
+        try {
+            const response = await deleteProfileDocument(documentId);
+            if (response.isSuccess) {
+                const updatedDocs = uploadedDocuments.filter(doc => doc.id !== documentId);
+                setUploadedDocuments(updatedDocs);
+                alert("파일이 삭제되었습니다.");
+            }
+        } catch (error) {
+            alert("삭제 중 오류가 발생했습니다.");
+        }
+    };
+
+    // 신규 파일 업로드
+    const handleSubmit = async () => {
+        if (selectedFiles.length === 0) return;
+        if (uploadedDocuments.length >= 3) {
+            alert("증빙 서류는 최대 3개까지만 등록 가능합니다.");
+            return;
+        }
+
+        try {
+            setIsUploading(true);
+            const uploadPromises = selectedFiles.map(file => uploadProfileDocument(file));
+            const results = await Promise.all(uploadPromises);
+
+            const allSuccess = results.every(res => res.isSuccess);
+
+            if (allSuccess) {
+                alert(`${selectedFiles.length}개의 파일이 성공적으로 등록되었습니다.`);
+                await fetchDocuments();
+                setSelectedFiles([]);
+                onComplete([]);
+            } else {
+                alert("일부 파일 업로드에 실패했습니다. 목록을 확인해 주세요.");
+                await fetchDocuments();
+            }
+        } catch (error) {
+            alert("파일 업로드 중 오류가 발생했습니다.");
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -38,9 +115,42 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete }: ModalProp
                             파일 첨부
                         </p>
                         <div className="space-y-3 w-full">
-                            {selectedFiles.map((file, i) => (
+                            {isLoading && <div className="flex justify-center py-2"><Loader2 className="animate-spin text-[#6EEBC7]" /></div>}
+
+                            {/**서버에 이미 저장된 파일들 */}
+                            {!isLoading && uploadedDocuments.map((doc) => (
                                 <div
-                                    key={i}
+                                    key={doc.id}
+                                    className="flex items-center justify-between w-full h-[50px] sm:h-[60px] px-[16px] sm:px-[20px]
+                                    bg-[#E9FCF7] rounded-[15px]"
+                                >
+                                    <span
+                                        onClick={() => {
+                                            if (!isEditing) {
+                                                const fullUrl = doc.fileUrl.startsWith('/')
+                                                    ? `${import.meta.env.VITE_API_BASE_URL}${doc.fileUrl}`
+                                                    : doc.fileUrl;
+                                                window.open(fullUrl, '_blank');
+                                            }
+                                        }}
+                                        className="cursor-pointer flex-1 text-[14px] sm:text-[16px] text-[#25221D] font-medium leading-[140%]">
+                                        {doc.fileName}
+                                    </span>
+                                    {isEditing && (
+                                        <button
+                                            onClick={() => handleDeleteServerFile(doc.id)}
+                                            className="cursor-pointer text-[#7C7160]"
+                                        >
+                                            <X size={24} />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+
+                            {/**새로 선택한 파일들 (업로드 전) */}
+                            {isEditing && selectedFiles.map((file, i) => (
+                                <div
+                                    key={`new-${i}`}
                                     className="flex items-center justify-between w-full h-[50px] sm:h-[60px] px-[16px] sm:px-[20px]
                                     bg-[#E9FCF7] rounded-[15px]"
                                 >
@@ -56,7 +166,8 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete }: ModalProp
                                 </div>
                             ))}
 
-                            {selectedFiles.length === 0 && (
+                            {/**파일 추가 버튼 (3개 미만일 때만) */}
+                            {isEditing && (uploadedDocuments.length + selectedFiles.length) < 3 && (
                                 <div
                                     onClick={() => fileInputRef.current?.click()}
                                     className="flex items-center justify-center w-full h-[70px] sm:h-[80px] gap-[10px] sm:gap-[12px]
@@ -83,20 +194,28 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete }: ModalProp
                             onChange={(e) => handleFileUpload(e.target.files)}
                         />
                     </div>
-                    {isEditing && (
-                        <div className="flex w-full justify-end mt-2">
+
+                    {/**하단 버튼 */}
+                    <div className="flex w-full justify-end mt-2 gap-2">
+                        <button
+                            onClick={onClose}
+                            className="px-6 py-2 bg-[#EFEEEB] text-[#5F5749] rounded-[10px] font-medium text-[14px] sm:text-[16px]"
+                        >
+                            {isEditing ? "취소" : "닫기"}
+                        </button>
+
+                        {isEditing && selectedFiles.length > 0 && (
                             <button
-                                onClick={() => {
-                                    onComplete(selectedFiles);
-                                    onClose();
-                                }}
+                                onClick={handleSubmit}
+                                disabled={isUploading || selectedFiles.length === 0}
                                 className="w-full sm:w-[120px] h-[44px] sm:h-[48px]
                                 rounded-[10px] bg-[#6EEBC7] text-[#25221D] font-meidum text-[14px] sm:text-[16px]"
                             >
-                                등록하기
+                                {isUploading ? "업로드 중..." : "등록하기"}
                             </button>
-                        </div>
-                    )}
+
+                        )}
+                    </div>
                 </div>
 
             </div>
