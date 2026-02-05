@@ -1,4 +1,4 @@
-import type { BaseResponse, CreateIndexItemResponse, CreateProfileRequest, DeleteIndexItemResponse, IndexItemDetailData, IndexItemListResponse, InterestTagListResponse, ProfileCreateResponse, ProfileResponse, UpdateInterestTagsRequest, UpdateInterestTagsResponse, UpdateProfileRequest, UpdateProfileResponse } from "../../types/profile";
+import type { BaseResponse, CreateIndexItemResponse, CreateProfileRequest, DeleteIndexItemResponse, IndexItemDetailData, IndexItemListResponse, InterestTagListResponse, OtherProfileResponse, OtherProfileResult, ProfileCreateResponse, ProfileResponse, UpdateInterestTagsRequest, UpdateInterestTagsResponse, UpdateProfileRequest, UpdateProfileResponse } from "../../types/profile";
 import axiosInstance from "../axios";
 
 
@@ -113,4 +113,15 @@ export const deleteIndexItem = async (itemId: number): Promise<DeleteIndexItemRe
   );
 
   return response.data;
+};
+
+// 타인 프로필 조회(GET) API 
+export const getUserProfileById = async (
+	userId: number
+): Promise<OtherProfileResult> => {
+	const response = await axiosInstance.get<OtherProfileResponse>(
+		`/profiles/${userId}`
+	);
+
+	return response.data.result;
 };

@@ -121,3 +121,19 @@ export type CreateIndexItemResponse = BaseResponse<null>;
 
 // 삭제 API 응답 
 export type DeleteIndexItemResponse = BaseResponse<null>;
+
+// 타인 프로필 조회 
+export interface OtherProfileResult {
+	userId: number;
+	name: string;
+	email: string;
+	phoneNumber: string | null;
+	imageUrl: string;
+	university: string;
+	major: string;
+	bio: string;
+	interestTags: InterestTag[];
+	indexItems: IndexItem[];
+}
+
+export type OtherProfileResponse = BaseResponse<OtherProfileResult>;

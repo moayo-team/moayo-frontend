@@ -122,6 +122,7 @@ export class StompChatClient {
     await this.waitUntilConnected();
 
     const topic = `/topic/chat/rooms/${roomId}`;
+    console.log("[STOMP] 🔔 subscribe topic =", topic);
 
     this.sub?.unsubscribe();
     this.sub = this.client.subscribe(topic, (msg) => {
