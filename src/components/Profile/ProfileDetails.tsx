@@ -14,7 +14,7 @@ interface ProfileDetailsProps {
     isEditing: boolean;
     isDetailsEmpty: boolean;
     data: ProfileFormData;
-
+    experienceIds: number[];
     onDataChange: (
         id:
             | keyof ProfileFormData
@@ -29,7 +29,7 @@ interface ProfileDetailsProps {
     ) => void;
 }
 
-const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: ProfileDetailsProps) => {
+const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onDataChange }: ProfileDetailsProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isTagModalOpen, setIsTagModalOpen] = useState(false);
 
@@ -574,6 +574,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                         onClose={() => setIsModalOpen(false)}
                         onComplete={handleVerifyComplete}
                         currentProfileImage={data.imageUrl}
+                       experienceIds={experienceIds}
                     />
 
                     {/* 커스텀 추가 정보 리스트 */}

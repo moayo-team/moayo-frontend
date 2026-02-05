@@ -9,7 +9,8 @@ export interface Career {
   intro: string;
   fileName?: string[];
   link?: string[];
-  isPublic: boolean; 
+  visible: boolean;
+  isPublic: boolean;
 }
 
 /*********************** */
@@ -55,3 +56,64 @@ export type CareerDetailReponse = BaseResponse<ExperienceSummary>;
 
 //이력 삭제 응답
 export type DeleteExperienceResponse = BaseResponse<null>;
+
+//이력 공개 상태 변 경 요청 
+export interface UpdateVisibilityRequest {
+  visible: boolean;
+}
+
+//이력 공개 여부 응답
+export type ExperienceVisibilityResponse= BaseResponse<null>;
+
+// 이력 수정 
+export interface UpdateExperienceRequest {
+    title: string;
+    organization: string;
+    startDate: string; 
+    endDate: string;   
+    activity: string;
+    role: string;
+    summary: string;
+}
+
+// 수정 응답 타입 
+export type UpdateExperienceResponse = BaseResponse<null>;
+
+// 이력 파일 첨부 요청
+export interface AttachmentFileRequest {
+    fileId: number;
+    fileName: string;
+}
+
+// 파일 첨부 응답 
+export type AttachmentFileResponse = BaseResponse<null>;
+
+//커스텀 파일 타입
+export interface AttachedFile {
+    id?: number;     
+    name: string;    
+    url?: string;    
+    fileObj?: File;  
+    type?: string;
+}
+
+// 파일 조회 응답
+export interface ExperienceFileResponse {
+    fileId: number;
+    fileName: string;
+}
+
+//파일 조회 요청
+export interface AttachFileRequest {
+    fileId: number;
+    fileName: string;
+}
+
+//파일 삭제 요청
+export interface DetachFileRequest {
+    experienceId: number; 
+    fileId: number;     
+}
+
+//파일 삭제 응답
+export type DetachFileResponse = BaseResponse<null>;

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getProfile } from "../api/profile/profile";
 import axios from "axios";
-import { getExperienceDetail, getMyExperiences } from "../api/profile/experiences";
+import { getExperienceDetail, getExperienceFiles, getMyExperiences } from "../api/profile/experiences";
 import type { Career, ExperienceSummary } from "../types/career";
 import { useMemo } from "react";
 
@@ -33,6 +33,7 @@ export const useProfileData = () => {
       period: `${exp.startDate.replace(/-/g, ".")} - ${exp.endDate.replace(/-/g, ".")}`,
       participation: exp.activity,
       intro: exp.summary || "", 
+      visible: exp.visible,
       isPublic: exp.visible,
       fileName: [],
       link: [],
@@ -70,5 +71,15 @@ export const useExperienceDetail = (experienceId: number | null) => {
     queryFn: () => getExperienceDetail(experienceId!),
     enabled: !!experienceId, 
     staleTime: 0,
+    gcTime: 1000 * 60 * 5,
   });
+};
+
+//이력 첨부파일 조회
+export const useExperienceFiles = (experienceId: number | null) => {
+    return useQuery({
+        queryKey: ["experienceFiles", experienceId],
+        queryFn: () => getExperienceFiles(experienceId!),
+        enabled: !!experienceId,
+    });
 };

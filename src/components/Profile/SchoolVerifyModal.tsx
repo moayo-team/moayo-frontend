@@ -3,6 +3,7 @@ import { useUploadManager } from "../../hooks/useUploadManager";
 import { deleteProfileDocument, getProfileDocuments, uploadProfileDocument } from "../../api/profile/profile";
 import { useEffect, useState } from "react";
 import type { ProfileDocument } from "../../types/profile";
+import { getExperienceFiles } from "../../api/profile/experiences";
 
 interface ModalProps {
     isOpen: boolean;
@@ -10,9 +11,10 @@ interface ModalProps {
     onClose: () => void;
     onComplete: (files: File[]) => void;
     currentProfileImage?: string;
+    experienceIds: number[];
 }
 
-const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProfileImage }: ModalProps) => {
+const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProfileImage, experienceIds }: ModalProps) => {
     const {
         selectedFiles,
         handleFileUpload,
@@ -25,15 +27,45 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
     const [isLoading, setIsLoading] = useState(false);
     const [uploadedDocuments, setUploadedDocuments] = useState<ProfileDocument[]>([]);
 
+    // ✅ [추가] 파일 선택 시 전체 개수를 체크하는 래퍼 함수
+    const handleFileSelection = (files: FileList | null) => {
+        if (!files) return;
+
+        const totalCount = uploadedDocuments.length + selectedFiles.length + files.length;
+
+        if (totalCount > 3) {
+            alert("증빙 서류는 이미 등록된 파일을 포함하여 최대 3개까지만 가능합니다.");
+            return;
+        }
+
+        handleFileUpload(files);
+    };
+
     // 목록 조회 
     const fetchDocuments = async () => {
         try {
-            setIsLoading(true);
+            // 1. 전체 문서 가져오기
             const response = await getProfileDocuments();
+
             if (response.isSuccess) {
+                // 2. [핵심] 모든 이력서에 연결된 파일 ID들 수집하기
+                // 모든 이력서 ID에 대해 병렬로 파일 목록 조회
+                const expFilesResults = await Promise.all(
+                    experienceIds.map(id => getExperienceFiles(id))
+                );
+
+                // 이력서 파일 ID들만 모아서 Set으로 만듦
+                const expFileIds = new Set(
+                    expFilesResults.flatMap(res => res.result?.map(f => f.fileId) || [])
+                );
+
+                // 3. 필터링 (프사 제외 + 이력서 파일 제외)
                 const onlyVerifyDocs = response.result.filter((doc: ProfileDocument) => {
-                    return doc.fileUrl !== currentProfileImage;
+                    const isNotProfileImg = doc.fileUrl !== currentProfileImage;
+                    const isNotExpFile = !expFileIds.has(doc.id);
+                    return isNotProfileImg && isNotExpFile;
                 });
+
                 setUploadedDocuments(onlyVerifyDocs);
             }
         } catch (error) {
@@ -65,14 +97,20 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
     // 신규 파일 업로드
     const handleSubmit = async () => {
         if (selectedFiles.length === 0) return;
-        if (uploadedDocuments.length >= 3) {
-            alert("증빙 서류는 최대 3개까지만 등록 가능합니다.");
+        // ✅ [체크 강화] 등록 버튼 누를 때 다시 한 번 최종 확인
+        if (uploadedDocuments.length + selectedFiles.length > 3) {
+            alert("이미 등록된 서류를 포함하여 최대 3개까지만 유지할 수 있습니다. 기존 파일을 삭제해 주세요.");
             return;
         }
 
         try {
             setIsUploading(true);
-            const uploadPromises = selectedFiles.map(file => uploadProfileDocument(file));
+            const uploadPromises = selectedFiles.map(file => {
+                if (file.fileObj) {
+                    return uploadProfileDocument(file.fileObj);
+                }
+                return Promise.resolve({ isSuccess: true });
+            });
             const results = await Promise.all(uploadPromises);
 
             const allSuccess = results.every(res => res.isSuccess);
@@ -191,7 +229,7 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                             className="hidden"
                             multiple
                             accept=".pdf, image/*"
-                            onChange={(e) => handleFileUpload(e.target.files)}
+                            onChange={(e) => handleFileSelection(e.target.files)}
                         />
                     </div>
 
@@ -201,7 +239,7 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                             onClick={onClose}
                             className="px-6 py-2 bg-[#EFEEEB] text-[#5F5749] rounded-[10px] font-medium text-[14px] sm:text-[16px]"
                         >
-                            {isEditing ? "취소" : "닫기"}
+                            닫기    
                         </button>
 
                         {isEditing && selectedFiles.length > 0 && (

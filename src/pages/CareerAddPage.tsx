@@ -6,6 +6,9 @@ import { DUMMY_PROFILE } from "../data/profileData";
 import { useUploadManager } from "../hooks/useUploadManager";
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
 import { useExperienceCreate } from "../hooks/useProfileMutation";
+import { uploadProfileDocument } from "../api/profile/profile";
+import { postExperienceFile } from "../api/profile/experiences";
+import type { UploadDocumentResponse } from "../types/profile";
 
 const CareerAddPage = () => {
     const navigate = useNavigate();
@@ -103,18 +106,65 @@ const CareerAddPage = () => {
             alert("날짜 형식이 올바르지 않습니다.\n예: 2024.01.01 - 2024.12.31");
             return;
         }
+        try {
+            // 1️⃣ 이력 생성
+            const requestBody = {
+                title: newCareer.title,
+                organization: newCareer.organizer,
+                startDate: getStartDateFromPeriod(newCareer.period),
+                endDate: getEndDateFromPeriod(newCareer.period),
+                activity: newCareer.participation,
+                role: newCareer.role,
+                summary: newCareer.intro,
+            };
 
-        const requestBody = {
-            title: newCareer.title,
-            organization: newCareer.organizer,
-            startDate: getStartDateFromPeriod(newCareer.period),
-            endDate: getEndDateFromPeriod(newCareer.period),
-            activity: newCareer.participation,
-            role: newCareer.role,
-            summary: newCareer.intro,
-        };
+            // createExp는 이력 ID를 반환해야 함
+            createExp(requestBody, {
+                onSuccess: async (response) => {
+                    const experienceId = response.result; // 생성된 이력 ID
 
-        createExp(requestBody);
+                    // 2️⃣ 파일이 있다면 업로드 + 연결
+                    if (selectedFiles.length > 0) {
+                        try {
+                            const uploadPromises = selectedFiles.map(file => {
+                                if (file.fileObj) {
+                                    return uploadProfileDocument(file.fileObj);
+                                }
+                                return Promise.resolve({ isSuccess: false, result: null } as any);
+                            });
+
+                            const uploadResults = await Promise.all(uploadPromises);
+
+                            // 업로드된 파일들을 이력에 연결
+                            const attachPromises = uploadResults
+                                .filter((res): res is UploadDocumentResponse => res.isSuccess && !!res.result) // Type Guard 적용
+                                .map((res, idx) =>
+                                    postExperienceFile(experienceId, {
+                                        fileId: res.result!.id,
+                                        fileName: selectedFiles[idx].name
+                                    })
+                                );
+
+                            await Promise.all(attachPromises);
+                            console.log("✅ 파일 업로드 및 연결 완료");
+                        } catch (error) {
+                            console.error("❌ 파일 업로드 중 오류:", error);
+                            alert("이력은 등록되었으나 일부 파일 업로드에 실패했습니다.");
+                        }
+                    }
+
+                    // 3️⃣ 성공 시 페이지 이동
+                    navigate("/profile");
+                },
+                onError: (error: any) => {
+                    console.error("이력 등록 실패:", error);
+                    alert("이력 등록 중 오류가 발생했습니다.");
+                }
+            });
+        } catch (error) {
+            console.error("등록 중 오류:", error);
+            alert("등록 중 오류가 발생했습니다.");
+        }
     };
 
     //  클릭 시 파일 선택창 띄우기
@@ -302,7 +352,7 @@ const CareerAddPage = () => {
                                     onChange={(e) => handleInputChange(item.field, e.target.value, e)}
                                     placeholder={
                                         item.field === "period"
-                                            ? "2025.07.01 - 2026.01.31" 
+                                            ? "2025.07.01 - 2026.01.31"
                                             : "입력해주세요."
                                     }
                                     className="flex-1 h-full px-[16px] outline-none

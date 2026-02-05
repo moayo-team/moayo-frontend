@@ -14,8 +14,8 @@ import type { ProfileFormData } from "../types/profileForm";
 import { useAuth } from "./useAuth";
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import type { CreateExperienceRequest } from "../types/career";
-import { createExperience, deleteExperience } from "../api/profile/experiences";
+import type { AttachmentFileRequest, CreateExperienceRequest, UpdateExperienceRequest } from "../types/career";
+import { createExperience, deleteExperience, deleteExperienceFile, patchExperienceVisibility, postExperienceFile, updateExperienceDetail } from "../api/profile/experiences";
 
 const waitForProfileToExist = async () => {
     for (let i = 0; i < 5; i++) {
@@ -211,6 +211,7 @@ export const useProfileSave = () => {
     });
 };
 
+//이력 생성
 export const useExperienceCreate = () => {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
@@ -220,9 +221,9 @@ export const useExperienceCreate = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["myExperiences"] });
             queryClient.invalidateQueries({ queryKey: ["myProfile"] });
-            
+
             alert("이력이 성공적으로 등록되었습니다.");
-            navigate("/profile"); 
+            navigate("/profile");
         },
         onError: (error: any) => {
             const msg = error.response?.data?.message || "이력 등록 중 오류가 발생했습니다.";
@@ -231,6 +232,7 @@ export const useExperienceCreate = () => {
     });
 };
 
+//이력 삭제
 export const useExperienceDelete = () => {
     const queryClient = useQueryClient();
 
@@ -243,6 +245,107 @@ export const useExperienceDelete = () => {
         },
         onError: (error: any) => {
             alert(error.response?.data?.message || "삭제 중 오류가 발생했습니다.");
+        },
+    });
+};
+
+// 이력 공개 여부 변경
+export const useExperienceVisibility = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ experienceId, visible }: { experienceId: number; visible: boolean }) =>
+            patchExperienceVisibility(experienceId, visible),
+
+        onSuccess: (_, variables) => {
+            // 전체 이력 리스트 무효화
+            queryClient.invalidateQueries({ queryKey: ["myExperiences"] });
+            // 해당 이력의 상세 데이터 무효화
+            queryClient.invalidateQueries({ queryKey: ["experienceDetail", variables.experienceId] });
+            // 프로필 데이터 무효화
+            queryClient.invalidateQueries({ queryKey: ["myProfile"] });
+
+            console.log(`✅ 이력 ${variables.experienceId} 공개 상태 변경 성공: ${variables.visible}`);
+        },
+        onError: (error: any) => {
+            const msg = error.response?.data?.message || "공개 상태 변경 중 오류가 발생했습니다.";
+            alert(msg);
+        },
+    });
+};
+
+//이력 수정
+export const useExperienceUpdate = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            id,
+            formData,
+            visible
+        }: {
+            id: number;
+            formData: UpdateExperienceRequest;
+            visible: boolean
+        }) => updateExperienceDetail(id, formData, visible),
+
+        onSuccess: async (_, variables) => {
+            // 상세 정보와 리스트 쿼리 모두 무효화하여 최신 데이터 유지
+            await queryClient.invalidateQueries({ queryKey: ["myExperiences"] });
+            await queryClient.invalidateQueries({ queryKey: ["experienceDetail", variables.id] });
+            alert("수정사항이 성공적으로 저장되었습니다.");
+        },
+        onError: (error: any) => {
+            alert(error.response?.data?.message || "수정 중 오류가 발생했습니다.");
+        }
+    });
+};
+
+// 이력 파일 생성
+export const useExperienceFileAttach = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            experienceId,
+            fileData
+        }: {
+            experienceId: number;
+            fileData: AttachmentFileRequest
+        }) => postExperienceFile(experienceId, fileData),
+
+        onSuccess: (_, variables) => {
+            // 상세 정보 쿼리 무효화하여 새로운 첨부파일 목록 반영
+            queryClient.invalidateQueries({ queryKey: ["experienceDetail", variables.experienceId] });
+            console.log("✅ 파일 첨부 연결 성공");
+        },
+        onError: (error: any) => {
+            alert(error.response?.data?.message || "파일 연결 중 오류가 발생했습니다.");
+        }
+    });
+};
+
+// 이력 파일 삭제
+export const useExperienceFileDelete = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        // API 함수가 (experienceId, fileId)를 인자로 받으므로 객체로 감싸서 전달
+        mutationFn: ({ experienceId, fileId }: { experienceId: number; fileId: number }) => 
+            deleteExperienceFile(experienceId, fileId), // 이전에 정의한 API 호출
+
+        onSuccess: (_, variables) => {
+            // 1. 해당 이력의 상세 정보 쿼리 무효화 (파일 목록 UI 갱신)
+            queryClient.invalidateQueries({ queryKey: ["experienceDetail", variables.experienceId] });
+            
+            // 2. 만약 별도의 파일 목록 쿼리("experienceFiles")가 있다면 그것도 무효화
+            queryClient.invalidateQueries({ queryKey: ["experienceFiles", variables.experienceId] });
+
+            console.log(`✅ 이력 ${variables.experienceId}에서 파일 ${variables.fileId} 연결 해제 성공`);
+        },
+        onError: (error: any) => {
+            const msg = error.response?.data?.message || "파일 삭제 중 오류가 발생했습니다.";
+            alert(msg);
         },
     });
 };
