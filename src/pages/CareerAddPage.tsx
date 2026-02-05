@@ -4,11 +4,14 @@ import { CircleCheck, FileText, Mic, X } from "lucide-react";
 import { getDisplayName } from "../utils/name";
 import { DUMMY_PROFILE } from "../data/profileData";
 import { useUploadManager } from "../hooks/useUploadManager";
-import { formatPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
+import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
+import { useExperienceCreate } from "../hooks/useProfileMutation";
 
 const CareerAddPage = () => {
     const navigate = useNavigate();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const { mutate: createExp, isPending } = useExperienceCreate();
 
     const { selectedFiles, handleFileUpload, removeFile,
         links, linkInput, setLinkInput, addLink, removeLink, fileInputRef
@@ -77,29 +80,41 @@ const CareerAddPage = () => {
         e.preventDefault();
         //이벤트 전파 방지
         e.stopPropagation();
+
         //현재 포커스된 요소가 있다면 해제 (커서 생기는 현상 방지)
         if (document.activeElement instanceof HTMLElement) {
             document.activeElement.blur();
         }
-        // 기간 형식이 올바른지 체크 (YYYY.MM.DD - YYYY.MM.DD)
-        if (newCareer.period && !validatePeriod(newCareer.period)) {
+
+        const requiredFields = [
+            { value: newCareer.title, label: "활동명" },
+            { value: newCareer.organizer, label: "주최기관" },
+            { value: newCareer.period, label: "기간" },
+        ];
+
+        const emptyField = requiredFields.find(f => !f.value || f.value.trim() === "");
+
+        if (emptyField) {
+            alert(`${emptyField.label} 항목을 입력해주세요.`);
             return;
         }
 
-        // 모든 정보를 하나의 객체로 합침
-        const finalData = {
-            ...newCareer,
+        if (!validatePeriod(newCareer.period)) {
+            alert("날짜 형식이 올바르지 않습니다.\n예: 2024.01.01 - 2024.12.31");
+            return;
+        }
+
+        const requestBody = {
+            title: newCareer.title,
+            organization: newCareer.organizer,
             startDate: getStartDateFromPeriod(newCareer.period),
-            id: Date.now(),//임시id
-            fileName: selectedFiles.map(f => f.name),
-            link: links,
+            endDate: getEndDateFromPeriod(newCareer.period),
+            activity: newCareer.participation,
+            role: newCareer.role,
+            summary: newCareer.intro,
         };
 
-        console.log("최종 전달 데이터:", finalData);
-
-        navigate("/profile", {
-            state: { newResume: finalData }
-        });
+        createExp(requestBody);
     };
 
     //  클릭 시 파일 선택창 띄우기
@@ -285,7 +300,11 @@ const CareerAddPage = () => {
                                     maxLength={item.field === "period" ? 23 : undefined}
                                     value={(newCareer as any)[item.field]}
                                     onChange={(e) => handleInputChange(item.field, e.target.value, e)}
-                                    placeholder="입력해주세요."
+                                    placeholder={
+                                        item.field === "period"
+                                            ? "2025.07.01 - 2026.01.31" 
+                                            : "입력해주세요."
+                                    }
                                     className="flex-1 h-full px-[16px] outline-none
                                     border rounded-[10px] border-[#D6D6D8] bg-transparent
                                     font-pretendard text-[14px] sm:text-[16px] font-medium text-[#423C33]
@@ -321,8 +340,8 @@ const CareerAddPage = () => {
                         <div className="flex flex-col gap-[8px]">
                             {/* 선택된 파일 */}
                             {selectedFiles.map((file, index) => (
-                                <div 
-                                    key={index} 
+                                <div
+                                    key={index}
                                     className="flex items-center justify-between w-full h-[50px] px-[16px]
                                     bg-[#E9FCF7] rounded-[10px] border border-[#26E1AC]">
                                     <span className="text-[14px] font-medium truncate font-pretendard text-[#25221D] leading-[140%] max-w-[80%]">

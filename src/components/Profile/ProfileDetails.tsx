@@ -128,21 +128,135 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
         e.target.value = "";
     };
 
+    //이미지 압축
+    const compressImage = (file: File, maxSizeMB: number = 1): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // 최대 너비 제한 (큰 이미지 축소)
+                    const maxWidth = 1920;
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) {
+                        reject(new Error('Canvas context not available'));
+                        return;
+                    }
+
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // 품질을 조절하며 압축
+                    let quality = 0.9;
+                    const tryCompress = () => {
+                        canvas.toBlob(
+                            (blob) => {
+                                if (!blob) {
+                                    reject(new Error('Compression failed'));
+                                    return;
+                                }
+
+                                const compressedFile = new File(
+                                    [blob],
+                                    file.name,
+                                    { type: file.type || 'image/jpeg' }
+                                );
+
+                                console.log("🗜️ 압축 시도:", {
+                                    quality: quality,
+                                    original: (file.size / 1024).toFixed(2) + 'KB',
+                                    compressed: (compressedFile.size / 1024).toFixed(2) + 'KB',
+                                    targetMB: maxSizeMB
+                                });
+
+                                // 목표 크기보다 작으면 성공
+                                if (compressedFile.size <= maxSizeMB * 1024 * 1024) {
+                                    console.log("✅ 압축 성공:", {
+                                        finalSize: (compressedFile.size / 1024).toFixed(2) + 'KB',
+                                        compressionRatio: ((compressedFile.size / file.size) * 100).toFixed(1) + '%'
+                                    });
+                                    resolve(compressedFile);
+                                } else if (quality > 0.5) {
+                                    // 아직 크면 품질을 더 낮춰서 재시도
+                                    quality -= 0.1;
+                                    tryCompress();
+                                } else {
+                                    // 더 이상 압축할 수 없으면 실패
+                                    reject(new Error(`이미지를 ${maxSizeMB}MB 이하로 압축할 수 없습니다.`));
+                                }
+                            },
+                            file.type || 'image/jpeg',
+                            quality
+                        );
+                    };
+
+                    tryCompress();
+                };
+
+                img.onerror = () => reject(new Error('Image load failed'));
+                img.src = e.target?.result as string;
+            };
+
+            reader.onerror = () => reject(new Error('File read failed'));
+            reader.readAsDataURL(file);
+        });
+    };
+
     //  프로필 이미지 변경 전용 핸들러
-    const handleProfileImageChange = (files: FileList | null) => {
+    const handleProfileImageChange = async (files: FileList | null) => {
         if (!files || files.length === 0) return;
 
         const file = files[0];
+        // 파일 타입 검증
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('JPG, PNG, GIF 형식의 이미지만 업로드 가능합니다.');
+            return;
+        }
+        // // 최대 크기 1MB로 변경
+        // const maxSize = 1 * 1024 * 1024; // 1MB
+
+        // let finalFile = file;
+        // // 1MB 초과 시 자동 압축
+        // if (file.size > maxSize) {
+        //     console.log("⚠️ 이미지 크기 초과, 압축 시작:", (file.size / 1024).toFixed(2) + 'KB');
+
+        //     try {
+        //         finalFile = await compressImage(file, 1);
+        //         alert(`이미지가 1MB를 초과하여 자동으로 압축되었습니다.\n원본: ${(file.size / 1024).toFixed(0)}KB → 압축: ${(finalFile.size / 1024).toFixed(0)}KB`);
+        //     } catch (error: any) {
+        //         alert(`이미지 압축 실패: ${error.message}\n1MB 이하의 이미지를 선택해주세요.`);
+        //         return;
+        //     }
+        // }
         const previewUrl = URL.createObjectURL(file);
 
         // 미리보기 주소 저장
         onDataChange("profileImage", previewUrl);
-
+        //onDataChange("profileFile", finalFile);
         onDataChange("profileFile", file);
-        // profileUpload 훅의 선택된 파일 리스트 업데이트
-        profileUpload.setSelectedFiles([file]);
 
-        console.log("📸 프로필 사진 변경(파일 객체 확보):", file.name);
+        // profileUpload 훅의 선택된 파일 리스트 업데이트
+        // profileUpload.setSelectedFiles([file]);
+
+        console.log("📸 프로필 사진 변경:", {
+            name: file.name,
+            type: file.type,
+            sizeKB: (file.size / 1024).toFixed(2) + 'KB'
+        });
     };
 
     const handleConfirmAddDetail = async () => {
@@ -284,17 +398,18 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
     }, [uploadManager.selectedFiles]);
 
     //프로필 사진 미리보기 및 부모 상태 반영 
-    useEffect(() => {
-        if (profileUpload.selectedFiles.length > 0) {
-            const file = profileUpload.selectedFiles[0];
-            const previewUrl = URL.createObjectURL(file);
+    // useEffect(() => {
+    //     if (profileUpload.selectedFiles.length > 0) {
+    //         const file = profileUpload.selectedFiles[0];
+    //         const previewUrl = URL.createObjectURL(file);
 
-            // 화면에 미리보기 즉시 반영 
-            onDataChange("profileImage", previewUrl);
+    //         // 화면에 미리보기 즉시 반영 
+    //         onDataChange("profileImage", previewUrl);
+    //         onDataChange("profileFile", file);
 
-            return () => URL.revokeObjectURL(previewUrl);
-        }
-    }, [profileUpload.selectedFiles]);
+    //         return () => URL.revokeObjectURL(previewUrl);
+    //     }
+    // }, [profileUpload.selectedFiles]);
 
     const handleVerifyComplete = (files: File[]) => {
         console.log("업로드 완료:", files);
@@ -338,7 +453,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                         onDragLeave={handleProfileDragLeave}
                         onDrop={handleProfileDrop}
                         onClick={isEditing ? () => {
-                            profileUpload.setSelectedFiles([]);
+                            // profileUpload.setSelectedFiles([]);
                             profileUpload.fileInputRef.current?.click();
                         } : undefined}
                         className={`relative flex justify-center items-center bg-[#FBFAF9]
@@ -376,15 +491,22 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                             onChange={(e) => handleProfileImageChange(e.target.files)}
                         />
                     </div>
-                    <input
-                        readOnly={!isEditing}
-                        maxLength={6}
-                        value={data.name}
-                        onChange={(e) => onDataChange("name", e.target.value)}
-                        className="outline-none bg-transparent
-                            text-center self-stretch text-[#25221D] font-pretendard text-[20px] lg:text-[24px] font-bold leading-[130%] tracking-[-0.01em]"
-                    />
-
+                    <div className="flex items-center justify-center relative w-fit mx-auto group">
+                        <input
+                            readOnly={!isEditing}
+                            maxLength={6}
+                            value={data.name}
+                            onChange={(e) => onDataChange("name", e.target.value)}
+                            className="outline-none bg-transparent
+                            text-center self-stretch text-[#25221D] font-pretendard text-[20px] lg:text-[24px] font-bold leading-[130%] tracking-[-0.01em]
+                            w-full max-w-[120px]"
+                        />
+                        {isEditing && (
+                            <div className="ml-1 shrink-0">
+                                <Pencil size={18} color="#C2BBB0" />
+                            </div>
+                        )}
+                    </div>
                 </div>
                 {/**정보 */}
                 <div className="flex flex-col w-full lg:max-w-[440px] gap-[12px] items-start">
@@ -409,31 +531,37 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
 
                                     <input
                                         maxLength={item.max}
-                                        readOnly={!isEditing}
+                                        readOnly={item.id === "email" || !isEditing}
                                         value={item.value || ""}
-                                        onChange={(e) => handleBasicInfoChange(e, item.id, item.value || "")}
+                                        onChange={(e) => {
+                                            if (item.id === "email") return;
+                                            handleBasicInfoChange(e, item.id, item.value || "")
+                                        }}
                                         placeholder="입력해주세요."
                                         className="w-full h-full outline-none font-pretendard text-[15px] lg:text-[16px]
                                             placeholder:text-[#978B78] text-[#342F28] font-medium leading-[130%] bg-transparent"
                                     />
 
                                     {item.id === "school" ? (
-                                        <button
-                                            // 수정 모드일 때만 클릭 가능하게 설정
-                                            onDoubleClick={() => setIsModalOpen(true)}
-                                            className={`flex py-[4px] px-[8px] items-center gap-[4px] rounded-[8px] transition-colors shrink-0
-                                            bg-[#E9FCF7] text-[#1BA07A]  cursor-pointer hover:opacity-80
-                                        `}
-                                        >
-                                            <Paperclip size={18} />
-                                            <span className={`hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em] 
-                                                ${isVerified ? "text-[#1BA07A]" : "text-[#5F5749]"}`}>
-                                                {isVerified ? "첨부파일" : "첨부파일"}
-                                            </span>
-                                        </button>
+                                        <div className="flex items-center gap-2 shrink-0"> 
+                                            
+                                            <button
+                                                // 수정 모드일 때만 클릭 가능하게 설정
+                                                onDoubleClick={() => setIsModalOpen(true)}
+                                                className={`flex py-[4px] px-[8px] items-center gap-[4px] rounded-[8px] transition-colors shrink-0
+                                                bg-[#E9FCF7] text-[#1BA07A]  cursor-pointer hover:opacity-80
+                                                `}
+                                            >
+                                                <Paperclip size={18} />
+                                                <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em] text-[#1BA07A]">
+                                                    첨부파일
+                                                </span>
+                                            </button>
+                                            {isEditing && <Pencil size={16} color="#C2BBB0" className="shrink-0" />}
+                                        </div>
                                     ) : (
-                                        isEditing && (
-                                            <Pencil size={18} color="#C2BBB0" />
+                                        isEditing && item.id !== "email" && (
+                                            <Pencil size={16} color="#C2BBB0" />
                                         )
                                     )}
                                 </div>
@@ -473,7 +601,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                             placeholder="내용을 입력해주세요."
                                             className={`w-full h-full outline-none text-[#25221D] text-[15px] lg:text-[16px] font-medium bg-transparent
                                                 ${isEditing ? "cursor-text pr-[30px]" : "cursor-default pr-[40px]"} 
-                                                truncate`} 
+                                                truncate`}
                                         />
 
                                         {/* 아이콘 영역 */}
@@ -485,15 +613,15 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                                 >
                                                     <X size={18} />
                                                 </button>
-                                            ):(
-                                            (item.type === 'file' || item.type === 'link') && (
-                                                <button
-                                                    onClick={() => !isEditing && handleIconClick(item)}
-                                                    className={`${isEditing ? "cursor-default opacity-30" : "cursor-pointer"} p-1 transition-opacity`}
-                                                >
-                                                    <Paperclip size={18} className="text-[#5F5749]" />
-                                                </button>
-                                            ))}
+                                            ) : (
+                                                (item.type === 'file' || item.type === 'link') && (
+                                                    <button
+                                                        onClick={() => !isEditing && handleIconClick(item)}
+                                                        className={`${isEditing ? "cursor-default opacity-30" : "cursor-pointer"} p-1 transition-opacity`}
+                                                    >
+                                                        <Paperclip size={18} className="text-[#5F5749]" />
+                                                    </button>
+                                                ))}
                                         </div>
                                     </div>
                                 </div>
@@ -680,10 +808,13 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                 if (isEditing) setIsTagModalOpen(true);
                             }}
                             className={`flex w-full justify-center min-h-[auto]
-                                ${isEditing ? "cursor-pointer" : "cursor-default"}
-                                ${data.tags && data.tags.length > 0
-                                    ? "justify-start items-start p-0 border-none"
-                                    : "min-h-[120px] lg:min-h-[140px] justify-center items-center p-[30px] rounded-[10px] border-dashed border-[#5F5749] border"
+                                ${isEditing
+                                    ? "cursor-pointer border border-dashed border-[#D9D5CE] bg-[#F9FFFD] rounded-[15px] p-[16px]"
+                                    : "cursor-default border-none p-0"
+                                }
+                            ${data.tags && data.tags.length > 0
+                                    ? "justify-start items-start"
+                                    : "justify-center items-center rounded-[10px] border-dashed border-[#D9D5CE] border-2"
                                 }`}
                         >
                             {data.tags && data.tags.length > 0 ? (
@@ -739,21 +870,39 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                     />
                     {/* 자기소개  */}
                     <div className="flex flex-col gap-[12px] w-full">
-                        <span className="text-[#423C33] font-pretendard text-[18px] lg:text-[20px] font-semibold leading0[130%]">자기소개</span>
-                        <textarea
-                            readOnly={!isEditing}
-                            value={data.introduction || ""}
-                            maxLength={500}
-                            onChange={(e) => onDataChange("introduction", e.target.value)}
-                            placeholder="입력해주세요."
-                            className={`flex flex-col items-start gap-[10px] shrink-0 w-full h-[140px] lg:h-[180px] px-[15px] py-[20px]
+                        <div className="flex items-center gap-1">
+                            <span className="text-[#423C33] font-pretendard text-[18px] lg:text-[20px] font-semibold leading0[130%]">
+                                자기소개
+                            </span>
+                            {isEditing && <Pencil size={18} color="#C2BBB0" />}
+                        </div>
+                        <div className="relative w-full">
+                            <textarea
+                                readOnly={!isEditing}
+                                value={data.introduction || ""}
+                                maxLength={500}
+                                onChange={(e) => onDataChange("introduction", e.target.value)}
+                                placeholder="입력해주세요."
+                                className={`flex flex-col items-start gap-[10px] shrink-0 w-full h-[140px] lg:h-[180px] px-[15px] py-[20px]
                                 bg-transparent rounded-[10px] border-[#D9D5CE] border placeholder:text-[#D9D5CE] text-[#342F28]
                                 outline-none resize-none font-pretendard text-[16px] md:text-[18px] 
                                 ${isEditing
-                                    ? "cursor-text"
-                                    : "cursor-default"
-                                }`}
-                        />
+                                        ? "cursor-text"
+                                        : "cursor-default"
+                                    }`}
+                            />
+                            {isEditing && (
+                                <div className="absolute bottom-3 right-4 flex items-center">
+                                    <span className={`font-pretendard text-[12px] font-medium 
+                                    ${(data.introduction?.length || 0) >= 500 ? "text-red-500" : "text-[#978B78]"}`}>
+                                        {(data.introduction?.length || 0)}
+                                    </span>
+                                    <span className="font-pretendard text-[12px] font-medium text-[#C2BBB0]">
+                                        /500
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

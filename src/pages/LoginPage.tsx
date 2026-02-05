@@ -1,5 +1,5 @@
-import { useAuth } from '../hooks/useAuth';
 import { LoginCard } from '../components/Login/LoginUI';
+import { useAuth } from '../hooks/useAuth';
 
 const LoginPage = () => {
   const { login } = useAuth();

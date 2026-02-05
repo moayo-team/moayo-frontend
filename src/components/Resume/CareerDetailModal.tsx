@@ -4,6 +4,8 @@ import { useUploadManager } from "../../hooks/useUploadManager";
 import { FileText, X } from "lucide-react";
 import type { Career } from "../../types/career";
 import { formatPeriod, getStartDateFromPeriod } from "../../utils/format";
+import { useExperienceDetail } from "../../hooks/useProfileQueries";
+import { useExperienceDelete } from "../../hooks/useProfileMutation";
 
 interface CarrerDetailModalProps {
     onClose: () => void;
@@ -12,18 +14,23 @@ interface CarrerDetailModalProps {
     onSave?: (updatedData: any) => void; // 저장 콜백
 
 }
-const CarrerDetailModal = ({ data, onClose, onDelete, onSave }: CarrerDetailModalProps) => {
-    const [isPublic, setIsPublic] = useState(data?.isPublic ?? true);
+const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave }: CarrerDetailModalProps) => {
+    const { data: detailRes, isLoading } = useExperienceDetail(initialData?.id);
+    const serverData = detailRes?.result;
+
+    const { mutate: deleteExp } = useExperienceDelete();
+
+    const [isPublic, setIsPublic] = useState(initialData?.isPublic ?? true);
     const [isEditMode, setIsEditMode] = useState(false);
 
     {/**기본 정보 폼 상태 */ }
     const [formData, setFormData] = useState({
-        title: data?.title ?? "",
-        organizer: data?.organizer ?? "",
-        period: data?.period ?? "",
-        participation: data?.participation ?? "",
-        role: data?.role ?? "",
-        intro: data?.intro ?? "",
+        title: initialData?.title ?? "",
+        organizer: initialData?.organizer ?? "",
+        period: initialData?.period ?? "",
+        participation: initialData?.participation ?? "",
+        role: initialData?.role ?? "",
+        intro: initialData?.intro ?? "",
     });
 
     const {
@@ -36,19 +43,18 @@ const CarrerDetailModal = ({ data, onClose, onDelete, onSave }: CarrerDetailModa
 
     {/**외부에서 받은 데이터 로컬 state에 동기화 */ }
     useEffect(() => {
-        if (!data) return;
-        setFormData({
-            title: data.title || "",
-            organizer: data.organizer || "",
-            period: data.period || "",
-            participation: data.participation || "",
-            role: data.role || "",
-            intro: data.intro || "",
-        });
-        setIsPublic(data.isPublic ?? true);
-        setSelectedFiles(data.fileName?.map((name: string) => ({ name })) || []);
-        setLinks(data.link || []);
-    }, [data, setSelectedFiles, setLinks]);
+        if (serverData) {
+            setFormData({
+                title: serverData.title || "",
+                organizer: serverData.organization || "",
+                period: `${serverData.startDate.replace(/-/g, ".")} - ${serverData.endDate.replace(/-/g, ".")}`,
+                participation: serverData.activity || "",
+                role: serverData.role || "",
+                intro: serverData.summary || "", 
+            });
+            setIsPublic(serverData.visible);
+        }
+    }, [serverData]);
 
     // 커서 튕김 방지 로직이 포함된 핸들러
     const handleInputChange = (name: string, value: string, e?: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -95,7 +101,7 @@ const CarrerDetailModal = ({ data, onClose, onDelete, onSave }: CarrerDetailModa
     /** 저장 버튼 클릭 시 */
     const handleSave = () => {
         const updatedData: Career = {
-            ...data,
+            ...initialData,
             ...formData,
             startDate: getStartDateFromPeriod(formData.period),
             isPublic: isPublic,
@@ -107,7 +113,19 @@ const CarrerDetailModal = ({ data, onClose, onDelete, onSave }: CarrerDetailModa
         setIsEditMode(false);
     };
 
-
+    /** 삭제 확인 핸들러 */
+    const handleDelete = () => {
+        if (window.confirm("정말 이 이력을 삭제하시겠습니까?")) {
+            deleteExp(initialData.id, {
+                onSuccess: () => {
+                    // 서버 삭제 성공 시 부모 페이지의 onDelete(UI 제거 등)를 실행하고 모달 닫기
+                    if (onDelete) onDelete(initialData.id);
+                    onClose();
+                }
+            });
+        }
+    };
+    
      // 추가 정보(파일) 드래그 앤 드롭
     const handleAddFileDragOver = (e: React.DragEvent) => {
         e.preventDefault();
@@ -127,6 +145,7 @@ const CarrerDetailModal = ({ data, onClose, onDelete, onSave }: CarrerDetailModa
         }
     };
 
+    if (isLoading) return null;
 
     return (
         <>
@@ -358,7 +377,7 @@ const CarrerDetailModal = ({ data, onClose, onDelete, onSave }: CarrerDetailModa
                                     className="px-6 py-3
                                             rounded-[10px] bg-[#EFEEEB]
                                             text-[#5F5749] font-pretendard text-[16px] font-medium leading-[140%]"
-                                    onClick={() => onDelete?.(data.id)}>
+                                    onClick={handleDelete}>
                                     삭제하기
                                 </button>
                                 <button
