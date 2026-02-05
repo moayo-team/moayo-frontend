@@ -1,4 +1,4 @@
-import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse,  } from "../../types/career";
+import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse,  } from "../../types/career";
 import { apiClient } from "../client";
 
 /** 내 이력서 목록 조회 */
@@ -34,4 +34,78 @@ export const deleteExperience = async (experienceId: number) => {
     );
 
     return response.data;
+};
+
+/**이력 항목 공개/비공개 상태 변경 */
+export const patchExperienceVisibility = async (
+    experienceId: number,
+    visible: boolean
+): Promise<ExperienceVisibilityResponse> => {
+    try {
+        const requestBody: UpdateVisibilityRequest = { visible };
+        
+        const { data } = await apiClient.patch<ExperienceVisibilityResponse>(
+            `/api/v1/experiences/${experienceId}/visibility`,
+            requestBody
+        );
+
+        return data;
+    } catch (error) {
+        console.error('공개 여부 변경 중 오류 발생:', error);
+        throw error;
+    }
+};
+
+//이력 수정 (정보 + 공개여부)
+export const updateExperienceDetail = async (
+    experienceId: number,
+    data: UpdateExperienceRequest,
+    visible: boolean
+) => {
+    // 이력서 정보 수정 
+    const updateInfo = apiClient.patch<UpdateExperienceResponse>(
+        `/api/v1/experiences/${experienceId}`,
+        data
+    );
+
+    //  공개 여부 변경 
+    const updateVisibility = patchExperienceVisibility(experienceId, visible);
+
+    const [infoRes, visibilityRes] = await Promise.all([updateInfo, updateVisibility]);
+
+    return {
+        info: infoRes.data,
+        visibility: visibilityRes
+    };
+};
+
+// 이력 파일 생성
+export const postExperienceFile = async (
+    experienceId: number,
+    fileData: AttachmentFileRequest
+): Promise<AttachmentFileResponse> => {
+    const { data } = await apiClient.post<AttachmentFileResponse>(
+        `/api/v1/experiences/${experienceId}/attachments/files`,
+        fileData
+    );
+    return data;
+};
+
+//이력 파일 조회
+export const getExperienceFiles = async (experienceId: number): Promise<BaseResponse<ExperienceFileResponse[]>> => {
+    const { data } = await apiClient.get<BaseResponse<ExperienceFileResponse[]>>(
+        `/api/v1/experiences/${experienceId}/attachments/files`
+    );
+    return data;
+};
+
+//이력 파일 삭제
+export const deleteExperienceFile = async (
+    expId: number, 
+    fileId: number
+): Promise<DetachFileResponse> => {
+    const { data } = await apiClient.delete<DetachFileResponse>(
+        `/api/v1/experiences/${expId}/attachments/files/${fileId}`
+    );
+    return data;
 };

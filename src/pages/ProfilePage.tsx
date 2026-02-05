@@ -174,9 +174,11 @@ const ProfilePage = () => {
 
   // 이력 수정(저장) 핸들러
   const handleSaveCareer = (updatedData: Career) => {
-    setAllCareers((prev) =>
-      prev.map((career) => (career.id === updatedData.id ? updatedData : career))
-    );
+    setAllCareers((prev) => {
+      return prev.map((career) =>
+        String(career.id) === String(updatedData.id) ? { ...updatedData } : career
+      );
+    });
   };
 
   const handleDeleteCareer = (id: string | number) => {
@@ -206,8 +208,9 @@ const ProfilePage = () => {
         isEditing={isEditing}
         isDetailsEmpty={isDetailsEmpty}
         data={profileData}
+        experienceIds={allCareers.map(c => c.id)}
         onDataChange={handleProfileChange}
-        onModeChange={handleModeChange}
+        onModeChange={handleModeChange}      
       />
 
       <ResumeSection
@@ -217,6 +220,7 @@ const ProfilePage = () => {
         onSave={handleSaveCareer}
         onDelete={handleDeleteCareer}
         userName={user?.name}
+        documents={documents}
       />
     </div>
   );

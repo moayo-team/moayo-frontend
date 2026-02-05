@@ -6,6 +6,9 @@ import { DUMMY_PROFILE } from "../data/profileData";
 import { useUploadManager } from "../hooks/useUploadManager";
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
 import { useExperienceCreate } from "../hooks/useProfileMutation";
+import { uploadProfileDocument } from "../api/profile/profile";
+import { postExperienceFile } from "../api/profile/experiences";
+import type { UploadDocumentResponse } from "../types/profile";
 
 const CareerAddPage = () => {
     const navigate = useNavigate();
@@ -13,7 +16,7 @@ const CareerAddPage = () => {
 
     const { mutate: createExp, isPending } = useExperienceCreate();
 
-    const { selectedFiles, handleFileUpload, removeFile,
+    const { selectedFiles, handleFileUpload, removeFile, setSelectedFiles,
         links, linkInput, setLinkInput, addLink, removeLink, fileInputRef
     } = useUploadManager({
         maxFiles: 3,
@@ -75,6 +78,32 @@ const CareerAddPage = () => {
         setNewCareer(prev => ({ ...prev, [field]: value }));
     };
 
+    //파일 선택시 UI에만 추가
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files) return;
+
+        const fileArray = Array.from(files);
+
+        // 개수 체크
+        if (selectedFiles.length + fileArray.length > 3) {
+            alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+
+        // 서버에 올리지 않고, fileObj를 담은 객체를 생성하여 state에 추가
+        const newFiles = fileArray.map(file => ({
+            name: file.name,
+            fileObj: file, // 나중에 등록 버튼 누를 때 쓸 원본 파일
+            type: 'file'
+        }));
+
+        setSelectedFiles(prev => [...prev, ...newFiles]);
+
+        // input 초기화 (같은 파일 다시 올릴 수 있게)
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
 
     const handleSave = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -103,19 +132,66 @@ const CareerAddPage = () => {
             alert("날짜 형식이 올바르지 않습니다.\n예: 2024.01.01 - 2024.12.31");
             return;
         }
+        try {
+            //  이력 생성
+            const requestBody = {
+                title: newCareer.title,
+                organization: newCareer.organizer,
+                startDate: getStartDateFromPeriod(newCareer.period),
+                endDate: getEndDateFromPeriod(newCareer.period),
+                activity: newCareer.participation,
+                role: newCareer.role,
+                summary: newCareer.intro,
+            };
 
-        const requestBody = {
-            title: newCareer.title,
-            organization: newCareer.organizer,
-            startDate: getStartDateFromPeriod(newCareer.period),
-            endDate: getEndDateFromPeriod(newCareer.period),
-            activity: newCareer.participation,
-            role: newCareer.role,
-            summary: newCareer.intro,
-        };
+            // createExp는 이력 ID를 반환해야 함
+            createExp(requestBody, {
+                onSuccess: async (response) => {
+                    const experienceId = response.result; // 생성된 이력 ID
 
-        createExp(requestBody);
+                    //  파일이 있다면 업로드 + 연결
+                    if (selectedFiles.length > 0) {
+                        try {
+                            const uploadPromises = selectedFiles.map(file => {
+                                if (file.fileObj) {
+                                    return uploadProfileDocument(file.fileObj);
+                                }
+                                return Promise.resolve({ isSuccess: false, result: null } as any);
+                            });
+
+                            const uploadResults = await Promise.all(uploadPromises);
+
+                            // 업로드된 파일들을 이력에 연결
+                            const attachPromises = uploadResults
+                                .filter((res): res is UploadDocumentResponse => res.isSuccess && !!res.result) // Type Guard 적용
+                                .map((res, idx) =>
+                                    postExperienceFile(experienceId, {
+                                        fileId: res.result!.id,
+                                        fileName: selectedFiles[idx].name
+                                    })
+                                );
+
+                            await Promise.all(attachPromises);
+                            console.log("✅ 파일 업로드 및 연결 완료");
+                        } catch (error) {
+                            console.error("❌ 파일 업로드 중 오류:", error);
+                            alert("이력은 등록되었으나 일부 파일 업로드에 실패했습니다.");
+                        }
+                    }
+
+                    navigate("/profile");
+                },
+                onError: (error: any) => {
+                    console.error("이력 등록 실패:", error);
+                    alert("이력 등록 중 오류가 발생했습니다.");
+                }
+            });
+        } catch (error) {
+            console.error("등록 중 오류:", error);
+            alert("등록 중 오류가 발생했습니다.");
+        }
     };
+
 
     //  클릭 시 파일 선택창 띄우기
     const handleBoxClick = () => {
@@ -125,6 +201,11 @@ const CareerAddPage = () => {
     // 파일 선택창에서 선택했을 때
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
+            // 현재 선택된 파일 개수와 새로 들어온 파일 개수의 합 체크
+            if (selectedFiles.length + e.target.files.length > 3) {
+                alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
+                return;
+            }
             handleFileUpload(e.target.files);
         }
     };
@@ -133,6 +214,22 @@ const CareerAddPage = () => {
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        const files = e.dataTransfer.files;
+        if (!files) return;
+
+        if (selectedFiles.length + files.length > 3) {
+            alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
+            return;
+        }
+
+        const newFiles = Array.from(files).map(file => ({
+            name: file.name,
+            fileObj: file,
+            type: 'file'
+        }));
+
+        setSelectedFiles(prev => [...prev, ...newFiles]);
     };
 
 
@@ -302,7 +399,7 @@ const CareerAddPage = () => {
                                     onChange={(e) => handleInputChange(item.field, e.target.value, e)}
                                     placeholder={
                                         item.field === "period"
-                                            ? "2025.07.01 - 2026.01.31" 
+                                            ? "2025.07.01 - 2026.01.31"
                                             : "입력해주세요."
                                     }
                                     className="flex-1 h-full px-[16px] outline-none
@@ -363,28 +460,29 @@ const CareerAddPage = () => {
                                 multiple // 여러 개 선택 가능
                                 accept="image/*, .pdf"
                             />
-
-                            <div
-                                onDragOver={handleDragOver}
-                                onDrop={handleDrop}
-                                onClick={handleBoxClick}
-                                className="flex items-center justify-center h-[60px] sm:h-[80px] gap-[8px]
-                                rounded-[20px] boder boder-[#ADA395] bg-[#EFEEEB] cursor-pointer "
-                            >
-                                <div className="flex items-center justify-center gap-[8px] pointer-events-none">
-                                    <FileText size={20} className="text-[#978B78] mb-1" />
-                                    <div className="flex flex-col items-center justify-center gap-[4px]">
-                                        <span className="text-[13px] sm:text-[14px] font-medium font-pretendard 
+                            {selectedFiles.length < 3 && (
+                                <div
+                                    onDragOver={handleDragOver}
+                                    onDrop={handleDrop}
+                                    onClick={handleBoxClick}
+                                    className="flex items-center justify-center h-[60px] sm:h-[80px] gap-[8px]
+                                    rounded-[20px] boder boder-[#ADA395] bg-[#EFEEEB] cursor-pointer "
+                                    >
+                                    <div className="flex items-center justify-center gap-[8px] pointer-events-none">
+                                        <FileText size={20} className="text-[#978B78] mb-1" />
+                                        <div className="flex flex-col items-center justify-center gap-[4px]">
+                                            <span className="text-[13px] sm:text-[14px] font-medium font-pretendard 
                                             leading-[140%] text-center text-[#978B78]">
-                                            파일을 첨부해주세요
-                                        </span>
-                                        <span className="text-[11px] sm:text-[12px] font-normal font-pretendard 
+                                                파일을 첨부해주세요
+                                            </span>
+                                            <span className="text-[11px] sm:text-[12px] font-normal font-pretendard 
                                             leading-[150%] text-center text-[#978B78]">
-                                            (증빙서류, 포트폴리오)
-                                        </span>
+                                                (증빙서류, 포트폴리오)
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                     </div>

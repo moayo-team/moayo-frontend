@@ -14,7 +14,7 @@ interface ProfileDetailsProps {
     isEditing: boolean;
     isDetailsEmpty: boolean;
     data: ProfileFormData;
-
+    experienceIds: number[];
     onDataChange: (
         id:
             | keyof ProfileFormData
@@ -29,7 +29,7 @@ interface ProfileDetailsProps {
     ) => void;
 }
 
-const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: ProfileDetailsProps) => {
+const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onDataChange }: ProfileDetailsProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isTagModalOpen, setIsTagModalOpen] = useState(false);
 
@@ -226,22 +226,22 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
             alert('JPG, PNG, GIF 형식의 이미지만 업로드 가능합니다.');
             return;
         }
-        // // 최대 크기 1MB로 변경
-        // const maxSize = 1 * 1024 * 1024; // 1MB
+        
+        const maxSize = 10 * 1024 * 1024; // 10MB
 
-        // let finalFile = file;
-        // // 1MB 초과 시 자동 압축
-        // if (file.size > maxSize) {
-        //     console.log("⚠️ 이미지 크기 초과, 압축 시작:", (file.size / 1024).toFixed(2) + 'KB');
+        let finalFile = file;
+        // 1MB 초과 시 자동 압축
+        if (file.size > maxSize) {
+            console.log("⚠️ 이미지 크기 초과, 압축 시작:", (file.size / 1024).toFixed(2) + 'KB');
 
-        //     try {
-        //         finalFile = await compressImage(file, 1);
-        //         alert(`이미지가 1MB를 초과하여 자동으로 압축되었습니다.\n원본: ${(file.size / 1024).toFixed(0)}KB → 압축: ${(finalFile.size / 1024).toFixed(0)}KB`);
-        //     } catch (error: any) {
-        //         alert(`이미지 압축 실패: ${error.message}\n1MB 이하의 이미지를 선택해주세요.`);
-        //         return;
-        //     }
-        // }
+            try {
+                finalFile = await compressImage(file, 1);
+                //alert(`이미지가 1MB를 초과하여 자동으로 압축되었습니다.\n원본: ${(file.size / 1024).toFixed(0)}KB → 압축: ${(finalFile.size / 1024).toFixed(0)}KB`);
+            } catch (error: any) {
+                //alert(`이미지 압축 실패: ${error.message}\n1MB 이하의 이미지를 선택해주세요.`);
+                return;
+            }
+        }
         const previewUrl = URL.createObjectURL(file);
 
         // 미리보기 주소 저장
@@ -270,7 +270,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
         // let serverFileUrl = null;
         // let serverFileType = "";
         // let finalValue = tempValue;
-        // let serverFileSize = null;  // ✅ 추가!
+        // let serverFileSize = null; 
 
         // if (activeType === 'file' && uploadManager.selectedFiles.length > 0) {
         //     setIsUploading(true);
@@ -316,7 +316,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
         //     url: isLink ? tempValue : serverFileUrl,
         //     //fileType: isFile ? uploadManager.selectedFiles[0]?.type : null,
         //     fileType: isFile ? serverFileType : null,
-        //     fileSize: isFile ? serverFileSize : null,  // ✅ 추가!
+        //     fileSize: isFile ? serverFileSize : null,  
 
         //     //fileObj: fileToUpload
         //     fileObj: null
@@ -574,6 +574,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                         onClose={() => setIsModalOpen(false)}
                         onComplete={handleVerifyComplete}
                         currentProfileImage={data.imageUrl}
+                       experienceIds={experienceIds}
                     />
 
                     {/* 커스텀 추가 정보 리스트 */}
