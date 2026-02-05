@@ -31,7 +31,7 @@ const CommentItem = ({ comment, onReply, onEdit, onDelete, isDeleting, isReply =
     }).replace(/\./g, '.').replace(/ /g, '');
   };
 
-  const isMyComment = user && comment.author.name === user.name;
+  const isMyComment = user && comment.author.name === user.user.name;
 
   const handleSaveEdit = () => {
     if (editContent.trim() && editContent !== comment.content) {

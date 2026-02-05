@@ -24,8 +24,13 @@ const ProfilePage = () => {
 
   const isInitialized = useRef(false);
 
+
   // 데이터 조회 훅
-  const { user, profile, tags, indexItems, isLoading, isError } = useProfileData();
+  const {
+    user, profile, tags, indexItems, isLoading, isError, documents
+  } = useProfileData();
+
+
   // 데이터 저장 훅
   const { mutate: saveProfile, isPending: isSaving } = useProfileSave();
 
@@ -34,9 +39,9 @@ const ProfilePage = () => {
 
     if (!user) return;
 
-   const mappedTags = tags?.map((t) => ({
+    const mappedTags = tags?.map((t) => ({
       id: t.id,
-      title: t.name,
+      name: t.name,
     })) ?? [];
 
     const mappedItems =
@@ -45,7 +50,12 @@ const ProfilePage = () => {
         label: i.indexKey,
         value: i.indexValue,
         type: i.itemType,
+        fileObj: null,
       })) ?? [];
+
+    const matchedDoc = documents?.find(
+      (doc) => doc.fileUrl === profile?.imageUrl
+    );
 
     setInitialIndexItemIds(mappedItems.map((i) => i.id));
 
@@ -53,6 +63,8 @@ const ProfilePage = () => {
       id: profile?.id ?? null,
       name: user.name,
       profileImage: profile?.imageUrl ?? "",
+      imageUrl: profile?.imageUrl ?? "",
+      imageId: matchedDoc?.id ?? null,
       introduction: profile?.bio ?? "",
 
       tags: mappedTags,
@@ -98,7 +110,7 @@ const ProfilePage = () => {
 
   const handleProfileChange = useCallback((id: string, value: any) => {
     setProfileData((prev: any) => {
-      if (["name", "profileImage", "introduction", "tags", "school_verified", "additionalDetails"].includes(id)) {
+      if (["name", "profileImage", "introduction", "tags", "school_verified", "additionalDetails", "imageUrl", "profileFile"].includes(id)) {
         if (prev[id as keyof typeof prev] === value) return prev;
         return { ...prev, [id]: value };
       }
@@ -110,6 +122,7 @@ const ProfilePage = () => {
   }, []);
 
   const handleModeChange = () => {
+    if (!profileData) return;
     if (isEditing) {
       // 유효성 검사
       const inputName = profileData.name || "";
@@ -119,16 +132,15 @@ const ProfilePage = () => {
       if (inputName.length > 6) return alert("이름은 최대 6글자까지만 입력 가능합니다.");
       if (cleanPhone.length > 11) return alert("전화번호 형식이 올바르지 않습니다.");
 
+
       // 저장 요청
       saveProfile(
-        { profileData, initialIndexItemIds },
+        { profileData, initialIndexItemIds, profileFile: profileData.profileFile },
         {
           onSuccess: async () => {
-            // ★ 여기가 실행되어야 버튼이 바뀝니다.
-            setIsEditing(false);
             await refreshUser();
+            setIsEditing(false);
           }
-          // 실패 시에는 아무것도 안 하므로(onError에서 alert만 뜸) 버튼이 유지됨 -> 정상 동작
         }
       );
     } else {
@@ -180,7 +192,7 @@ const ProfilePage = () => {
         setSortOrder={setSortOrder}
         onSave={handleSaveCareer}
         onDelete={handleDeleteCareer}
-        />
+      />
     </div>
   );
 }
