@@ -37,7 +37,7 @@ export default function MessagePage() {
 	const {
 		connected,
 		sending,
-		debug,
+		//debug,
 		meId,
 		messages,
 		input,
