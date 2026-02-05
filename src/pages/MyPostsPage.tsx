@@ -233,7 +233,6 @@ export const MyPostsPage = (): JSX.Element => {
   return (
     <div className="relative w-full min-h-screen bg-white pb-20">
       <NavigationBar />
-      
       <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Sidebar - Left Column */}
@@ -244,7 +243,7 @@ export const MyPostsPage = (): JSX.Element => {
                   <img
                     className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-full"
                     alt={`${user?.name || '사용자'} profile`}
-                    src={user?.imageUrl || 'https://ui-avatars.com/api/?name=User&background=E9FCEF&color=26E1AC&size=152'}
+                    src={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=E9FCEF&color=26E1AC&size=152'}
                   />
                   <div className="flex flex-col w-full items-center gap-0.5 relative flex-[0_0_auto]">
                     <h2 className="relative self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">

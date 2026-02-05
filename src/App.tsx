@@ -18,6 +18,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthProvider';
 import { GoogleCallback } from './pages/GoogleCallback';
 import 'react-quill-new/dist/quill.snow.css';
+import MinLayoutContainer from './layouts/MinWidthLayout';
 
 
 
