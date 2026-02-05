@@ -28,6 +28,14 @@ export const getStartDateFromPeriod = (period: string): string => {
   
   return formatted; 
 };
+/**endDate구하기 */
+export const getEndDateFromPeriod = (period: string): string => {
+  if (!period) return "";
+  const dates = period.split(" - ");
+  if (dates.length < 2) return "";
+  return dates[1].replace(/\./g, "-").trim();
+};
+
 /**기간 유효성 검사 */
 export const validatePeriod = (period: string) => {
     const regex = /^\d{4}\.\d{2}\.\d{2}\s-\s\d{4}\.\d{2}\.\d{2}$/;

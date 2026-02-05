@@ -6,22 +6,29 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRightLeft } from "lucide-react";
 import MascotIcon from "../../assets/white.svg"
 import { getDisplayName } from "../../utils/name";
-import { DUMMY_PROFILE } from "../../data/ProfileData";
 
 interface ResumeSectionProps {
   carrers: Career[];
   sortOrder: 'latest' | 'oldest';
+  userName?: string;
   onSave: (updatedData: Career) => void;
   onDelete: (id: string | number) => void;
   setSortOrder: (order: 'latest' | 'oldest') => void;
 }
 
-const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder }: ResumeSectionProps) => {
+const ResumeSection = ({ 
+  carrers = [], sortOrder, 
+  userName, 
+  onSave, 
+  onDelete, 
+  setSortOrder 
+}: ResumeSectionProps) => {
   const [selectedCarrer, setSelectedCareer] = useState<any | null>(null);
   const navigate = useNavigate();
 
   const hasData = carrers.length > 0; //데이터 유무 판단
 
+  //정렬 로직
   const sortedCarrers = [...carrers].sort((a, b) => {
     const dateA = new Date(a.startDate).getTime();
     const dateB = new Date(b.startDate).getTime();
@@ -51,6 +58,7 @@ const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder
             )}
             {/* 이력 추가 버튼 */}
             <button
+              type="button"
               onClick={() => navigate("/profile/add-career")}
               className="flex w-[100px] sm:w-[120px] h-[44px] sm:h-[48px] justify-center items-center 
               bg-[#6EEBC7] rounded-[10px] hover:bg-[#5BD9B5] transition-colors shadow-sm"
@@ -85,7 +93,7 @@ const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder
                 />
                 <span className="font-pretendard text-[16px] sm:text-[18px] font-medium leading-[130%] text-[#7C7160]
                 text-center md:text-left break-keep">
-                  {getDisplayName(DUMMY_PROFILE.name)}님의 활동경험을 알려주세요!
+                  {getDisplayName(userName || "사용자")}님의 활동경험을 알려주세요!
                 </span>
               </div>
           </div>
