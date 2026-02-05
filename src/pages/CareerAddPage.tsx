@@ -16,7 +16,7 @@ const CareerAddPage = () => {
 
     const { mutate: createExp, isPending } = useExperienceCreate();
 
-    const { selectedFiles, handleFileUpload, removeFile,
+    const { selectedFiles, handleFileUpload, removeFile, setSelectedFiles,
         links, linkInput, setLinkInput, addLink, removeLink, fileInputRef
     } = useUploadManager({
         maxFiles: 3,
@@ -78,6 +78,32 @@ const CareerAddPage = () => {
         setNewCareer(prev => ({ ...prev, [field]: value }));
     };
 
+    //파일 선택시 UI에만 추가
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files) return;
+
+        const fileArray = Array.from(files);
+
+        // 개수 체크
+        if (selectedFiles.length + fileArray.length > 3) {
+            alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+
+        // 서버에 올리지 않고, fileObj를 담은 객체를 생성하여 state에 추가
+        const newFiles = fileArray.map(file => ({
+            name: file.name,
+            fileObj: file, // 나중에 등록 버튼 누를 때 쓸 원본 파일
+            type: 'file'
+        }));
+
+        setSelectedFiles(prev => [...prev, ...newFiles]);
+
+        // input 초기화 (같은 파일 다시 올릴 수 있게)
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
 
     const handleSave = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -107,7 +133,7 @@ const CareerAddPage = () => {
             return;
         }
         try {
-            // 1️⃣ 이력 생성
+            //  이력 생성
             const requestBody = {
                 title: newCareer.title,
                 organization: newCareer.organizer,
@@ -123,7 +149,7 @@ const CareerAddPage = () => {
                 onSuccess: async (response) => {
                     const experienceId = response.result; // 생성된 이력 ID
 
-                    // 2️⃣ 파일이 있다면 업로드 + 연결
+                    //  파일이 있다면 업로드 + 연결
                     if (selectedFiles.length > 0) {
                         try {
                             const uploadPromises = selectedFiles.map(file => {
@@ -153,7 +179,6 @@ const CareerAddPage = () => {
                         }
                     }
 
-                    // 3️⃣ 성공 시 페이지 이동
                     navigate("/profile");
                 },
                 onError: (error: any) => {
@@ -167,6 +192,7 @@ const CareerAddPage = () => {
         }
     };
 
+
     //  클릭 시 파일 선택창 띄우기
     const handleBoxClick = () => {
         fileInputRef.current?.click();
@@ -175,6 +201,11 @@ const CareerAddPage = () => {
     // 파일 선택창에서 선택했을 때
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
+            // 현재 선택된 파일 개수와 새로 들어온 파일 개수의 합 체크
+            if (selectedFiles.length + e.target.files.length > 3) {
+                alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
+                return;
+            }
             handleFileUpload(e.target.files);
         }
     };
@@ -183,6 +214,22 @@ const CareerAddPage = () => {
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        const files = e.dataTransfer.files;
+        if (!files) return;
+
+        if (selectedFiles.length + files.length > 3) {
+            alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
+            return;
+        }
+
+        const newFiles = Array.from(files).map(file => ({
+            name: file.name,
+            fileObj: file,
+            type: 'file'
+        }));
+
+        setSelectedFiles(prev => [...prev, ...newFiles]);
     };
 
 
@@ -413,28 +460,29 @@ const CareerAddPage = () => {
                                 multiple // 여러 개 선택 가능
                                 accept="image/*, .pdf"
                             />
-
-                            <div
-                                onDragOver={handleDragOver}
-                                onDrop={handleDrop}
-                                onClick={handleBoxClick}
-                                className="flex items-center justify-center h-[60px] sm:h-[80px] gap-[8px]
-                                rounded-[20px] boder boder-[#ADA395] bg-[#EFEEEB] cursor-pointer "
-                            >
-                                <div className="flex items-center justify-center gap-[8px] pointer-events-none">
-                                    <FileText size={20} className="text-[#978B78] mb-1" />
-                                    <div className="flex flex-col items-center justify-center gap-[4px]">
-                                        <span className="text-[13px] sm:text-[14px] font-medium font-pretendard 
+                            {selectedFiles.length < 3 && (
+                                <div
+                                    onDragOver={handleDragOver}
+                                    onDrop={handleDrop}
+                                    onClick={handleBoxClick}
+                                    className="flex items-center justify-center h-[60px] sm:h-[80px] gap-[8px]
+                                    rounded-[20px] boder boder-[#ADA395] bg-[#EFEEEB] cursor-pointer "
+                                    >
+                                    <div className="flex items-center justify-center gap-[8px] pointer-events-none">
+                                        <FileText size={20} className="text-[#978B78] mb-1" />
+                                        <div className="flex flex-col items-center justify-center gap-[4px]">
+                                            <span className="text-[13px] sm:text-[14px] font-medium font-pretendard 
                                             leading-[140%] text-center text-[#978B78]">
-                                            파일을 첨부해주세요
-                                        </span>
-                                        <span className="text-[11px] sm:text-[12px] font-normal font-pretendard 
+                                                파일을 첨부해주세요
+                                            </span>
+                                            <span className="text-[11px] sm:text-[12px] font-normal font-pretendard 
                                             leading-[150%] text-center text-[#978B78]">
-                                            (증빙서류, 포트폴리오)
-                                        </span>
+                                                (증빙서류, 포트폴리오)
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                     </div>

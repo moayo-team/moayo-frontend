@@ -75,7 +75,7 @@ export const useProfileSave = () => {
                         }
                     }
 
-                    // ✅ 새 이미지 업로드 (삭제 결과에 관계없이 항상 진행)
+                    //  새 이미지 업로드 
                     try {
                         const uploadRes = await uploadProfileDocument(profileFile);
                         if (uploadRes.isSuccess && uploadRes.result?.fileUrl) {
@@ -190,7 +190,7 @@ export const useProfileSave = () => {
                 await Promise.all(promises);
             } catch (error) {
                 console.error("프로필 저장 중 오류:", error);
-                throw error; // react-query onError로 넘김
+                throw error;
 
             } finally {
                 isRunning.current = false;
@@ -330,15 +330,12 @@ export const useExperienceFileDelete = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        // API 함수가 (experienceId, fileId)를 인자로 받으므로 객체로 감싸서 전달
         mutationFn: ({ experienceId, fileId }: { experienceId: number; fileId: number }) => 
-            deleteExperienceFile(experienceId, fileId), // 이전에 정의한 API 호출
+            deleteExperienceFile(experienceId, fileId), 
 
         onSuccess: (_, variables) => {
-            // 1. 해당 이력의 상세 정보 쿼리 무효화 (파일 목록 UI 갱신)
+            // 파일 목록 UI 갱신
             queryClient.invalidateQueries({ queryKey: ["experienceDetail", variables.experienceId] });
-            
-            // 2. 만약 별도의 파일 목록 쿼리("experienceFiles")가 있다면 그것도 무효화
             queryClient.invalidateQueries({ queryKey: ["experienceFiles", variables.experienceId] });
 
             console.log(`✅ 이력 ${variables.experienceId}에서 파일 ${variables.fileId} 연결 해제 성공`);

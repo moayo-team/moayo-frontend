@@ -72,18 +72,17 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     // 서버 데이터 동기화 (파일 목록)
     useEffect(() => {
         if (filesRes?.isSuccess && Array.isArray(filesRes.result)) {
-            console.log("📥 서버에서 받은 파일 목록:", filesRes.result); // 디버깅용
+            console.log("📥 서버에서 받은 파일 목록:", filesRes.result); 
 
             const mappedFiles: AttachedFile[] = filesRes.result
                 .filter((f: any) => !filesToDelete.includes(f.fileId))
                 .map((f: any) => {
-                    // 👇 documents에서 매칭되는 파일 찾기
                     const matchedDoc = documents?.find(doc => doc.id === f.fileId);
 
                     return {
                         id: f.fileId,
                         name: f.fileName,
-                        url: matchedDoc?.fileUrl,  // 👈 URL 추가!
+                        url: matchedDoc?.fileUrl,  
                         type: 'file'
                     };
                 });
@@ -92,7 +91,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     }, [filesRes, filesToDelete]);
 
     const handleFileClick = (file: AttachedFile) => {
-        if (isEditMode) return; // 편집 모드에서는 동작 안 함
+        if (isEditMode) return; 
 
         // 새로 업로드한 파일 (File 객체)
         if (file.fileObj) {
@@ -176,10 +175,10 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                 await Promise.all(
                     uniqueIdsToDelete.map(async (fileId) => {
                         try {
-                            // 1. 이력과 파일 연결 끊기
+                            // 이력과 파일 연결 끊기
                             await deleteExperienceFile(initialData.id, fileId);
 
-                            // 2. 원본 파일 삭제
+                            //  원본 파일 삭제
                             await deleteProfileDocument(fileId);
                         } catch (error: any) {
                             if (error.response?.status === 404) {
@@ -264,15 +263,14 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             return;
         }
 
-        // ✅ 즉시 업로드하지 않고 UI에만 추가
+        //  UI에만 추가
         const newUploadedFiles = fileArray.map(file => ({
             name: file.name,
-            fileObj: file,  // 👈 파일 객체만 저장
+            fileObj: file, 
             type: 'file'
         }));
 
         setSelectedFiles(prev => [...prev, ...newUploadedFiles]);
-        // alert 제거 - 저장 시 한 번만 표시
     };
 
     /** 이력 파일 삭제  핸들러 */
@@ -287,8 +285,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             });
         }
 
-        // 2. [핵심] UI에서 즉시 제거
-        // useUploadManager에서 가져온 removeFile을 호출해서 selectedFiles 상태를 업데이트함
+        // UI에서 즉시 제거
         removeFile(index);
     };
 
