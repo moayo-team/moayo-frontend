@@ -14,7 +14,7 @@ function formatHHMM(v: string | Date): string {
 }
 
 export default function MessageBubble({ message, currentUserId }: Props) {
-  const isMine = message.senderId === currentUserId;
+  const isMine = Number(message.senderId) === Number(currentUserId);
 
   return (
     <div className={isMine ? "flex justify-end" : "flex justify-start"}>

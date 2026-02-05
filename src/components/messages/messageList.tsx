@@ -7,10 +7,15 @@ type Props = {
 };
 
 export default function MessageList({ messages, currentUserId }: Props) {
+
   return (
     <>
       {messages.map((m) => (
-        <MessageBubble key={m.id} message={m} currentUserId={currentUserId} />
+        <MessageBubble
+          key={String((m as any).id ?? `${m.senderId}-${m.createdAt}-${m.content}`)}
+          message={m}
+          currentUserId={currentUserId}
+        />
       ))}
     </>
   );

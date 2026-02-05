@@ -137,3 +137,18 @@ export type UploadDocumentResponse = BaseResponse<ProfileDocument>;
 export type DeleteDocumentResponse = BaseResponse<null>;
 //첨부 파일 조회
 export type documentListResponse = BaseResponse<ProfileDocument[]>;
+
+export interface OtherProfileResult {
+	userId: number;
+	name: string;
+	email: string;
+	phoneNumber: string | null;
+	imageUrl: string;
+	university: string;
+	major: string;
+	bio: string;
+	interestTags: InterestTag[];
+	indexItems: IndexItem[];
+}
+
+export type OtherProfileResponse = BaseResponse<OtherProfileResult>;

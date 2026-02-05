@@ -15,9 +15,12 @@ import type {
     UpdateInterestTagsResponse,
     UpdateProfileRequest,
     UpdateProfileResponse,
-    UploadDocumentResponse
+    UploadDocumentResponse,
+    OtherProfileResponse,
+    OtherProfileResult
 } from "../../types/profile";
 import { apiClient } from "../client";
+import axiosInstance from "../axios";
 
 
 export const createProfile = async (profileData: CreateProfileRequest): Promise<ProfileCreateResponse> => {
@@ -195,4 +198,15 @@ export const deleteProfileDocument = async (
     `/api/v1/profiles/me/documents/${documentId}`
   );
   return res.data;
+};
+
+// 타인 프로필 조회(GET) API 
+export const getUserProfileById = async (
+	userId: number
+): Promise<OtherProfileResult> => {
+	const response = await axiosInstance.get<OtherProfileResponse>(
+		`/profiles/${userId}`
+	);
+
+	return response.data.result;
 };

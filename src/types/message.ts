@@ -5,7 +5,7 @@ export type ISODateString = string;
 
 /** 채팅 메시지 (기존 Message + ChatMessageResponse 통합본) */
 export type ChatMessage = {
-  id: number;                 // message id
+  messageId: number;                 // message id
   chatRoomId: number;         // room id (가능하면 항상 존재하도록 통일)
   senderId: number;           // sender user id
   content: string;
