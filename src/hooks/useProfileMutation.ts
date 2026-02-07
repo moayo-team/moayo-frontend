@@ -14,8 +14,8 @@ import type { ProfileFormData } from "../types/profileForm";
 import { useAuth } from "./useAuth";
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import type { AttachmentFileRequest, CreateExperienceRequest, UpdateExperienceRequest } from "../types/career";
-import { createExperience, deleteExperience, deleteExperienceFile, patchExperienceVisibility, postExperienceFile, updateExperienceDetail } from "../api/profile/experiences";
+import type { AttachmentFileRequest, CreateExperienceLinkRequset, CreateExperienceRequest, UpdateExperienceLinkRequest, UpdateExperienceRequest } from "../types/career";
+import { addExperienceLink, createExperience, deleteExperience, deleteExperienceFile, deleteExperienceLink, patchExperienceVisibility, postExperienceFile, updateExperienceDetail, updateExperienceLink } from "../api/profile/experiences";
 
 const waitForProfileToExist = async () => {
     for (let i = 0; i < 5; i++) {
@@ -178,7 +178,7 @@ export const useProfileSave = () => {
                         console.log("📎 전송할 파일:", fileToSend);
 
                         if (typeof item.id === "number") {
-                            promises.push(updateIndexItem(item.id, detailData, null));
+                            promises.push(updateIndexItem(item.id, detailData, fileToSend));
                         } else {
                             console.log("✅ createIndexItem 호출 - ID:", item.id);
 
@@ -342,6 +342,50 @@ export const useExperienceFileDelete = () => {
         },
         onError: (error: any) => {
             const msg = error.response?.data?.message || "파일 삭제 중 오류가 발생했습니다.";
+            alert(msg);
+        },
+    });
+};
+
+//이력 링크 생성
+export const useExperienceLinkAdd = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ experienceId, data }: { experienceId: number; data: CreateExperienceLinkRequset }) =>
+            addExperienceLink(experienceId, data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ["experienceLinks", variables.experienceId] });
+        },
+    });
+};
+
+// 이력 링크 수정 
+export const useExperienceLinkUpdate = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ experienceId, linkId, data }: { experienceId: number; linkId: number; data: UpdateExperienceLinkRequest }) =>
+            updateExperienceLink(experienceId, linkId, data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ["experienceLinks", variables.experienceId] });
+        },
+    });
+};
+
+// 이력 링크 삭제
+export const useExperienceLinkDelete = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ experienceId, linkId }: { experienceId: number; linkId: number }) =>
+            deleteExperienceLink(experienceId, linkId),
+
+        onSuccess: (_, variables) => {
+            // 해당 이력의 링크 목록 쿼리 무효화
+            queryClient.invalidateQueries({ queryKey: ["experienceLinks", variables.experienceId] });
+            console.log(`✅ 링크 ${variables.linkId} 삭제 성공`);
+        },
+        onError: (error: any) => {
+            const msg = error.response?.data?.message || "링크 삭제 중 오류가 발생했습니다.";
             alert(msg);
         },
     });
