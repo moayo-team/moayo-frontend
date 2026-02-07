@@ -47,7 +47,7 @@ export const PostCard = ({ post }: PostCardProps): JSX.Element => {
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 relative flex-[0_0_auto]">
               <a
                 href="#"
-                className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] underline whitespace-nowrap [font-style:var(--body-b1-100-font-style)] text-sm sm:text-base"
+                className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)] text-sm sm:text-base"
               >
                 {post.author?.name || '익명'}
               </a>

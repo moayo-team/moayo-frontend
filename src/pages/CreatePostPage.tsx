@@ -92,7 +92,7 @@ export const CreatePostPage = (): JSX.Element => {
     <div className="relative w-full min-h-screen bg-white pb-20">
       <NavigationBar />
 
-      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-32">
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex justify-center">
 
           {/* Main Content */}
@@ -288,7 +288,7 @@ export const CreatePostPage = (): JSX.Element => {
         isOpen={showSuccessModal}
         onClose={() => {
           setShowSuccessModal(false);
-          navigate('/');
+          navigate('/board');
         }}
         title="게시글이 등록되었습니다!"
         message="작성하신 게시글이 성공적으로 등록되었습니다."

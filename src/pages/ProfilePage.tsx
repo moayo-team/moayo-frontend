@@ -14,6 +14,8 @@ const ProfilePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
+  const viewedUserId = (location.state as { userId?: string | number } | null)?.userId;
+  const isViewingOtherUser = Boolean(viewedUserId);
 
   const [isEditing, setIsEditing] = useState(false);
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest">("latest");
@@ -25,7 +27,7 @@ const ProfilePage = () => {
   const isInitialized = useRef(false);
 
   // 데이터 조회 훅
-  const { user, profile, tags, indexItems, isLoading, isError } = useProfileData();
+  const { user, profile, tags, indexItems, isLoading, isError } = useProfileData(viewedUserId);
   // 데이터 저장 훅
   const { mutate: saveProfile, isPending: isSaving } = useProfileSave();
 
@@ -72,11 +74,16 @@ const ProfilePage = () => {
   useEffect(() => {
     if (!user || isInitialized.current) return;
 
-    if (!profile?.id) setIsEditing(true);
-    else setIsEditing(false);
+    if (isViewingOtherUser) {
+      setIsEditing(false);
+    } else if (!profile?.id) {
+      setIsEditing(true);
+    } else {
+      setIsEditing(false);
+    }
 
     isInitialized.current = true;
-  }, [user, profile]);
+  }, [user, profile, isViewingOtherUser]);
 
 
   // 이력서 생성 페이지 복귀 처리
@@ -110,6 +117,7 @@ const ProfilePage = () => {
   }, []);
 
   const handleModeChange = () => {
+    if (isViewingOtherUser) return;
     if (isEditing) {
       // 유효성 검사
       const inputName = profileData.name || "";

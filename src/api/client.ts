@@ -3,7 +3,7 @@ import type { BaseResponse } from '../types/profile';
 
 export const apiClient = axios.create({
   // base URL은 환경 변수에서 그대로 사용합니다 
-  baseURL: import.meta.env.VITE_API_BASE_URL + "/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL + "/api/v1",
   headers: {
     'Content-Type': 'application/json',
   },

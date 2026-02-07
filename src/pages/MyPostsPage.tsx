@@ -9,7 +9,6 @@ import { DeleteConfirmationModal } from '../components/common/DeleteConfirmation
 import type { JSX } from 'react';
 import leftarr from '../assets/leftarr.svg';
 import rightarr from '../assets/rightarr.svg';
-import vertical_line from '../assets/vertical_line.svg';
 import menu from '../assets/menu.svg';
 import profile_photo from '../assets/profile_photo.svg'
 
@@ -27,6 +26,7 @@ interface PostCardProps {
       avatar: string;
     };
   };
+  authorNameFallback?: string;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
   isDeleting: boolean;
@@ -46,7 +46,7 @@ const stripHtml = (html: string | undefined | null) => {
   return (doc.body.textContent || "").trim();
 };
 
-const PostCard = ({ post, onDelete, onEdit, isDeleting }: PostCardProps): JSX.Element => {
+const PostCard = ({ post, authorNameFallback, onDelete, onEdit, isDeleting }: PostCardProps): JSX.Element => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const serverDDay = (post as any).dday as string | undefined;
 
@@ -73,7 +73,7 @@ const PostCard = ({ post, onDelete, onEdit, isDeleting }: PostCardProps): JSX.El
             <div className="inline-flex items-center gap-4 relative flex-[0_0_auto] flex-wrap">
               <p className="relative w-fit mt-[-1.00px] [font-family:'Pretendard-Medium',Helvetica] font-normal text-gray-scalegray-scale-400 text-lg tracking-[0] leading-[18px]">
                 <span className="font-[number:var(--body-b1-100-font-weight)] leading-[var(--body-b1-100-line-height)] font-body-b1-100 [font-style:var(--body-b1-100-font-style)] tracking-[var(--body-b1-100-letter-spacing)] text-[length:var(--body-b1-100-font-size)]">
-                  {post.author?.name || '익명'}
+                  {post.author?.name || authorNameFallback || '익명'}
                 </span>
               </p>
                {/* Removed time display */}
@@ -329,6 +329,7 @@ export const MyPostsPage = (): JSX.Element => {
                       <PostCard
                         key={post.id}
                         post={post}
+                        authorNameFallback={user?.name}
                         onDelete={handleDelete}
                         onEdit={handleEdit}
                         isDeleting={deletePostMutation.isPending}

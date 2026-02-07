@@ -65,6 +65,33 @@ export const PostDetailPage = (): JSX.Element => {
     { label: "마감일", value: (post as any).dday ?? formatDateRange(post.createdAt, post.deadline).split(' - ')[1] },
   ];
 
+  const isOwner = Boolean(
+    isLoggedIn &&
+      user &&
+      (
+        String(post.createdByUserId ?? '') === String(user.id ?? '') ||
+        String((post as any).author?.id ?? '') === String(user.id ?? '') ||
+        String((post as any).authorId ?? '') === String(user.id ?? '') ||
+        String((post as any).userId ?? '') === String(user.id ?? '')
+      )
+  );
+
+  const handleGoToProfile = () => {
+    const authorId =
+      post.createdByUserId ??
+      (post as any).author?.id ??
+      (post as any).authorId ??
+      (post as any).userId ??
+      undefined;
+
+    if (!authorId) {
+      alert('작성자 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    navigate('/profile', { state: { userId: authorId } });
+  };
+
   return (
     <div className="relative w-full min-h-screen bg-white pb-20">
       <NavigationBar />
@@ -83,11 +110,15 @@ export const PostDetailPage = (): JSX.Element => {
                   />
                   <div className="flex flex-col w-full items-center gap-0.5 relative flex-[0_0_auto]">
                     <div className="self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center leading-[var(--heading-h2-300-line-height)] relative tracking-[var(--heading-h2-300-letter-spacing)] [font-style:var(--heading-h2-300-font-style)]">
+                      {user?.name || '사용자'}
                     </div>
-                    <div className="flex items-center justify-center gap-[11px] relative self-stretch w-full flex-[0_0_auto]">
-                      <div className="w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center leading-[var(--body-b2-300-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-300-letter-spacing)] [font-style:var(--body-b2-300-font-style)]">
+                    {user?.major && (
+                      <div className="flex items-center justify-center gap-[11px] relative self-stretch w-full flex-[0_0_auto]">
+                        <div className="w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center leading-[var(--body-b2-300-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-300-letter-spacing)] [font-style:var(--body-b2-300-font-style)]">
+                          {user.major}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -115,8 +146,8 @@ export const PostDetailPage = (): JSX.Element => {
                 <div className="flex items-center gap-[15px] relative flex-1 self-stretch grow">
                   <img
                     className="w-[62px] h-[63px] relative object-cover rounded-full"
-                    alt={`${post.author?.name || '작성자'} avatar`}
-                    src={post.author?.avatar || profile_photo}
+                    alt="작성자 기본 프로필 이미지"
+                    src={profile_photo}
                   />
                   <div className="flex flex-col items-start gap-[3px] relative self-stretch">
                     <div className="mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[length:var(--heading-h2-100-font-size)] leading-[var(--heading-h2-100-line-height)] relative tracking-[var(--heading-h2-100-letter-spacing)] [font-style:var(--heading-h2-100-font-style)]">
@@ -127,14 +158,16 @@ export const PostDetailPage = (): JSX.Element => {
                     </div>
                   </div>
                 </div>
-                <a
-                  href="#"
-                  className="w-fit mt-[-1.00px] [font-family:'Pretendard-Regular',Helvetica] font-normal text-black text-base leading-4 relative tracking-[0]"
+                <button
+                  type="button"
+                  onClick={handleGoToProfile}
+                  className="w-fit mt-[-1.00px] [font-family:'Pretendard-Regular',Helvetica] font-normal text-black text-base leading-4 relative tracking-[0] hover:opacity-80"
+                  aria-label="프로필 바로가기"
                 >
                   <span className="leading-[var(--body-b2-300-line-height)] underline font-body-b2-300 [font-style:var(--body-b2-300-font-style)] font-[number:var(--body-b2-300-font-weight)] tracking-[var(--body-b2-300-letter-spacing)] text-[length:var(--body-b2-300-font-size)]">
                     프로필 바로가기
                   </span>
-                </a>
+                </button>
               </div>
 
               {/* Post Title and D-Day */}
@@ -189,7 +222,7 @@ export const PostDetailPage = (): JSX.Element => {
               {/* Action Buttons */}
               <div className="inline-flex items-center gap-[13px] mb-8 flex-wrap">
                 {/* Edit Button - Only show if it's the user's post */}
-                {isLoggedIn && user && post.createdByUserId === user.id && (
+                {isOwner && (
                   <button
                     onClick={() => navigate(`/edit/${post.id}`)}
                     className="inline-flex items-center justify-center gap-[5px] px-3 py-[7px] relative flex-[0_0_auto] bg-primaryprimary-50 hover:bg-primaryprimary-100 cursor-pointer rounded-[5px] transition-colors border-2 border-primaryprimary-500"

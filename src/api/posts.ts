@@ -8,7 +8,7 @@ const parsePost = (raw: any): Post => {
 
   const createdAtVal = raw.createdAt ?? raw.created_at ?? raw.createdDate ?? raw.created;
   const updatedAtVal = raw.updatedAt ?? raw.updated_at ?? raw.updatedDate ?? raw.updated;
-  const deadlineVal = raw.deadline ?? raw.deadlineDate ?? raw.dday ?? raw.dueDate ?? raw.deadline;
+  const deadlineVal = raw.deadline ?? raw.deadlineDate ?? raw.deadline_date ?? raw.dueDate ?? raw.due_date;
 
   return {
     // copy known fields first, then coerce types below
@@ -29,8 +29,34 @@ const normalizeServerItem = (item: any): any => {
   // id
   mapped.id = item.id ?? item.postId ?? item.post_id ?? (item.postId ? String(item.postId) : undefined);
 
-  // title/description
+  // createdByUserId
+  mapped.createdByUserId =
+    item.createdByUserId ??
+    item.created_by_user_id ??
+    item.createdBy ??
+    item.created_by ??
+    item.authorId ??
+    item.author_id ??
+    item.userId ??
+    item.user_id ??
+    item.userID ??
+    item.writerId ??
+    item.writer_id ??
+    item.writer?.id ??
+    item.writer?.userId ??
+    item.memberId ??
+    item.member_id ??
+    item.member?.id ??
+    item.ownerId ??
+    item.owner_id ??
+    item.user?.id ??
+    item.user?.userId ??
+    item.user?.memberId ??
+    item.author?.id;
+
+  // title/content/description
   mapped.title = item.title ?? item.name ?? item.subject ?? '';
+  mapped.content = item.content ?? item.body ?? item.text ?? item.description ?? item.summary ?? '';
   mapped.description = item.description ?? item.summary ?? item.content ?? item.body ?? '';
 
   // category
@@ -40,10 +66,36 @@ const normalizeServerItem = (item: any): any => {
   mapped.positions = item.positions ?? item.role ?? item.roles ?? '';
 
   // recruitCount / totalCount
-  mapped.recruitCount = item.recruitCount ?? item.totalCount ?? item.total_count ?? undefined;
+  mapped.recruitCount =
+    item.recruitCount ??
+    item.recruit_count ??
+    item.totalCount ??
+    item.total_count ??
+    item.recruitmentCount ??
+    undefined;
+
+  // deadline
+  mapped.deadline = item.deadline ?? item.deadlineDate ?? item.deadline_date ?? item.dueDate ?? item.due_date;
 
   // author mapping
   mapped.author = item.author ?? {
+    id:
+      item.authorId ??
+      item.author_id ??
+      item.userId ??
+      item.user_id ??
+      item.writerId ??
+      item.writer_id ??
+      item.memberId ??
+      item.member_id ??
+      item.createdByUserId ??
+      item.created_by_user_id ??
+      item.createdBy ??
+      item.created_by ??
+      item.author?.id ??
+      item.author?.userId ??
+      item.author?.memberId ??
+      item.user?.id,
     name: item.authorNickname ?? item.authorNickname ?? item.authorName ?? item.author?.name ?? item.nickname ?? '익명',
     username: item.authorUsername ?? item.username ?? item.author?.username,
     avatar: item.profileImageUrl ?? item.profileImage ?? item.imageUrl ?? item.author?.avatar ?? item.author?.profileImageUrl,
@@ -100,8 +152,22 @@ export const postsApi = {
     }
     if (filters?.pageSize) params.pageSize = filters.pageSize;
     if (filters?.search) params.search = filters.search;
-    if (filters?.category) params.category = filters.category;
-    if (filters?.tags && filters.tags.length > 0) params.tags = filters.tags.join(',');
+    if (filters?.category) params.category = mapLabelToEnum(filters.category);
+
+    const mappedTags = (filters?.tags || [])
+      .map((label) => mapLabelToEnum(label))
+      .filter((v): v is string => Boolean(v));
+
+    if (mappedTags.length > 0) {
+      // 백엔드가 다양한 파라미터명을 사용할 수 있어 호환성 확보
+      params.tags = mappedTags.join(',');
+      params.categories = mappedTags.join(',');
+
+      // 단일 선택일 경우 category 파라미터도 전달
+      if (!params.category && mappedTags.length === 1) {
+        params.category = mappedTags[0];
+      }
+    }
     if (filters?.sort) params.sort = filters.sort;
     if (filters?.order) params.order = filters.order;
     if (filters?.limit) params.limit = filters.limit;
@@ -138,7 +204,27 @@ export const postsApi = {
       totalPages = (raw && raw.totalPages) ?? Math.ceil(total / (filters?.pageSize || 10));
     }
 
-    const posts: Post[] = (items || []).map(normalizeServerItem).map(parsePost);
+    let posts: Post[] = (items || []).map(normalizeServerItem).map(parsePost);
+
+    // 다중 필터 선택 시 합집합(OR) 필터를 클라이언트에서 보장
+    if (filters?.tags && filters.tags.length > 0) {
+      const selected = new Set(filters.tags.map((t) => String(t).trim()).filter(Boolean));
+      posts = posts.filter((p) => {
+        const tagList = String((p as any).tags ?? '')
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
+        const candidates = new Set([
+          ...tagList,
+          String(p.category ?? '').trim(),
+          String(p.positions ?? '').trim(),
+        ].filter(Boolean));
+        return Array.from(selected).some((t) => candidates.has(t));
+      });
+      total = posts.length;
+      totalPages = Math.max(1, Math.ceil(total / (filters?.pageSize || 10)));
+    }
+
     return { posts, total, totalPages };
   },
 
@@ -204,12 +290,28 @@ export const postsApi = {
 
   // 게시글 수정
   updatePost: async (id: string, post: Partial<PostDraft>): Promise<Post> => {
-    const payload = { ...post } as any;
-    if (payload.deadline instanceof Date) payload.deadline = payload.deadline.toISOString();
-  const res = await apiClient.patch(`/posts/${id}`, payload);
-  let raw = res.data;
-  if (raw && raw.result !== undefined) raw = raw.result;
-  return parsePost(raw);
+    // 백엔드 기대 필드로 매핑
+    const backendPayload: Record<string, any> = {
+      title: post.title,
+      content: post.content,
+      category: mapLabelToEnum(post.category as string) || post.category,
+      // positions -> role
+      role: (post as any).positions || (post as any).role || undefined,
+      // recruitCount -> totalCount
+      totalCount: (post as any).recruitCount ?? (post as any).totalCount,
+      // 날짜는 YYYY-MM-DD 형식으로 전달
+      deadline: formatDateOnly(post.deadline),
+    };
+
+    // undefined 필드는 제거
+    const payload = Object.fromEntries(
+      Object.entries(backendPayload).filter(([, v]) => v !== undefined)
+    );
+
+    const res = await apiClient.patch(`/posts/${id}`, payload);
+    let raw = res.data;
+    if (raw && raw.result !== undefined) raw = raw.result;
+    return parsePost(raw);
   },
 
   // 게시글 삭제

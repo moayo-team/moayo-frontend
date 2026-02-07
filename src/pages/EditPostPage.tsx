@@ -43,19 +43,45 @@ export const EditPostPage = (): JSX.Element => {
     ],
   };
 
+  const toDateInputValue = (value: unknown): string => {
+    if (!value) return '';
+    if (value instanceof Date) {
+      if (Number.isNaN(value.getTime())) return '';
+      return value.toISOString().split('T')[0];
+    }
+
+    if (typeof value === 'string') {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+      if (/^\d{4}\.\d{2}\.\d{2}$/.test(value)) return value.replace(/\./g, '-');
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().split('T')[0];
+      return '';
+    }
+
+    if (typeof value === 'number') {
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().split('T')[0];
+    }
+
+    return '';
+  };
+
   // Load post data when available
   useEffect(() => {
     if (post) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTitle(post.title);
-      setContent(post.content || post.description);
-      setRecruitCount(String(post.recruitCount));
-      setPositions(post.positions);
-      setDeadline(new Date(post.deadline).toISOString().split('T')[0]);
-      setRequirements(post.requirements);
+      setTitle(post.title || '');
+      setContent(post.content || post.description || '');
+      setRecruitCount(String(post.recruitCount ?? ''));
+      setPositions(post.positions || '');
+      setDeadline(toDateInputValue(post.deadline || (post as any).deadlineDate || (post as any).deadline_date));
+      setRequirements(post.requirements || '');
 
       // Set selected categories based on post tags
-      const postTags = post.tags.split(',').map(tag => tag.trim());
+      const postTags = (post.tags || post.category || '')
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter(Boolean);
       setCategories(prev =>
         prev.map(cat => ({
           ...cat,

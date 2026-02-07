@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { getProfile } from "../api/profile/profile";
+import { getProfile, getProfileById } from "../api/profile/profile";
 import axios from "axios";
 
-export const useProfileData = () => {
+export const useProfileData = (userId?: string | number) => {
   const profileQuery = useQuery({
-    queryKey: ["myProfile"],
-    queryFn: getProfile,
+    queryKey: ["profile", userId ?? "me"],
+    queryFn: () => (userId ? getProfileById(userId) : getProfile()),
     retry: false,
   });
 
