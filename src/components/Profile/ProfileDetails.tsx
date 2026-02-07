@@ -226,7 +226,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
             alert('JPG, PNG, GIF 형식의 이미지만 업로드 가능합니다.');
             return;
         }
-        
+
         const maxSize = 10 * 1024 * 1024; // 10MB
 
         let finalFile = file;
@@ -463,11 +463,14 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                             <img
                                 src={getFullImageUrl(data.profileImage)}
                                 alt="프로필 이미지"
-                                className="w-full h-full object-cover rounded-[10px]"
+                                className={`w-full h-full rounded-[10px]
+                                    ${!data.profileImage ? "object-contain p-2" : "object-cover"}
+                                `}
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     if (target.src !== defaultImage) {
                                         target.src = defaultImage;
+                                        target.className = "w-full h-full object-contain p-2";
                                     }
                                 }}
                             />
@@ -543,8 +546,8 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                                     />
 
                                     {item.id === "school" ? (
-                                        <div className="flex items-center gap-2 shrink-0"> 
-                                            
+                                        <div className="flex items-center gap-2 shrink-0">
+
                                             <button
                                                 // 수정 모드일 때만 클릭 가능하게 설정
                                                 onDoubleClick={() => setIsModalOpen(true)}
@@ -574,7 +577,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                         onClose={() => setIsModalOpen(false)}
                         onComplete={handleVerifyComplete}
                         currentProfileImage={data.imageUrl}
-                       experienceIds={experienceIds}
+                        experienceIds={experienceIds}
                     />
 
                     {/* 커스텀 추가 정보 리스트 */}
