@@ -532,7 +532,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                                     <input
                                         maxLength={item.max}
                                         readOnly={item.id === "email" || !isEditing}
-                                        value={item.value || ""}
+                                        value={item.id === "phone" ? formatPhoneNumber(item.value || "") : (item.value || "")}
                                         onChange={(e) => {
                                             if (item.id === "email") return;
                                             handleBasicInfoChange(e, item.id, item.value || "")

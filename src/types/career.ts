@@ -117,3 +117,12 @@ export interface DetachFileRequest {
 
 //파일 삭제 응답
 export type DetachFileResponse = BaseResponse<null>;
+
+//링크 생성 요청
+export interface CreateExperienceLinkRequset {
+  title?: string;
+  url: string;
+}
+
+//링크 생성 응답
+export type CreateExperienceLinkResponse = BaseResponse<null>;

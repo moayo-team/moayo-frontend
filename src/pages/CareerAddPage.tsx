@@ -7,7 +7,7 @@ import { useUploadManager } from "../hooks/useUploadManager";
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
 import { useExperienceCreate } from "../hooks/useProfileMutation";
 import { uploadProfileDocument } from "../api/profile/profile";
-import { postExperienceFile } from "../api/profile/experiences";
+import { addExperienceLink, postExperienceFile } from "../api/profile/experiences";
 import type { UploadDocumentResponse } from "../types/profile";
 
 const CareerAddPage = () => {
@@ -144,7 +144,7 @@ const CareerAddPage = () => {
                 summary: newCareer.intro,
             };
 
-            // createExp는 이력 ID를 반환해야 함
+            // createExp는 이력 ID를 반환
             createExp(requestBody, {
                 onSuccess: async (response) => {
                     const experienceId = response.result; // 생성된 이력 ID
@@ -179,6 +179,21 @@ const CareerAddPage = () => {
                         }
                     }
 
+                    if (links.length > 0) {
+                        try {
+                            const linkPromises = links.map(linkUrl =>
+                                addExperienceLink(experienceId, {
+                                    title: "", 
+                                    url: linkUrl 
+                                })
+                            );
+                            await Promise.all(linkPromises);
+                            console.log("✅ 링크 연결 완료");
+                        } catch (error) {
+                            console.error("❌ 링크 등록 중 오류:", error);
+                            alert("일부 링크 등록에 실패했습니다.");
+                        }
+                    }
                     navigate("/profile");
                 },
                 onError: (error: any) => {
@@ -467,7 +482,7 @@ const CareerAddPage = () => {
                                     onClick={handleBoxClick}
                                     className="flex items-center justify-center h-[60px] sm:h-[80px] gap-[8px]
                                     rounded-[20px] boder boder-[#ADA395] bg-[#EFEEEB] cursor-pointer "
-                                    >
+                                >
                                     <div className="flex items-center justify-center gap-[8px] pointer-events-none">
                                         <FileText size={20} className="text-[#978B78] mb-1" />
                                         <div className="flex flex-col items-center justify-center gap-[4px]">

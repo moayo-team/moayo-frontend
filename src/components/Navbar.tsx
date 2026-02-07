@@ -16,6 +16,16 @@ export const NavigationBar = (): JSX.Element => {
     { id: 4, label: "쪽지", path: "/message" },
   ];
 
+   // 이미지 URL 처리 함수 
+  const getProfileImageUrl = (imageUrl?: string | null) => {
+    if (!imageUrl) return defultProfile;
+    if (imageUrl.startsWith('blob:')) return imageUrl;
+    if (imageUrl.startsWith('/uploads')) {
+      return `${import.meta.env.VITE_API_BASE_URL}${imageUrl}`;
+    }
+    return imageUrl;
+  };
+
   return (
     <nav
       className="fixed w-full top-0 left-0 h-16 sm:h-20 bg-white shadow-[0px_0px_6px_#0000001f] z-50"
@@ -61,16 +71,13 @@ export const NavigationBar = (): JSX.Element => {
                 <img
                   className="w-8 h-8 rounded-full object-cover"
                   alt={user.user.name}
-                  src={user.profile?.imageUrl
-                    ? `${import.meta.env.VITE_API_BASE_URL}${user.profile.imageUrl}`
-                    : defultProfile
-                  }
+                   src={getProfileImageUrl(user.profile?.imageUrl)}
                   onError={(e) => {
                     e.currentTarget.src = defultProfile;
                   }}
                 />
                 <span className="font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-900 text-sm">
-                  {user.user.name}
+                  {user?.user.name || '게스트'}
                 </span>
               </div>
               <button

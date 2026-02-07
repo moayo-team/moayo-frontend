@@ -1,30 +1,30 @@
-import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse,  } from "../../types/career";
+import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse, type CreateExperienceLinkRequset, } from "../../types/career";
 import { apiClient } from "../client";
 
 /** 내 이력서 목록 조회 */
 export const getMyExperiences = async (): Promise<CareerListResponse> => {
-  const response = await apiClient.get<CareerListResponse>(
-    "/api/v1/experiences/me"
-  );
-  return response.data;
+    const response = await apiClient.get<CareerListResponse>(
+        "/api/v1/experiences/me"
+    );
+    return response.data;
 };
 
 
 /** 이력 생성 */
 export const createExperience = async (data: CreateExperienceRequest): Promise<CreateExperienceResponse> => {
-  const response = await apiClient.post<CreateExperienceResponse>(
-    "/api/v1/experiences",
-    data
-  );
-  return response.data;
+    const response = await apiClient.post<CreateExperienceResponse>(
+        "/api/v1/experiences",
+        data
+    );
+    return response.data;
 };
 
 /**이력 상세 조회 */
 export const getExperienceDetail = async (experienceId: number) => {
-  const response = await apiClient.get<CareerDetailReponse>(
-    `/api/v1/experiences/me/${experienceId}`
-  );
-  return response.data;
+    const response = await apiClient.get<CareerDetailReponse>(
+        `/api/v1/experiences/me/${experienceId}`
+    );
+    return response.data;
 };
 
 /**이력 삭제 */
@@ -43,7 +43,7 @@ export const patchExperienceVisibility = async (
 ): Promise<ExperienceVisibilityResponse> => {
     try {
         const requestBody: UpdateVisibilityRequest = { visible };
-        
+
         const { data } = await apiClient.patch<ExperienceVisibilityResponse>(
             `/api/v1/experiences/${experienceId}/visibility`,
             requestBody
@@ -101,11 +101,23 @@ export const getExperienceFiles = async (experienceId: number): Promise<BaseResp
 
 //이력 파일 삭제
 export const deleteExperienceFile = async (
-    expId: number, 
+    expId: number,
     fileId: number
 ): Promise<DetachFileResponse> => {
     const { data } = await apiClient.delete<DetachFileResponse>(
         `/api/v1/experiences/${expId}/attachments/files/${fileId}`
     );
     return data;
+};
+
+//이력 링크 생성
+export const addExperienceLink = async (
+    experienceId: number,
+    data: CreateExperienceLinkRequset
+): Promise<CreateExperienceResponse> => {
+    const response = await apiClient.post<CreateExperienceResponse>(
+        `/api/v1/experiences/${experienceId}/attachments/links`,
+        data
+    );
+    return response.data;
 };
