@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import type { JSX } from 'react';
 import logo from '../assets/pavicon.png';
-import defultProfile from "../assets/profile_photo.svg"
+import defultProfile from "../assets/default_profile.svg"
 
 export const NavigationBar = (): JSX.Element => {
   const navigate = useNavigate();
@@ -25,6 +25,16 @@ export const NavigationBar = (): JSX.Element => {
     { id: 3, label: "게시판", path: "/board" },
     { id: 4, label: "쪽지", path: "/message" },
   ];
+
+   // 이미지 URL 처리 함수 
+  const getProfileImageUrl = (imageUrl?: string | null) => {
+    if (!imageUrl) return defultProfile;
+    if (imageUrl.startsWith('blob:')) return imageUrl;
+    if (imageUrl.startsWith('/uploads')) {
+      return `${import.meta.env.VITE_API_BASE_URL}${imageUrl}`;
+    }
+    return imageUrl;
+  };
 
   return (
     <nav

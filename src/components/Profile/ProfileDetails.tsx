@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import defaultImage from "../../assets/profile_photo.svg"
+import defaultImage from "../../assets/default_profile.svg"
 import { FileText, ImageIcon, Paperclip, Pencil, Plus, X } from "lucide-react";
 import { formatPhoneNumber } from "../../utils/format";
 import { useUploadManager } from "../../hooks/useUploadManager";
@@ -226,7 +226,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
             alert('JPG, PNG, GIF 형식의 이미지만 업로드 가능합니다.');
             return;
         }
-        
+
         const maxSize = 10 * 1024 * 1024; // 10MB
 
         let finalFile = file;
@@ -459,15 +459,18 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                         className={`relative flex justify-center items-center bg-[#FBFAF9]
                          ${isEditing ? "cursor-pointer" : "cursor-default"}`}
                     >
-                        <div className="w-[140px] h-[140px] lg:w-[160px] lg:h-[160px] rounded-full overflow-hidden">
+                        <div className="w-[140px] h-[140px] lg:w-[160px] lg:h-[160px] rounded-[10px] overflow-hidden">
                             <img
                                 src={getFullImageUrl(data.profileImage)}
                                 alt="프로필 이미지"
-                                className="w-full h-full object-cover"
+                                className={`w-full h-full rounded-[10px]
+                                    ${!data.profileImage ? "object-contain p-2" : "object-cover"}
+                                `}
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     if (target.src !== defaultImage) {
                                         target.src = defaultImage;
+                                        target.className = "w-full h-full object-contain p-2";
                                     }
                                 }}
                             />
@@ -532,7 +535,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                                     <input
                                         maxLength={item.max}
                                         readOnly={item.id === "email" || !isEditing}
-                                        value={item.value || ""}
+                                        value={item.id === "phone" ? formatPhoneNumber(item.value || "") : (item.value || "")}
                                         onChange={(e) => {
                                             if (item.id === "email") return;
                                             handleBasicInfoChange(e, item.id, item.value || "")
@@ -543,8 +546,8 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                                     />
 
                                     {item.id === "school" ? (
-                                        <div className="flex items-center gap-2 shrink-0"> 
-                                            
+                                        <div className="flex items-center gap-2 shrink-0">
+
                                             <button
                                                 // 수정 모드일 때만 클릭 가능하게 설정
                                                 onDoubleClick={() => setIsModalOpen(true)}
@@ -574,7 +577,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                         onClose={() => setIsModalOpen(false)}
                         onComplete={handleVerifyComplete}
                         currentProfileImage={data.imageUrl}
-                       experienceIds={experienceIds}
+                        experienceIds={experienceIds}
                     />
 
                     {/* 커스텀 추가 정보 리스트 */}

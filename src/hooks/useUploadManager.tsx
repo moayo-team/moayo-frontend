@@ -11,6 +11,13 @@ interface UploadOptions {
   maxRightText?: number;
 }
 
+export interface LinkItem {
+  id?: number;      // 프로필 링크용 ID
+  linkId?: number;  // 이력 링크용 ID
+  url: string;
+  title?: string;
+}
+
 export const useUploadManager = (options: UploadOptions = {}) => {
   const {
     maxFiles = 4,
@@ -23,7 +30,7 @@ export const useUploadManager = (options: UploadOptions = {}) => {
   } = options;
 
   const [selectedFiles, setSelectedFiles] = useState<AttachedFile[]>([]);
-  const [links, setLinks] = useState<string[]>([]);
+  const [links, setLinks] = useState<LinkItem[]>([]);
   const [linkInput, setLinkInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -82,7 +89,7 @@ export const useUploadManager = (options: UploadOptions = {}) => {
     }
 
     const formattedLink = trimmedLink.startsWith("http") ? trimmedLink : `https://${trimmedLink}`;
-    setLinks((prev) => [...prev, formattedLink]);
+    setLinks((prev) => [...prev,{ url: formattedLink, title: "첨부 링크" }]);
     setLinkInput("");
   }, [linkInput, links, maxLinks, maxLinkLength]);
 
@@ -98,7 +105,7 @@ export const useUploadManager = (options: UploadOptions = {}) => {
   };
 
   // 파일 다운로드 로직 추가 
-  const handleFileDownload = useCallback((file: AttachedFile ) => {
+  const handleFileDownload = useCallback((file: AttachedFile) => {
     // File 객체인 경우 (새로 업로드한 파일)
     if (file.fileObj) {
       const url = URL.createObjectURL(file.fileObj);

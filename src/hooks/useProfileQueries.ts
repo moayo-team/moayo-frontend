@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getProfile, getProfileById } from "../api/profile/profile";
 import axios from "axios";
-import { getExperienceDetail, getExperienceFiles, getMyExperiences } from "../api/profile/experiences";
+import { getExperienceDetail, getExperienceFiles, getExperienceLinks, getMyExperiences } from "../api/profile/experiences";
 import type { Career, ExperienceSummary } from "../types/career";
 import { useMemo } from "react";
 
@@ -80,6 +80,15 @@ export const useExperienceFiles = (experienceId: number | null) => {
     return useQuery({
         queryKey: ["experienceFiles", experienceId],
         queryFn: () => getExperienceFiles(experienceId!),
+        enabled: !!experienceId,
+    });
+};
+
+//이력 링크 조회
+export const useExperienceLinks = (experienceId: number | null) => {
+    return useQuery({
+        queryKey: ["experienceLinks", experienceId],
+        queryFn: () => getExperienceLinks(experienceId!),
         enabled: !!experienceId,
     });
 };

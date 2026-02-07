@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { CircleCheck, FileText, Mic, X } from "lucide-react";
 import { getDisplayName } from "../utils/name";
 import { DUMMY_PROFILE } from "../data/profileData";
-import { useUploadManager } from "../hooks/useUploadManager";
+import { useUploadManager, type LinkItem } from "../hooks/useUploadManager";
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
 import { useExperienceCreate } from "../hooks/useProfileMutation";
 import { uploadProfileDocument } from "../api/profile/profile";
-import { postExperienceFile } from "../api/profile/experiences";
+import { addExperienceLink, postExperienceFile } from "../api/profile/experiences";
 import type { UploadDocumentResponse } from "../types/profile";
 
 const CareerAddPage = () => {
@@ -117,8 +117,7 @@ const CareerAddPage = () => {
 
         const requiredFields = [
             { value: newCareer.title, label: "활동명" },
-            { value: newCareer.organizer, label: "주최기관" },
-            { value: newCareer.period, label: "기간" },
+            { value: newCareer.period, label: "기간" }
         ];
 
         const emptyField = requiredFields.find(f => !f.value || f.value.trim() === "");
@@ -130,6 +129,24 @@ const CareerAddPage = () => {
 
         if (!validatePeriod(newCareer.period)) {
             alert("날짜 형식이 올바르지 않습니다.\n예: 2024.01.01 - 2024.12.31");
+            return;
+        }
+
+        const start = getStartDateFromPeriod(newCareer.period);
+        const end = getEndDateFromPeriod(newCareer.period);
+
+        const startYear = parseInt(start.split('-')[0]);
+        const endYear = end ? parseInt(end.split('-')[0]) : startYear;
+
+        // 연도가 1900년 미만이거나 2100년 이상인 경우
+        if (startYear < 1900 || startYear > 2100 || endYear < 1900 || endYear > 2100) {
+            alert("연도를 정확히 입력해주세요. (예: 2024)");
+            return;
+        }
+
+        // 시작일이 종료일보다 늦은 경우 체크
+        if (end && new Date(start) > new Date(end)) {
+            alert("시작일이 종료일보다 늦을 수 없습니다.");
             return;
         }
         try {
@@ -144,7 +161,7 @@ const CareerAddPage = () => {
                 summary: newCareer.intro,
             };
 
-            // createExp는 이력 ID를 반환해야 함
+            // createExp는 이력 ID를 반환
             createExp(requestBody, {
                 onSuccess: async (response) => {
                     const experienceId = response.result; // 생성된 이력 ID
@@ -152,24 +169,27 @@ const CareerAddPage = () => {
                     //  파일이 있다면 업로드 + 연결
                     if (selectedFiles.length > 0) {
                         try {
-                            const uploadPromises = selectedFiles.map(file => {
-                                if (file.fileObj) {
-                                    return uploadProfileDocument(file.fileObj);
+                            const uploadResults: UploadDocumentResponse[] = await Promise.all(
+                                selectedFiles.map(file => {
+                                    if (file.fileObj) {
+                                        return uploadProfileDocument(file.fileObj);
+                                    }
+                                    return Promise.resolve({ isSuccess: false, result: null } as any);
+                                })
+                            );
+
+                            const attachPromises: Promise<any>[] = [];
+
+                            uploadResults.forEach((res, idx) => {
+                                if (res.isSuccess && res.result) {
+                                    attachPromises.push(
+                                        postExperienceFile(experienceId, {
+                                            fileId: res.result.id,
+                                            fileName: selectedFiles[idx].name,
+                                        })
+                                    );
                                 }
-                                return Promise.resolve({ isSuccess: false, result: null } as any);
                             });
-
-                            const uploadResults = await Promise.all(uploadPromises);
-
-                            // 업로드된 파일들을 이력에 연결
-                            const attachPromises = uploadResults
-                                .filter((res): res is UploadDocumentResponse => res.isSuccess && !!res.result) // Type Guard 적용
-                                .map((res, idx) =>
-                                    postExperienceFile(experienceId, {
-                                        fileId: res.result!.id,
-                                        fileName: selectedFiles[idx].name
-                                    })
-                                );
 
                             await Promise.all(attachPromises);
                             console.log("✅ 파일 업로드 및 연결 완료");
@@ -179,6 +199,21 @@ const CareerAddPage = () => {
                         }
                     }
 
+                    if (links.length > 0) {
+                        try {
+                            const linkPromises = links.map(async (link: LinkItem) =>
+                                addExperienceLink(experienceId, {
+                                    title: "",
+                                    url: link.url
+                                })
+                            );
+                            await Promise.all(linkPromises);
+                            console.log("✅ 링크 연결 완료");
+                        } catch (error) {
+                            console.error("❌ 링크 등록 중 오류:", error);
+                            alert("일부 링크 등록에 실패했습니다.");
+                        }
+                    }
                     navigate("/profile");
                 },
                 onError: (error: any) => {
@@ -467,7 +502,7 @@ const CareerAddPage = () => {
                                     onClick={handleBoxClick}
                                     className="flex items-center justify-center h-[60px] sm:h-[80px] gap-[8px]
                                     rounded-[20px] boder boder-[#ADA395] bg-[#EFEEEB] cursor-pointer "
-                                    >
+                                >
                                     <div className="flex items-center justify-center gap-[8px] pointer-events-none">
                                         <FileText size={20} className="text-[#978B78] mb-1" />
                                         <div className="flex flex-col items-center justify-center gap-[4px]">
@@ -501,13 +536,13 @@ const CareerAddPage = () => {
                                             bg-[#E9FCF7] rounded-[10px]"
                                     >
                                         <a
-                                            href={link}
+                                            href={link.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-[14px] font-pretendard text-[#25221D] font-medium leading-[140%] max-w-[80%] underline
                                             [text-decoration-skip-ink:auto] underline-offset-auto [text-underline-position:from-font]"
                                         >
-                                            {link}
+                                            {link.url}
                                         </a>
                                         <button
                                             onClick={() => removeLink(index)}
