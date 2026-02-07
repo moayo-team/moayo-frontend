@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import type { JSX } from 'react';
 import logo from '../assets/pavicon.png';
-import defultProfile from "../assets/profile_photo.svg"
+import defultProfile from "../assets/default_profile.svg"
 
 export const NavigationBar = (): JSX.Element => {
   const navigate = useNavigate();

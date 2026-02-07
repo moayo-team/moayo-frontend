@@ -1,4 +1,4 @@
-import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse, type CreateExperienceLinkRequset, } from "../../types/career";
+import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse, type CreateExperienceLinkRequset, type GetExperienceLinksResponse, type ExperienceLink,  type GetExperienceFilesResponse, type UpdateExperienceLinkRequest, type UpdateExperienceLinkResponse, } from "../../types/career";
 import { apiClient } from "../client";
 
 /** 내 이력서 목록 조회 */
@@ -93,10 +93,10 @@ export const postExperienceFile = async (
 
 //이력 파일 조회
 export const getExperienceFiles = async (experienceId: number): Promise<BaseResponse<ExperienceFileResponse[]>> => {
-    const { data } = await apiClient.get<BaseResponse<ExperienceFileResponse[]>>(
+    const { data } = await apiClient.get<BaseResponse<GetExperienceFilesResponse>>(
         `/api/v1/experiences/${experienceId}/attachments/files`
     );
-    return data;
+    return data.result;
 };
 
 //이력 파일 삭제
@@ -120,4 +120,37 @@ export const addExperienceLink = async (
         data
     );
     return response.data;
+};
+
+//이력 링크 조회
+export const getExperienceLinks = async (experienceId: number): Promise<ExperienceLink[]> => {
+    const { data } = await apiClient.get<GetExperienceLinksResponse>(
+        `/api/v1/experiences/${experienceId}/attachments/links`
+    );
+
+    return data.result;
+};
+
+//이력 링크 수정
+export const updateExperienceLink = async (
+  experienceId: number,
+  linkId: number,
+  data: UpdateExperienceLinkRequest
+): Promise<UpdateExperienceLinkResponse> => {
+  const response = await apiClient.patch<UpdateExperienceLinkResponse>(
+    `/api/v1/experiences/${experienceId}/attachments/links/${linkId}`,
+    data
+  );
+  return response.data;
+};
+
+// 이력 링크 삭제
+export const deleteExperienceLink = async (
+    experienceId: number,
+    linkId: number
+): Promise<BaseResponse<null>> => {
+    const { data } = await apiClient.delete<BaseResponse<null>>(
+        `/api/v1/experiences/${experienceId}/attachments/links/${linkId}`
+    );
+    return data;
 };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import defaultImage from "../../assets/profile_photo.svg"
+import defaultImage from "../../assets/default_profile.svg"
 import { FileText, ImageIcon, Paperclip, Pencil, Plus, X } from "lucide-react";
 import { formatPhoneNumber } from "../../utils/format";
 import { useUploadManager } from "../../hooks/useUploadManager";
@@ -459,11 +459,11 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                         className={`relative flex justify-center items-center bg-[#FBFAF9]
                          ${isEditing ? "cursor-pointer" : "cursor-default"}`}
                     >
-                        <div className="w-[140px] h-[140px] lg:w-[160px] lg:h-[160px] rounded-full overflow-hidden">
+                        <div className="w-[140px] h-[140px] lg:w-[160px] lg:h-[160px] rounded-[10px] overflow-hidden">
                             <img
                                 src={getFullImageUrl(data.profileImage)}
                                 alt="프로필 이미지"
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover rounded-[10px]"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     if (target.src !== defaultImage) {
