@@ -4,14 +4,17 @@ import { usePost } from '../hooks/usePosts';
 import { NavigationBar } from '../components/Navbar';
 import { Badge } from '../components/common/Badge';
 import { CommentSection } from '../components/common/CommentSection';
+// 서버에서 제공하는 dday 값이 있으면 우선 사용합니다.
 import { formatDateRange } from '../utils/dateUtils';
 import { useAuth } from '../hooks/useAuth';
+import { apiClient } from '../lib/apiClient';
+import { useOtherUserProfile } from '../hooks/useOtherUserProfile';
 import type { JSX } from 'react';
 import like from '../assets/like.svg';
 import send from '../assets/send.svg';
 import menu from '../assets/menu.svg';
 import 'react-quill-new/dist/quill.snow.css';
-
+import profile_photo from '../assets/profile_photo.svg'
 
 export const PostDetailPage = (): JSX.Element => {
   const { id } = useParams<{ id: string }>();
@@ -59,10 +62,89 @@ export const PostDetailPage = (): JSX.Element => {
   }
 
   const postDetails = [
-    { label: "모집인원", value: `${post.recruitCount}명` },
+    { label: "모집인원", value: `${post.recruitCount}` },
     { label: "모집포지션", value: post.positions },
-    { label: "마감일", value: formatDateRange(post.createdAt, post.deadline).split(' - ')[1] },
+    { label: "마감일", value: (post as any).dday ?? formatDateRange(post.createdAt, post.deadline).split(' - ')[1] },
   ];
+
+  const authorId =
+    (post as any).userId ??
+    (post as any).authorId ??
+    post.createdByUserId ??
+    (post as any).author?.id ??
+    undefined;
+
+  const isOwner = Boolean(
+    isLoggedIn &&
+      user &&
+      (
+        String(authorId ?? '') === String(user.user?.id ?? '')
+      )
+  );
+
+  const numericAuthorId = Number(authorId);
+  const { data: authorProfile } = useOtherUserProfile(
+    Number.isFinite(numericAuthorId) ? numericAuthorId : undefined
+  );
+
+  const handleGoToProfile = () => {
+    if (!authorId) {
+      alert('작성자 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    navigate('/profile', { state: { userId: authorId } });
+  };
+
+  const handleSendMessage = async () => {
+    if (!isLoggedIn) {
+      alert('로그인이 필요한 서비스입니다.');
+      return;
+    }
+
+    const authorId =
+      (post as any).userId ??
+      (post as any).authorId ??
+      post.createdByUserId ??
+      (post as any).author?.id ??
+      undefined;
+
+    if (!authorId) {
+      alert('작성자 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    if (String(authorId) === String(user?.user?.id ?? '')) {
+      alert('내 게시글에는 쪽지를 보낼 수 없습니다.');
+      return;
+    }
+
+    const originPostId = Number(post.id);
+    const payload: { userBId: number; originPostId?: number } = {
+      userBId: Number(authorId)
+    };
+
+    if (Number.isFinite(originPostId)) {
+      payload.originPostId = originPostId;
+    }
+
+    try {
+      const res = await apiClient.post<
+        { isSuccess: boolean; result: { roomId: number } }
+      >('/api/v1/chat/rooms', payload);
+
+      const roomId = res.data?.result?.roomId;
+      if (!roomId) {
+        alert('쪽지방 생성에 실패했습니다.');
+        return;
+      }
+
+      navigate('/message', { state: { roomId } });
+    } catch (error) {
+      console.error('Failed to create chat room:', error);
+      alert('쪽지방 생성에 실패했습니다.');
+    }
+  };
 
   return (
     <div className="relative w-full min-h-screen bg-white pb-20">
@@ -78,22 +160,33 @@ export const PostDetailPage = (): JSX.Element => {
                   <img
                     className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-full"
                     alt="Profile"
-                    src="https://ui-avatars.com/api/?name=김주연&background=E9FCEF&color=26E1AC&size=152"
+                    src={(() => {
+                      const url = user?.profile?.imageUrl;
+                      if (!url || url === 'default_url') return profile_photo;
+                      return url.startsWith('http')
+                        ? url
+                        : `${import.meta.env.VITE_API_BASE_URL}${url}`;
+                    })()}
+                    onError={(e) => {
+                      e.currentTarget.src = profile_photo;
+                    }}
                   />
                   <div className="flex flex-col w-full items-center gap-0.5 relative flex-[0_0_auto]">
                     <div className="self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center leading-[var(--heading-h2-300-line-height)] relative tracking-[var(--heading-h2-300-letter-spacing)] [font-style:var(--heading-h2-300-font-style)]">
-                      김주연
+                      {user?.user?.name || '사용자'}
                     </div>
-                    <div className="flex items-center justify-center gap-[11px] relative self-stretch w-full flex-[0_0_auto]">
-                      <div className="w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center leading-[var(--body-b2-300-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-300-letter-spacing)] [font-style:var(--body-b2-300-font-style)]">
-                        디자이너
+                    {user?.profile?.major && (
+                      <div className="flex items-center justify-center gap-[11px] relative self-stretch w-full flex-[0_0_auto]">
+                        <div className="w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center leading-[var(--body-b2-300-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-300-letter-spacing)] [font-style:var(--body-b2-300-font-style)]">
+                          {user.profile.major}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
               <button 
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/board')}
                 className="all-[unset] box-border flex items-center justify-center gap-2.5 px-[15px] py-2.5 relative flex-1 self-stretch w-full grow bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
               >
                 <img
@@ -116,26 +209,41 @@ export const PostDetailPage = (): JSX.Element => {
                 <div className="flex items-center gap-[15px] relative flex-1 self-stretch grow">
                   <img
                     className="w-[62px] h-[63px] relative object-cover rounded-full"
-                    alt={`${post.author?.name || '작성자'} avatar`}
-                    src={post.author?.avatar || 'https://ui-avatars.com/api/?name=User&background=F2F2F2&color=343436&size=128'}
+                    alt="작성자 프로필 이미지"
+                    src={(() => {
+                      const ownerUrl = isOwner ? user?.profile?.imageUrl : undefined;
+                      const otherUrl = authorProfile?.imageUrl;
+                      const url = ownerUrl || otherUrl || (post as any).profileImageUrl || post.author?.avatar;
+                      if (!url || url === 'default_url') return profile_photo;
+                      return url.startsWith('http')
+                        ? url
+                        : `${import.meta.env.VITE_API_BASE_URL}${url}`;
+                    })()}
+                    onError={(e) => {
+                      e.currentTarget.src = profile_photo;
+                    }}
                   />
                   <div className="flex flex-col items-start gap-[3px] relative self-stretch">
                     <div className="mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[length:var(--heading-h2-100-font-size)] leading-[var(--heading-h2-100-line-height)] relative tracking-[var(--heading-h2-100-letter-spacing)] [font-style:var(--heading-h2-100-font-style)]">
                       {post.author?.name || '익명'}
                     </div>
                     <div className="relative font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-black text-[length:var(--body-b1-200-font-size)] tracking-[var(--body-b1-200-letter-spacing)] leading-[var(--body-b1-200-line-height)] [font-style:var(--body-b1-200-font-style)]">
-                      {post.author?.username || 'anonymous'}
+                      {""}
                     </div>
                   </div>
                 </div>
-                <a
-                  href="#"
-                  className="w-fit mt-[-1.00px] [font-family:'Pretendard-Regular',Helvetica] font-normal text-black text-base leading-4 relative tracking-[0]"
-                >
-                  <span className="leading-[var(--body-b2-300-line-height)] underline font-body-b2-300 [font-style:var(--body-b2-300-font-style)] font-[number:var(--body-b2-300-font-weight)] tracking-[var(--body-b2-300-letter-spacing)] text-[length:var(--body-b2-300-font-size)]">
-                    프로필 바로가기
-                  </span>
-                </a>
+                {!isOwner && (
+                  <button
+                    type="button"
+                    onClick={handleGoToProfile}
+                    className="w-fit mt-[-1.00px] [font-family:'Pretendard-Regular',Helvetica] font-normal text-black text-base leading-4 relative tracking-[0] hover:opacity-80"
+                    aria-label="프로필 바로가기"
+                  >
+                    <span className="leading-[var(--body-b2-300-line-height)] underline font-body-b2-300 [font-style:var(--body-b2-300-font-style)] font-[number:var(--body-b2-300-font-weight)] tracking-[var(--body-b2-300-letter-spacing)] text-[length:var(--body-b2-300-font-size)]">
+                      프로필 바로가기
+                    </span>
+                  </button>
+                )}
               </div>
 
               {/* Post Title and D-Day */}
@@ -143,7 +251,7 @@ export const PostDetailPage = (): JSX.Element => {
                 <h1 className="flex-1 font-heading-h1-100 font-[number:var(--heading-h1-100-font-weight)] text-black text-[length:var(--heading-h1-100-font-size)] tracking-[var(--heading-h1-100-letter-spacing)] leading-[var(--heading-h1-100-line-height)] [font-style:var(--heading-h1-100-font-style)]">
                   {post.title}
                 </h1>
-                <Badge deadline={post.deadline} />
+                <Badge dday={(post as any).dday} deadline={post.deadline} />
               </div>
 
               {/* Post Details */}
@@ -190,10 +298,10 @@ export const PostDetailPage = (): JSX.Element => {
               {/* Action Buttons */}
               <div className="inline-flex items-center gap-[13px] mb-8 flex-wrap">
                 {/* Edit Button - Only show if it's the user's post */}
-                {isLoggedIn && user && post.createdByUserId === user.user.id && (
+                {isOwner && (
                   <button
                     onClick={() => navigate(`/edit/${post.id}`)}
-                    className="inline-flex items-center justify-center gap-[5px] px-3 py-[7px] relative flex-[0_0_auto] bg-primaryprimary-50 hover:bg-primaryprimary-100 cursor-pointer rounded-[5px] transition-colors border-2 border-primaryprimary-500"
+                    className="flex w-[83px] h-[33px] items-center justify-center gap-[5px] px-2 py-[5px] relative bg-primaryprimary-50 hover:bg-primaryprimary-100 cursor-pointer rounded-[5px] transition-colors border-2 border-primaryprimary-500"
                     aria-label="게시글 수정"
                   >
                     <span className="w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-primaryprimary-700 text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]">
@@ -204,7 +312,7 @@ export const PostDetailPage = (): JSX.Element => {
 
                 <button
                   onClick={handleLikeToggle}
-                  className={`inline-flex items-center justify-center gap-[5px] px-3 py-[7px] relative flex-[0_0_auto] ${
+                  className={`flex w-[83px] h-[33px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${
                     isLiked
                       ? 'bg-primaryprimary-50 border-2 border-primaryprimary-500'
                       : 'bg-gray-scalegray-scale-50 border-2 border-transparent'
@@ -235,30 +343,28 @@ export const PostDetailPage = (): JSX.Element => {
                     </span>
                   </div>
                 </button>
-                <button 
-                  onClick={() => {
-                    if (!isLoggedIn) {
-                      alert('로그인이 필요한 서비스입니다.');
-                    }
-                  }}
-                  className={`flex w-[83px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${
-                    isLoggedIn 
-                      ? 'bg-gray-scalegray-scale-50 hover:bg-gray-scalegray-scale-100 cursor-pointer' 
-                      : 'bg-gray-scalegray-scale-50 cursor-not-allowed opacity-60'
-                  } rounded-[5px] transition-colors`}
-                  disabled={!isLoggedIn}
-                >
-                  <img
-                    className="relative w-5 h-5"
-                    alt="Send message"
-                    src={send}
-                  />
-                  <div className="inline-flex items-center gap-[9px] relative flex-[0_0_auto]">
-                    <span className="w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-300 text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]">
-                      쪽지
-                    </span>
-                  </div>
-                </button>
+                {!isOwner && (
+                  <button 
+                    onClick={handleSendMessage}
+                    className={`flex w-[83px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${
+                      isLoggedIn
+                        ? 'bg-gray-scalegray-scale-50 hover:bg-gray-scalegray-scale-100 cursor-pointer' 
+                        : 'bg-gray-scalegray-scale-50 cursor-not-allowed opacity-60'
+                    } rounded-[5px] transition-colors`}
+                    disabled={!isLoggedIn}
+                  >
+                    <img
+                      className="relative w-5 h-5"
+                      alt="Send message"
+                      src={send}
+                    />
+                    <div className="inline-flex items-center gap-[9px] relative flex-[0_0_auto]">
+                      <span className="w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-300 text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]">
+                        쪽지
+                      </span>
+                    </div>
+                  </button>
+                )}
               </div>
 
               {/* Comments Section */}

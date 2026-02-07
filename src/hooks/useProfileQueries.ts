@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getProfile } from "../api/profile/profile";
+import { getProfile, getProfileById } from "../api/profile/profile";
 import axios from "axios";
 import { getExperienceDetail, getExperienceFiles, getExperienceLinks, getMyExperiences } from "../api/profile/experiences";
 import type { Career, ExperienceSummary } from "../types/career";

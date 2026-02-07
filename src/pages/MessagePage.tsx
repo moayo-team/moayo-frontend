@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import ThreadList from "../components/messages/threadList";
 import ChatPanel from "../components/messages/chatPanel";
 import { useChatRoom } from "../hooks/useChatRoom";
@@ -7,7 +8,10 @@ import { apiClient } from "../lib/apiClient";
 import type { ChatRoomSummary, ChatMessage } from "../types/message";
 
 export default function MessagePage() {
+	const location = useLocation();
 	const currentUserId = Number(import.meta.env.VITE_MOAYO_USER_ID || 0);
+	const initialRoomId = (location.state as { roomId?: number } | null)?.roomId;
+	const initialRoomAppliedRef = useRef(false);
 
 	// 1) 채팅방 목록 polling (1.5초 간격 예시)
 	const {
@@ -19,6 +23,14 @@ export default function MessagePage() {
 	// 2) 실제 UI에서 쓸 채팅방 목록 상태
 	const [roomSummaries, setRoomSummaries] = useState<ChatRoomSummary[]>([]);
 	const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+
+	useEffect(() => {
+		if (initialRoomAppliedRef.current) return;
+		if (!Number.isFinite(initialRoomId)) return;
+
+		setSelectedRoomId(Number(initialRoomId));
+		initialRoomAppliedRef.current = true;
+	}, [initialRoomId]);
 
 	// 2-1) polling 결과를 roomSummaries에 diff 반영
 	//      - 선택된 방은 polling으로 덮어쓰지 않고 항상 hasUnread=false 유지
@@ -140,6 +152,10 @@ export default function MessagePage() {
 		if (!messages.length) return;
 
 		const last: ChatMessage = messages[messages.length - 1];
+		const lastRoomId = Number((last as any).chatRoomId ?? (last as any).roomId ?? (last as any).chatRoomID);
+		if (Number.isFinite(lastRoomId) && lastRoomId !== selectedRoomId) {
+			return;
+		}
 
 		// 로컬 목록 업데이트
 		setRoomSummaries((prev) =>

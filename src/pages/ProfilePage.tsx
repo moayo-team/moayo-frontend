@@ -7,6 +7,7 @@ import { useAuth } from "../hooks/useAuth";
 
 // 커스텀 훅 Import
 import { useProfileData } from "../hooks/useProfileQueries";
+import { useOtherUserProfile } from "../hooks/useOtherUserProfile";
 import { useProfileSave } from "../hooks/useProfileMutation";
 import type { ProfileFormData } from "../types/profileForm";
 
@@ -14,6 +15,9 @@ const ProfilePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
+  const viewedUserId = (location.state as { userId?: string | number } | null)?.userId;
+  const numericViewedUserId = viewedUserId !== undefined ? Number(viewedUserId) : undefined;
+  const isViewingOtherUser = Number.isFinite(numericViewedUserId);
 
   const [isEditing, setIsEditing] = useState(false);
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest">("latest");
@@ -31,13 +35,17 @@ const ProfilePage = () => {
     experiences,
   } = useProfileData();
 
+  const otherProfileQuery = useOtherUserProfile(
+    isViewingOtherUser ? (numericViewedUserId as number) : undefined
+  );
+
 
   // 데이터 저장 훅
   const { mutate: saveProfile, isPending: isSaving } = useProfileSave();
 
   // 서버 데이터 -> 로컬 상태 동기화
   useEffect(() => {
-
+    if (isViewingOtherUser) return;
     if (!user) return;
 
     const mappedTags = tags?.map((t) => ({
@@ -80,7 +88,52 @@ const ProfilePage = () => {
     };
 
     setProfileData(formData);
-  }, [user, profile, tags, indexItems]);
+  }, [isViewingOtherUser, user, profile, tags, indexItems]);
+
+  useEffect(() => {
+    if (!isViewingOtherUser) return;
+    if (!otherProfileQuery.data) return;
+
+    const other = otherProfileQuery.data;
+
+    const mappedTags = other.interestTags?.map((t) => ({
+      id: t.id,
+      name: t.name,
+    })) ?? [];
+
+    const mappedItems =
+      other.indexItems?.map((i) => ({
+        id: i.id,
+        label: i.indexKey,
+        value: i.indexValue,
+        type: i.itemType,
+        fileObj: null,
+      })) ?? [];
+
+    setInitialIndexItemIds(mappedItems.map((i) => i.id as number));
+
+    const formData: ProfileFormData = {
+      id: null,
+      name: other.name,
+      profileImage: other.imageUrl ?? "",
+      imageUrl: other.imageUrl ?? "",
+      imageId: null,
+      introduction: other.bio ?? "",
+
+      tags: mappedTags,
+      additionalDetails: mappedItems,
+
+      details: [
+        { id: "school", label: "학력", value: other.university ?? "" },
+        { id: "major", label: "학과", value: other.major ?? "" },
+        { id: "email", label: "이메일", value: other.email ?? "" },
+        { id: "phone", label: "전화번호", value: other.phoneNumber ?? "" },
+      ],
+    };
+
+    setProfileData(formData);
+    setAllCareers([]);
+  }, [isViewingOtherUser, otherProfileQuery.data]);
 
   //이력 동기화
   useEffect(() => {
@@ -92,8 +145,13 @@ const ProfilePage = () => {
   useEffect(() => {
     if (!user || isInitialized.current) return;
 
-    if (!profile?.id) setIsEditing(true);
-    else setIsEditing(false);
+    if (isViewingOtherUser) {
+      setIsEditing(false);
+    } else if (!profile?.id) {
+      setIsEditing(true);
+    } else {
+      setIsEditing(false);
+    }
 
     isInitialized.current = true;
   }, [user, profile]);
@@ -131,6 +189,7 @@ const ProfilePage = () => {
   }, []);
 
   const handleModeChange = () => {
+    if (isViewingOtherUser) return;
     if (!profileData) return;
     if (isEditing) {
       console.log("💾 저장 시작:", {
@@ -186,8 +245,15 @@ const ProfilePage = () => {
   };
 
   //  렌더링
-  if (isLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
-  if (isError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;
+  const resolvedIsLoading = isViewingOtherUser
+    ? otherProfileQuery.isLoading
+    : isLoading;
+  const resolvedIsError = isViewingOtherUser
+    ? otherProfileQuery.isError
+    : isError;
+
+  if (resolvedIsLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
+  if (resolvedIsError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;
   if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
   if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
 
@@ -209,18 +275,19 @@ const ProfilePage = () => {
         isDetailsEmpty={isDetailsEmpty}
         data={profileData}
         experienceIds={allCareers.map(c => c.id)}
+        showEditButton={!isViewingOtherUser}
         onDataChange={handleProfileChange}
         onModeChange={handleModeChange}      
       />
 
       <ResumeSection
-        carrers={allCareers}
+        carrers={isViewingOtherUser ? [] : allCareers}
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}
         onSave={handleSaveCareer}
         onDelete={handleDeleteCareer}
-        userName={user?.name}
-        documents={documents}
+        userName={isViewingOtherUser ? profileData?.name : user?.name}
+        documents={isViewingOtherUser ? [] : documents}
       />
     </div>
   );

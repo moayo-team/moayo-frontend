@@ -39,7 +39,7 @@ export const JobFilter = ({ selectedFilters, onToggleFilter }: JobFilterProps): 
                 >
                   <span className={`flex-1 font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] ${
                     selectedFilters.includes(filter.label)
-                      ? "text-gray-scalegray-scale-900"
+                      ? "text-primaryprimary-800"
                       : "text-gray-scalegray-scale-300"
                   } text-sm sm:text-[length:var(--body-b1-200-font-size)] text-center tracking-[var(--body-b1-200-letter-spacing)] [font-style:var(--body-b1-200-font-style)]`}>
                     {filter.label}
@@ -61,7 +61,7 @@ export const JobFilter = ({ selectedFilters, onToggleFilter }: JobFilterProps): 
                 >
                   <span className={`flex-1 font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] ${
                     selectedFilters.includes(filter.label)
-                      ? "text-gray-scalegray-scale-900"
+                      ? "text-primaryprimary-800"
                       : "text-gray-scalegray-scale-300"
                   } text-sm sm:text-[length:var(--body-b1-200-font-size)] text-center tracking-[var(--body-b1-200-letter-spacing)] [font-style:var(--body-b1-200-font-style)]`}>
                     {filter.label}
@@ -83,7 +83,7 @@ export const JobFilter = ({ selectedFilters, onToggleFilter }: JobFilterProps): 
                 >
                   <span className={`relative flex-1 font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] ${
                     selectedFilters.includes(filter.label)
-                      ? "text-gray-scalegray-scale-900"
+                      ? "text-primaryprimary-800"
                       : "text-gray-scalegray-scale-300"
                   } text-[length:var(--body-b1-200-font-size)] text-center tracking-[var(--body-b1-200-letter-spacing)] leading-[var(--body-b1-200-line-height)] [font-style:var(--body-b1-200-font-style)]`}>
                     {filter.label}
@@ -105,7 +105,7 @@ export const JobFilter = ({ selectedFilters, onToggleFilter }: JobFilterProps): 
                 >
                   <span className={`relative flex-1 font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] ${
                     selectedFilters.includes(filter.label)
-                      ? "text-gray-scalegray-scale-900"
+                      ? "text-primaryprimary-800"
                       : "text-gray-scalegray-scale-300"
                   } text-[length:var(--body-b1-200-font-size)] text-center tracking-[var(--body-b1-200-letter-spacing)] leading-[var(--body-b1-200-line-height)] [font-style:var(--body-b1-200-font-style)]`}>
                     {filter.label}
