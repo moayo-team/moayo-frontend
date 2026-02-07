@@ -7,6 +7,8 @@ import { CommentSection } from '../components/common/CommentSection';
 // 서버에서 제공하는 dday 값이 있으면 우선 사용합니다.
 import { formatDateRange } from '../utils/dateUtils';
 import { useAuth } from '../hooks/useAuth';
+import { apiClient } from '../lib/apiClient';
+import { useOtherUserProfile } from '../hooks/useOtherUserProfile';
 import type { JSX } from 'react';
 import like from '../assets/like.svg';
 import send from '../assets/send.svg';
@@ -65,23 +67,46 @@ export const PostDetailPage = (): JSX.Element => {
     { label: "마감일", value: (post as any).dday ?? formatDateRange(post.createdAt, post.deadline).split(' - ')[1] },
   ];
 
+  const authorId =
+    (post as any).userId ??
+    (post as any).authorId ??
+    post.createdByUserId ??
+    (post as any).author?.id ??
+    undefined;
+
   const isOwner = Boolean(
     isLoggedIn &&
       user &&
       (
-        String(post.createdByUserId ?? '') === String(user.id ?? '') ||
-        String((post as any).author?.id ?? '') === String(user.id ?? '') ||
-        String((post as any).authorId ?? '') === String(user.id ?? '') ||
-        String((post as any).userId ?? '') === String(user.id ?? '')
+        String(authorId ?? '') === String(user.user?.id ?? '')
       )
   );
 
+  const numericAuthorId = Number(authorId);
+  const { data: authorProfile } = useOtherUserProfile(
+    Number.isFinite(numericAuthorId) ? numericAuthorId : undefined
+  );
+
   const handleGoToProfile = () => {
+    if (!authorId) {
+      alert('작성자 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    navigate('/profile', { state: { userId: authorId } });
+  };
+
+  const handleSendMessage = async () => {
+    if (!isLoggedIn) {
+      alert('로그인이 필요한 서비스입니다.');
+      return;
+    }
+
     const authorId =
+      (post as any).userId ??
+      (post as any).authorId ??
       post.createdByUserId ??
       (post as any).author?.id ??
-      (post as any).authorId ??
-      (post as any).userId ??
       undefined;
 
     if (!authorId) {
@@ -89,7 +114,36 @@ export const PostDetailPage = (): JSX.Element => {
       return;
     }
 
-    navigate('/profile', { state: { userId: authorId } });
+    if (String(authorId) === String(user?.user?.id ?? '')) {
+      alert('내 게시글에는 쪽지를 보낼 수 없습니다.');
+      return;
+    }
+
+    const originPostId = Number(post.id);
+    const payload: { userBId: number; originPostId?: number } = {
+      userBId: Number(authorId)
+    };
+
+    if (Number.isFinite(originPostId)) {
+      payload.originPostId = originPostId;
+    }
+
+    try {
+      const res = await apiClient.post<
+        { isSuccess: boolean; result: { roomId: number } }
+      >('/api/v1/chat/rooms', payload);
+
+      const roomId = res.data?.result?.roomId;
+      if (!roomId) {
+        alert('쪽지방 생성에 실패했습니다.');
+        return;
+      }
+
+      navigate('/message', { state: { roomId } });
+    } catch (error) {
+      console.error('Failed to create chat room:', error);
+      alert('쪽지방 생성에 실패했습니다.');
+    }
   };
 
   return (
@@ -106,16 +160,25 @@ export const PostDetailPage = (): JSX.Element => {
                   <img
                     className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-full"
                     alt="Profile"
-                    src={profile_photo}
+                    src={(() => {
+                      const url = user?.profile?.imageUrl;
+                      if (!url || url === 'default_url') return profile_photo;
+                      return url.startsWith('http')
+                        ? url
+                        : `${import.meta.env.VITE_API_BASE_URL}${url}`;
+                    })()}
+                    onError={(e) => {
+                      e.currentTarget.src = profile_photo;
+                    }}
                   />
                   <div className="flex flex-col w-full items-center gap-0.5 relative flex-[0_0_auto]">
                     <div className="self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center leading-[var(--heading-h2-300-line-height)] relative tracking-[var(--heading-h2-300-letter-spacing)] [font-style:var(--heading-h2-300-font-style)]">
-                      {user?.name || '사용자'}
+                      {user?.user?.name || '사용자'}
                     </div>
-                    {user?.major && (
+                    {user?.profile?.major && (
                       <div className="flex items-center justify-center gap-[11px] relative self-stretch w-full flex-[0_0_auto]">
                         <div className="w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center leading-[var(--body-b2-300-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-300-letter-spacing)] [font-style:var(--body-b2-300-font-style)]">
-                          {user.major}
+                          {user.profile.major}
                         </div>
                       </div>
                     )}
@@ -146,28 +209,41 @@ export const PostDetailPage = (): JSX.Element => {
                 <div className="flex items-center gap-[15px] relative flex-1 self-stretch grow">
                   <img
                     className="w-[62px] h-[63px] relative object-cover rounded-full"
-                    alt="작성자 기본 프로필 이미지"
-                    src={profile_photo}
+                    alt="작성자 프로필 이미지"
+                    src={(() => {
+                      const ownerUrl = isOwner ? user?.profile?.imageUrl : undefined;
+                      const otherUrl = authorProfile?.imageUrl;
+                      const url = ownerUrl || otherUrl || (post as any).profileImageUrl || post.author?.avatar;
+                      if (!url || url === 'default_url') return profile_photo;
+                      return url.startsWith('http')
+                        ? url
+                        : `${import.meta.env.VITE_API_BASE_URL}${url}`;
+                    })()}
+                    onError={(e) => {
+                      e.currentTarget.src = profile_photo;
+                    }}
                   />
                   <div className="flex flex-col items-start gap-[3px] relative self-stretch">
                     <div className="mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[length:var(--heading-h2-100-font-size)] leading-[var(--heading-h2-100-line-height)] relative tracking-[var(--heading-h2-100-letter-spacing)] [font-style:var(--heading-h2-100-font-style)]">
                       {post.author?.name || '익명'}
                     </div>
                     <div className="relative font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-black text-[length:var(--body-b1-200-font-size)] tracking-[var(--body-b1-200-letter-spacing)] leading-[var(--body-b1-200-line-height)] [font-style:var(--body-b1-200-font-style)]">
-                      {post.author?.username || 'anonymous'}
+                      {""}
                     </div>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleGoToProfile}
-                  className="w-fit mt-[-1.00px] [font-family:'Pretendard-Regular',Helvetica] font-normal text-black text-base leading-4 relative tracking-[0] hover:opacity-80"
-                  aria-label="프로필 바로가기"
-                >
-                  <span className="leading-[var(--body-b2-300-line-height)] underline font-body-b2-300 [font-style:var(--body-b2-300-font-style)] font-[number:var(--body-b2-300-font-weight)] tracking-[var(--body-b2-300-letter-spacing)] text-[length:var(--body-b2-300-font-size)]">
-                    프로필 바로가기
-                  </span>
-                </button>
+                {!isOwner && (
+                  <button
+                    type="button"
+                    onClick={handleGoToProfile}
+                    className="w-fit mt-[-1.00px] [font-family:'Pretendard-Regular',Helvetica] font-normal text-black text-base leading-4 relative tracking-[0] hover:opacity-80"
+                    aria-label="프로필 바로가기"
+                  >
+                    <span className="leading-[var(--body-b2-300-line-height)] underline font-body-b2-300 [font-style:var(--body-b2-300-font-style)] font-[number:var(--body-b2-300-font-weight)] tracking-[var(--body-b2-300-letter-spacing)] text-[length:var(--body-b2-300-font-size)]">
+                      프로필 바로가기
+                    </span>
+                  </button>
+                )}
               </div>
 
               {/* Post Title and D-Day */}
@@ -225,7 +301,7 @@ export const PostDetailPage = (): JSX.Element => {
                 {isOwner && (
                   <button
                     onClick={() => navigate(`/edit/${post.id}`)}
-                    className="inline-flex items-center justify-center gap-[5px] px-3 py-[7px] relative flex-[0_0_auto] bg-primaryprimary-50 hover:bg-primaryprimary-100 cursor-pointer rounded-[5px] transition-colors border-2 border-primaryprimary-500"
+                    className="flex w-[83px] h-[33px] items-center justify-center gap-[5px] px-2 py-[5px] relative bg-primaryprimary-50 hover:bg-primaryprimary-100 cursor-pointer rounded-[5px] transition-colors border-2 border-primaryprimary-500"
                     aria-label="게시글 수정"
                   >
                     <span className="w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-primaryprimary-700 text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]">
@@ -236,7 +312,7 @@ export const PostDetailPage = (): JSX.Element => {
 
                 <button
                   onClick={handleLikeToggle}
-                  className={`inline-flex items-center justify-center gap-[5px] px-3 py-[7px] relative flex-[0_0_auto] ${
+                  className={`flex w-[83px] h-[33px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${
                     isLiked
                       ? 'bg-primaryprimary-50 border-2 border-primaryprimary-500'
                       : 'bg-gray-scalegray-scale-50 border-2 border-transparent'
@@ -267,30 +343,28 @@ export const PostDetailPage = (): JSX.Element => {
                     </span>
                   </div>
                 </button>
-                <button 
-                  onClick={() => {
-                    if (!isLoggedIn) {
-                      alert('로그인이 필요한 서비스입니다.');
-                    }
-                  }}
-                  className={`flex w-[83px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${
-                    isLoggedIn 
-                      ? 'bg-gray-scalegray-scale-50 hover:bg-gray-scalegray-scale-100 cursor-pointer' 
-                      : 'bg-gray-scalegray-scale-50 cursor-not-allowed opacity-60'
-                  } rounded-[5px] transition-colors`}
-                  disabled={!isLoggedIn}
-                >
-                  <img
-                    className="relative w-5 h-5"
-                    alt="Send message"
-                    src={send}
-                  />
-                  <div className="inline-flex items-center gap-[9px] relative flex-[0_0_auto]">
-                    <span className="w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-300 text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]">
-                      쪽지
-                    </span>
-                  </div>
-                </button>
+                {!isOwner && (
+                  <button 
+                    onClick={handleSendMessage}
+                    className={`flex w-[83px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${
+                      isLoggedIn
+                        ? 'bg-gray-scalegray-scale-50 hover:bg-gray-scalegray-scale-100 cursor-pointer' 
+                        : 'bg-gray-scalegray-scale-50 cursor-not-allowed opacity-60'
+                    } rounded-[5px] transition-colors`}
+                    disabled={!isLoggedIn}
+                  >
+                    <img
+                      className="relative w-5 h-5"
+                      alt="Send message"
+                      src={send}
+                    />
+                    <div className="inline-flex items-center gap-[9px] relative flex-[0_0_auto]">
+                      <span className="w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-300 text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]">
+                        쪽지
+                      </span>
+                    </div>
+                  </button>
+                )}
               </div>
 
               {/* Comments Section */}

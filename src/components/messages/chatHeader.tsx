@@ -1,5 +1,7 @@
 import { useOtherUserProfile } from "../../hooks/useOtherUserProfile";
+import profilePhoto from "../../assets/profile_photo.svg";
 import type { ChatRoomSummary } from "../../types/message";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
   thread?: ChatRoomSummary;
@@ -7,7 +9,7 @@ type Props = {
 
 export default function ChatHeader({ thread }: Props) {
   const opponentId = thread?.opponentUserId;
-
+  const navigate = useNavigate();
 	const { data: OtherProfileResult } = useOtherUserProfile(opponentId);
 
 	const displayName = OtherProfileResult
@@ -17,24 +19,27 @@ export default function ChatHeader({ thread }: Props) {
 		: "-";
 
 
-  const avatarUrl = thread?.opponentImageUrl ?? null;
+  const avatarUrl = (() => {
+    const url = OtherProfileResult?.imageUrl ?? thread?.opponentImageUrl;
+    if (!url || url === "default_url") return profilePhoto;
+    return url.startsWith("http")
+      ? url
+      : `${import.meta.env.VITE_API_BASE_URL}${url}`;
+  })();
 
   return (
     <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
       <div className="flex items-center gap-3">
         {/* 아바타 */}
-        {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={displayName}
-            className="h-10 w-10 rounded-full object-cover bg-gray-200"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
-            {displayName.slice(0, 1)}
-          </div>
-        )}
+        <img
+          src={avatarUrl}
+          alt={displayName}
+          className="h-10 w-10 rounded-full object-cover bg-gray-200"
+          referrerPolicy="no-referrer"
+          onError={(e) => {
+            e.currentTarget.src = profilePhoto;
+          }}
+        />
 
         <div>
           <div className="text-sm font-semibold text-gray-900">{displayName}</div>
@@ -52,8 +57,7 @@ export default function ChatHeader({ thread }: Props) {
           type="button"
           onClick={() => {
             if (!thread) return;
-            // TODO: 상대 프로필 페이지 라우팅이 생기면 여기 연결
-            console.log("go profile:", thread.opponentUserId);
+            navigate('/profile', { state: { userId: thread.opponentUserId } });
           }}
         >
           프로필 바로가기

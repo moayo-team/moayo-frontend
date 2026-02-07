@@ -10,10 +10,7 @@ const HomeLayout = () => {
   const [showLoginSuccessModal, setShowLoginSuccessModal] = useState(false);
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      sessionStorage.removeItem('loginSuccessModalShown');
-      return;
-    }
+    if (!isLoggedIn) return;
     const flag = localStorage.getItem('loginSuccessModal');
     const alreadyShown = sessionStorage.getItem('loginSuccessModalShown');
     if (flag === '1' && alreadyShown !== '1') {

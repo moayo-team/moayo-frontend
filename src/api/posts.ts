@@ -8,7 +8,31 @@ const parsePost = (raw: any): Post => {
 
   const createdAtVal = raw.createdAt ?? raw.created_at ?? raw.createdDate ?? raw.created;
   const updatedAtVal = raw.updatedAt ?? raw.updated_at ?? raw.updatedDate ?? raw.updated;
-  const deadlineVal = raw.deadline ?? raw.deadlineDate ?? raw.deadline_date ?? raw.dueDate ?? raw.due_date;
+  const deadlineVal =
+    raw.deadline ??
+    raw.deadlineDate ??
+    raw.deadline_date ??
+    raw.deadlineAt ??
+    raw.deadline_at ??
+    raw.dueDate ??
+    raw.due_date ??
+    raw.closeDate ??
+    raw.close_date ??
+    raw.endDate ??
+    raw.end_date;
+
+  const fallbackDeadlineFromDday = () => {
+    const dday = raw.dday as string | undefined;
+    if (!dday) return undefined;
+    const match = dday.match(/D\s*[-+]\s*(\d+)/i);
+    if (!match) return undefined;
+    const days = Number(match[1]);
+    if (!Number.isFinite(days)) return undefined;
+    const today = new Date();
+    const dateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    dateOnly.setDate(dateOnly.getDate() + days);
+    return dateOnly;
+  };
 
   return {
     // copy known fields first, then coerce types below
@@ -16,7 +40,7 @@ const parsePost = (raw: any): Post => {
     id: String(id),
     createdAt: createdAtVal ? new Date(createdAtVal) : new Date(),
     updatedAt: updatedAtVal ? new Date(updatedAtVal) : new Date(),
-    deadline: deadlineVal ? new Date(deadlineVal) : new Date(),
+    deadline: deadlineVal ? new Date(deadlineVal) : (fallbackDeadlineFromDday() ?? new Date()),
   } as Post;
 };
 
@@ -66,7 +90,7 @@ const normalizeServerItem = (item: any): any => {
   mapped.positions = item.positions ?? item.role ?? item.roles ?? '';
 
   // recruitCount / totalCount
-  mapped.recruitCount =
+  const rawCount =
     item.recruitCount ??
     item.recruit_count ??
     item.totalCount ??
@@ -74,8 +98,26 @@ const normalizeServerItem = (item: any): any => {
     item.recruitmentCount ??
     undefined;
 
+    if (typeof rawCount === 'string') {
+      const numeric = rawCount.replace(/\D/g, '');
+      mapped.recruitCount = numeric ? Number(numeric) : undefined;
+    } else {
+    mapped.recruitCount = rawCount;
+  }
+
   // deadline
-  mapped.deadline = item.deadline ?? item.deadlineDate ?? item.deadline_date ?? item.dueDate ?? item.due_date;
+  mapped.deadline =
+    item.deadline ??
+    item.deadlineDate ??
+    item.deadline_date ??
+    item.deadlineAt ??
+    item.deadline_at ??
+    item.dueDate ??
+    item.due_date ??
+    item.closeDate ??
+    item.close_date ??
+    item.endDate ??
+    item.end_date;
 
   // author mapping
   mapped.author = item.author ?? {

@@ -10,6 +10,27 @@ export const apiClient = axios.create({
   timeout: 5000,
 });
 
+const refreshClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  withCredentials: true,
+  timeout: 5000,
+});
+
+const requestTokenRefresh = async () => {
+  console.debug('[auth] token refresh 요청');
+  const res = await refreshClient.post('/api/v1/auth/token/refresh');
+  const payload: any = res.data?.result ?? res.data;
+  const newToken =
+    payload?.accessToken ??
+    payload?.token ??
+    res.headers?.authorization?.replace(/^Bearer\s+/i, '');
+  console.debug('[auth] token refresh 응답', { hasToken: Boolean(newToken) });
+  if (newToken) {
+    localStorage.setItem('accessToken', newToken);
+  }
+  return newToken;
+};
+
 // 요청 인터셉터: 모든 요청에 저장된 액세스 토큰 삽입
 apiClient.interceptors.request.use(
   (config) => {
@@ -40,7 +61,29 @@ apiClient.interceptors.response.use(
     }
     return response;
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config as any;
+
+    if (error.response?.status === 401 && !originalRequest?._retry) {
+      originalRequest._retry = true;
+      try {
+        const newToken = await requestTokenRefresh();
+        if (originalRequest?.headers) {
+          if (newToken) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          } else {
+            delete originalRequest.headers.Authorization;
+            localStorage.removeItem('accessToken');
+          }
+        }
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        return Promise.reject(refreshError);
+      }
+    }
+
     if (error.response?.status === 401) {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('user');

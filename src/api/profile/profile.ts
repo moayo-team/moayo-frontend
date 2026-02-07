@@ -58,7 +58,7 @@ export const getAllInterestTag = async (): Promise<AllInterestTagListResponse> =
 /**프로필 조회 (userId) */
 export const getProfileById = async (userId: string | number): Promise<ProfileResponse> => {
   const response = await apiClient.get<ProfileResponse>(
-    `/profiles/${userId}`
+        `/api/v1/profiles/${userId}`
   );
   return response.data;
 };
@@ -212,7 +212,7 @@ export const getUserProfileById = async (
 	userId: number
 ): Promise<OtherProfileResult> => {
 	const response = await apiClient.get<OtherProfileResponse>(
-		`/profiles/${userId}`
+        `/api/v1/profiles/${userId}`
 	);
 
 	return response.data.result;

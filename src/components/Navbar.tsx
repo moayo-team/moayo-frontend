@@ -9,6 +9,16 @@ export const NavigationBar = (): JSX.Element => {
   const location = useLocation();
   const { user, isLoggedIn, logout } = useAuth();
 
+  const isBoardActive =
+    location.pathname.startsWith('/board') ||
+    location.pathname.startsWith('/post/') ||
+    location.pathname.startsWith('/my-posts');
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   const navigationItems = [
     { id: 1, label: "홈", path: "/" },
     { id: 2, label: "프로필", path: "/profile" },
@@ -42,8 +52,9 @@ export const NavigationBar = (): JSX.Element => {
             <button
               key={item.id}
               onClick={() => item.path !== "#" && navigate(item.path)}
-              className={`relative w-fit font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-black text-[length:var(--body-b1-200-font-size)] tracking-[var(--body-b1-200-letter-spacing)] leading-[var(--body-b1-200-line-height)] whitespace-nowrap [font-style:var(--body-b1-200-font-style)] hover:opacity-70 transition-opacity ${(item.path === "/" && location.pathname === "/") ||
-                (item.path !== "/" && location.pathname.startsWith(item.path) && item.path !== "#")
+              className={`relative w-fit font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-black text-[length:var(--body-b1-200-font-size)] tracking-[var(--body-b1-200-letter-spacing)] leading-[var(--body-b1-200-line-height)] whitespace-nowrap [font-style:var(--body-b1-200-font-style)] hover:opacity-70 transition-opacity cursor-pointer ${(item.path === "/" && location.pathname === "/") ||
+                (item.path === "/board" && isBoardActive) ||
+                (item.path !== "/" && item.path !== "/board" && location.pathname.startsWith(item.path) && item.path !== "#")
                 ? "opacity-100 font-bold"
                 : "opacity-70"
                 }`}
@@ -60,22 +71,21 @@ export const NavigationBar = (): JSX.Element => {
                 onClick={() => navigate('/profile')}>
                 <img
                   className="w-8 h-8 rounded-full object-cover"
-                  alt={user.user.name}
+                  alt={user.user?.name || '사용자'}
                   src={user.profile?.imageUrl
                     ? `${import.meta.env.VITE_API_BASE_URL}${user.profile.imageUrl}`
-                    : defultProfile
-                  }
+                    : defultProfile}
                   onError={(e) => {
                     e.currentTarget.src = defultProfile;
                   }}
                 />
                 <span className="font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-900 text-sm">
-                  {user.user.name}
+                  {user.user?.name || '사용자'}
                 </span>
               </div>
               <button
-                onClick={logout}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-scalegray-scale-100 rounded-[10px] font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-gray-scalegray-scale-700 hover:bg-gray-scalegray-scale-200 transition-colors text-sm sm:text-base whitespace-nowrap"
+                onClick={handleLogout}
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-scalegray-scale-100 rounded-[10px] font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-gray-scalegray-scale-700 hover:bg-gray-scalegray-scale-200 transition-colors text-sm sm:text-base whitespace-nowrap cursor-pointer"
               >
                 로그아웃
               </button>
