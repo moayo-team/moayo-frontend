@@ -1,56 +1,55 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { apiClient } from '../api/client';
+import { LoginSuccessModal } from '../components/Login/LoginUI';
 
 export const GoogleCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { setUser, setIsLoggedIn } = useAuth();
+  const { completeLogin } = useAuth();
+  const [showModal, setShowModal] = useState(false);
+
+  const isProcessed = useRef(false);//중복 방지
 
   useEffect(() => {
+    if (isProcessed.current) return;
     const accessToken = searchParams.get('accessToken');
 
     if (accessToken) {
-      // 1. 토큰 저장
-      localStorage.setItem('accessToken', accessToken);
-
-      // 2. 내 프로필 정보 가져오기 (명세서: GET /api/v1/profiles/me)
-      apiClient.get('/profiles/me')
-        .then(({ data }) => {
-          const payload: any = data?.result ?? data;
-          const rawUser = payload?.user ?? payload;
-          const name =
-            rawUser?.name ??
-            rawUser?.nickname ??
-            rawUser?.userName ??
-            rawUser?.username ??
-            rawUser?.user_name ??
-            rawUser?.authorName ??
-            rawUser?.authorNickname ??
-            rawUser?.displayName;
-          const avatar = rawUser?.avatar ?? rawUser?.profilePictureUrl ?? rawUser?.profileImage ?? rawUser?.imageUrl ?? rawUser?.picture;
-          const normalizedUser = { ...rawUser, name, avatar } as any;
-          localStorage.setItem('user', JSON.stringify(normalizedUser));
-          setUser(normalizedUser);
-          setIsLoggedIn(true);
-          localStorage.setItem('loginSuccessModal', '1');
-          navigate('/'); // 로그인 성공 후 홈으로 이동
+      isProcessed.current = true;
+      completeLogin(accessToken)
+        .then(() => {
+          // 성공하면 모달 띄우기
+          setShowModal(true);
         })
-        .catch((err) => {
-          console.error('Profile fetch failed:', err);
+        .catch(() => {
+          // 실패하면 로그인 화면으로
+          alert("로그인에 실패했습니다.");
           navigate('/login');
         });
     } else {
-      console.error('No token found');
+      // 토큰 없으면 로그인 화면으로
       navigate('/login');
     }
-  }, [searchParams, navigate, setUser, setIsLoggedIn]);
+  }, [searchParams, completeLogin, navigate]);
+
+  const handleClose = (destination = '/') => {
+    navigate(destination, { replace: true });
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <div className="text-xl font-bold mb-4">로그인 정보를 확인 중입니다...</div>
-      <div className="w-12 h-12 border-4 border-primaryprimary-300 border-t-transparent rounded-full animate-spin"></div>
+      {!showModal && (
+        <>
+          <div className="text-xl font-bold mb-4">로그인 정보를 확인 중입니다...</div>
+          <div className="w-12 h-12 border-4 border-primaryprimary-300 border-t-transparent rounded-full animate-spin"></div>
+        </>
+      )}
+      {showModal && (
+        <LoginSuccessModal
+          onClose={() => handleClose('/profile')}
+        />
+      )}
     </div>
   );
 };

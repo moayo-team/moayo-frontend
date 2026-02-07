@@ -6,6 +6,7 @@ interface InfoSectionProps {
     isEditing: boolean;
     isDetailsEmpty:boolean;
     data: ProfileFormData;
+    experienceIds: number[];
      onDataChange: (
     id:
       | keyof ProfileFormData
@@ -19,7 +20,7 @@ interface InfoSectionProps {
     onModeChange: () => void;
 }
 
-const InfoSection = ({ isEditing, isDetailsEmpty, data, onDataChange, onModeChange }: InfoSectionProps) => {   
+const InfoSection = ({ isEditing, isDetailsEmpty, data, experienceIds, onDataChange, onModeChange }: InfoSectionProps) => {   
 
     //  버튼 텍스트 결정 로직
     const getButtonText = () => {
@@ -55,6 +56,7 @@ const InfoSection = ({ isEditing, isDetailsEmpty, data, onDataChange, onModeChan
                     isEditing={isEditing} // 초기 상태일 때도 입력창이 보여야 하므로 합쳐서 전달
                     isDetailsEmpty={isDetailsEmpty}
                     data={data}
+                    experienceIds={experienceIds}
                     onDataChange={onDataChange}
                 />
             </div>

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import type { AttachedFile } from '../types/career';
 
 interface UploadOptions {
   maxFiles?: number;
@@ -21,7 +22,7 @@ export const useUploadManager = (options: UploadOptions = {}) => {
     maxRightText = 20,
   } = options;
 
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<AttachedFile[]>([]);
   const [links, setLinks] = useState<string[]>([]);
   const [linkInput, setLinkInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,9 +39,11 @@ export const useUploadManager = (options: UploadOptions = {}) => {
     const isValid = newFiles.every((file) => {
       const maxSize = maxFileSizeMB * 1024 * 1024;
       if (file.size > maxSize) {
+        alert(`${file.name}의 용량이 너무 큽니다. (최대 ${maxFileSizeMB}MB)`);
         return false;
       }
       if (!allowedTypes.includes(file.type)) {
+        alert(`${file.name}은 지원하지 않는 파일 형식입니다.`);
         return false;
       }
       return true;
@@ -48,7 +51,13 @@ export const useUploadManager = (options: UploadOptions = {}) => {
 
     // 기존 파일 유효성 검사 로직
     if (isValid) {
-      setSelectedFiles((prev) => [...prev, ...newFiles]);
+      const mappedFiles: AttachedFile[] = newFiles.map(file => ({
+        name: file.name,
+        fileObj: file,
+        type: 'file' // 또는 file.type
+      }));
+
+      setSelectedFiles((prev) => [...prev, ...mappedFiles]);
     }
   }, [selectedFiles, maxFiles, maxFileSizeMB, allowedTypes]);
 
@@ -89,10 +98,10 @@ export const useUploadManager = (options: UploadOptions = {}) => {
   };
 
   // 파일 다운로드 로직 추가 
-  const handleFileDownload = useCallback((file: File | { name: string; url?: string }) => {
+  const handleFileDownload = useCallback((file: AttachedFile ) => {
     // File 객체인 경우 (새로 업로드한 파일)
-    if (file instanceof File) {
-      const url = URL.createObjectURL(file);
+    if (file.fileObj) {
+      const url = URL.createObjectURL(file.fileObj);
       const link = document.createElement("a");
       link.href = url;
       link.download = file.name;
@@ -100,22 +109,35 @@ export const useUploadManager = (options: UploadOptions = {}) => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url); // 메모리 해제
-    } 
+    }
     // 일반 객체인 경우 (이미 서버에 있는 파일 정보)
     else if (file.url) {
       const link = document.createElement("a");
       link.href = file.url;
       link.download = file.name;
-      link.target = "_blank"; 
+      link.target = "_blank";
       link.click();
     } else {
       alert("파일 다운로드 경로를 찾을 수 없습니다.");
     }
   }, []);
 
-  return { 
+  const isInputValidByType = (text: string, type: 'link' | 'text', side?: 'left' | 'right') => {
+    if (type === 'link') {
+      return text.length <= maxLinkLength;
+    }
+
+    if (type === 'text') {
+      const limit = side === 'left' ? maxLeftText : maxRightText;
+      return text.length <= limit;
+    }
+
+    return true;
+  };
+
+  return {
     selectedFiles, setSelectedFiles, handleFileUpload, removeFile,
-    links, setLinks, linkInput, setLinkInput, addLink, removeLink, 
-    isTextValid, fileInputRef, handleFileDownload
+    links, setLinks, linkInput, setLinkInput, addLink, removeLink,
+    isTextValid, fileInputRef, handleFileDownload, isInputValidByType
   };
 };

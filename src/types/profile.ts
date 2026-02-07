@@ -11,8 +11,8 @@ export interface BaseResponse<T> {
   result: T;
 }
 
-/**생성 */
-//프로필 생성 요청
+/**프로필 관리 */
+//프로필 생성 
 export interface CreateProfileRequest {
   name: string;        
   phoneNumber: string;
@@ -24,14 +24,13 @@ export interface CreateProfileRequest {
 export interface ProfileCreateResult {
   id: number;
 }
-// 최종 응답 타입
+
 export type ProfileCreateResponse = BaseResponse<ProfileCreateResult>;
 
 
-/**조회 */
-//프로필 조회 응답
+//프로필 조회 
 export interface UserInfo {
-  id: number;
+  id: number | string;
   name: string;
   email: string;
   phoneNumber: string | null;
@@ -76,15 +75,8 @@ export interface GetProfileResult{
 
 export type ProfileResponse =  BaseResponse<GetProfileResult>;
 
-//내 관심 태그 조회
-export type InterestTagListResponse = BaseResponse<InterestTag[]>
 
-//추가 항목 조회
-export type IndexItemListResponse = BaseResponse<IndexItem[]>
-
-
-/**수정 */
-//프로필 수정 요청
+//프로필 수정 
 export interface UpdateProfileRequest {
   name?: string;
   email?: string;
@@ -96,8 +88,17 @@ export interface UpdateProfileRequest {
   bio?: string | null;
 }
 
-//프로필 수정 응답
+//프로필 수정 
 export type UpdateProfileResponse = BaseResponse<null>;
+
+/**관심 태그 관리*/
+//내 관심 태그 조회
+export type InterestTagListResponse = BaseResponse<InterestTag[]>
+
+
+//전체 관심 태그 목록 조회
+export type AllInterestTagListResponse = BaseResponse<InterestTag[]>
+
 
 //내 관심 태그 수정
 export interface UpdateInterestTagsRequest {
@@ -107,17 +108,47 @@ export interface UpdateInterestTagsRequest {
 export type UpdateInterestTagsResponse = BaseResponse<null>;
 
 
-/**추가 항목 */
+/**추가 항목 관리*/
+//추가 항목 조회
+export type IndexItemListResponse = BaseResponse<IndexItem[]>
+
 //추가 항목 수정/생성
 export interface IndexItemDetailData {
   indexKey: string;
   indexValue: string;
   itemType: IndexItemType;
-  linkUrl: string | null;
+  linkUrl: string | undefined;
+  fileUrl?: string | undefined;  
+  fileType?: string | undefined;  
+  fileName?: string | undefined;  
+  fileSize?: number | undefined; 
 }
 
-// 생성 API 응답  
+// 생성 API  
 export type CreateIndexItemResponse = BaseResponse<null>;
 
-// 삭제 API 응답 
+// 삭제 API  
 export type DeleteIndexItemResponse = BaseResponse<null>;
+
+/**첨부 파일  */
+// 첨부 파일 업로드 
+export type UploadDocumentResponse = BaseResponse<ProfileDocument>;
+// 첨부 파일 삭제
+export type DeleteDocumentResponse = BaseResponse<null>;
+//첨부 파일 조회
+export type documentListResponse = BaseResponse<ProfileDocument[]>;
+
+export interface OtherProfileResult {
+	userId: number;
+	name: string;
+	email: string;
+	phoneNumber: string | null;
+	imageUrl: string;
+	university: string;
+	major: string;
+	bio: string;
+	interestTags: InterestTag[];
+	indexItems: IndexItem[];
+}
+
+export type OtherProfileResponse = BaseResponse<OtherProfileResult>;

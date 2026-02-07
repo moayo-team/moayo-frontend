@@ -1,3 +1,4 @@
+import { useOtherUserProfile } from "../../hooks/useOtherUserProfile";
 import type { ChatRoomSummary } from "../../types/message";
 
 type Props = {
@@ -5,7 +6,17 @@ type Props = {
 };
 
 export default function ChatHeader({ thread }: Props) {
-  const displayName = thread ? `User #${thread.opponentUserId}` : "-";
+  const opponentId = thread?.opponentUserId;
+
+	const { data: OtherProfileResult } = useOtherUserProfile(opponentId);
+
+	const displayName = OtherProfileResult
+		? OtherProfileResult.name
+		: thread
+		? `User #${thread.opponentUserId}`
+		: "-";
+
+
   const avatarUrl = thread?.opponentImageUrl ?? null;
 
   return (

@@ -26,8 +26,14 @@ const ProfilePage = () => {
 
   const isInitialized = useRef(false);
 
+
   // 데이터 조회 훅
-  const { user, profile, tags, indexItems, isLoading, isError } = useProfileData(viewedUserId);
+  const {
+    user, profile, tags, indexItems, isLoading, isError, documents,
+    experiences,
+  } = useProfileData();
+
+
   // 데이터 저장 훅
   const { mutate: saveProfile, isPending: isSaving } = useProfileSave();
 
@@ -36,9 +42,9 @@ const ProfilePage = () => {
 
     if (!user) return;
 
-   const mappedTags = tags?.map((t) => ({
+    const mappedTags = tags?.map((t) => ({
       id: t.id,
-      title: t.name,
+      name: t.name,
     })) ?? [];
 
     const mappedItems =
@@ -47,7 +53,12 @@ const ProfilePage = () => {
         label: i.indexKey,
         value: i.indexValue,
         type: i.itemType,
+        fileObj: null,
       })) ?? [];
+
+    const matchedDoc = documents?.find(
+      (doc) => doc.fileUrl === profile?.imageUrl
+    );
 
     setInitialIndexItemIds(mappedItems.map((i) => i.id));
 
@@ -55,6 +66,8 @@ const ProfilePage = () => {
       id: profile?.id ?? null,
       name: user.name,
       profileImage: profile?.imageUrl ?? "",
+      imageUrl: profile?.imageUrl ?? "",
+      imageId: matchedDoc?.id ?? null,
       introduction: profile?.bio ?? "",
 
       tags: mappedTags,
@@ -71,6 +84,13 @@ const ProfilePage = () => {
     setProfileData(formData);
   }, [user, profile, tags, indexItems]);
 
+  //이력 동기화
+  useEffect(() => {
+    if (experiences) {
+      setAllCareers(experiences);
+    }
+  }, [experiences]);
+
   useEffect(() => {
     if (!user || isInitialized.current) return;
 
@@ -83,7 +103,8 @@ const ProfilePage = () => {
     }
 
     isInitialized.current = true;
-  }, [user, profile, isViewingOtherUser]);
+  }, [user, profile]);
+
 
 
   // 이력서 생성 페이지 복귀 처리
@@ -105,7 +126,7 @@ const ProfilePage = () => {
 
   const handleProfileChange = useCallback((id: string, value: any) => {
     setProfileData((prev: any) => {
-      if (["name", "profileImage", "introduction", "tags", "school_verified", "additionalDetails"].includes(id)) {
+      if (["name", "profileImage", "introduction", "tags", "school_verified", "additionalDetails", "imageUrl", "profileFile"].includes(id)) {
         if (prev[id as keyof typeof prev] === value) return prev;
         return { ...prev, [id]: value };
       }
@@ -117,8 +138,15 @@ const ProfilePage = () => {
   }, []);
 
   const handleModeChange = () => {
-    if (isViewingOtherUser) return;
+    if (!profileData) return;
     if (isEditing) {
+      console.log("💾 저장 시작:", {
+        hasProfileFile: !!profileData.profileFile,
+        profileFileName: profileData.profileFile?.name,
+        profileFileSize: profileData.profileFile?.size,
+        imageUrl: profileData.imageUrl,
+        imageId: profileData.imageId
+      });
       // 유효성 검사
       const inputName = profileData.name || "";
       const rawPhone = profileData.details.find((d: any) => d.id === "phone")?.value || "";
@@ -127,16 +155,23 @@ const ProfilePage = () => {
       if (inputName.length > 6) return alert("이름은 최대 6글자까지만 입력 가능합니다.");
       if (cleanPhone.length > 11) return alert("전화번호 형식이 올바르지 않습니다.");
 
+
       // 저장 요청
       saveProfile(
-        { profileData, initialIndexItemIds },
+        {
+          profileData,
+          initialIndexItemIds,
+          profileFile: profileData.profileFile
+        },
         {
           onSuccess: async () => {
-            // ★ 여기가 실행되어야 버튼이 바뀝니다.
-            setIsEditing(false);
             await refreshUser();
+            setIsEditing(false);
+          },
+          onError: (error) => {
+            console.error("💥 저장 실패:", error);
           }
-          // 실패 시에는 아무것도 안 하므로(onError에서 alert만 뜸) 버튼이 유지됨 -> 정상 동작
+
         }
       );
     } else {
@@ -146,9 +181,11 @@ const ProfilePage = () => {
 
   // 이력 수정(저장) 핸들러
   const handleSaveCareer = (updatedData: Career) => {
-    setAllCareers((prev) =>
-      prev.map((career) => (career.id === updatedData.id ? updatedData : career))
-    );
+    setAllCareers((prev) => {
+      return prev.map((career) =>
+        String(career.id) === String(updatedData.id) ? { ...updatedData } : career
+      );
+    });
   };
 
   const handleDeleteCareer = (id: string | number) => {
@@ -178,8 +215,9 @@ const ProfilePage = () => {
         isEditing={isEditing}
         isDetailsEmpty={isDetailsEmpty}
         data={profileData}
+        experienceIds={allCareers.map(c => c.id)}
         onDataChange={handleProfileChange}
-        onModeChange={handleModeChange}
+        onModeChange={handleModeChange}      
       />
 
       <ResumeSection
@@ -188,7 +226,9 @@ const ProfilePage = () => {
         setSortOrder={setSortOrder}
         onSave={handleSaveCareer}
         onDelete={handleDeleteCareer}
-        />
+        userName={user?.name}
+        documents={documents}
+      />
     </div>
   );
 }

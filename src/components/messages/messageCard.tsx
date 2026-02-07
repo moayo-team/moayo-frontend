@@ -1,3 +1,4 @@
+import { useOtherUserProfile } from "../../hooks/useOtherUserProfile";
 import type { ChatRoomSummary } from "../../types/message";
 
 type Props = {
@@ -8,8 +9,14 @@ type Props = {
 
 export default function ThreadListItem({ thread, active, onClick }: Props) {
   const textColor = active ? "text-[#25221D]" : "text-[#5F5749]";
+  const { data: OtherProfileResult } = useOtherUserProfile(thread.opponentUserId);
+  const displayName = OtherProfileResult
+		? OtherProfileResult.name
+		: thread
+		? `User #${thread.opponentUserId}`
+		: "-";
 
-  const title = `User #${thread.opponentUserId}`;
+  const title = displayName;
   const preview = thread.lastMessageContent ?? "";
   const unread = thread.hasUnread;
 

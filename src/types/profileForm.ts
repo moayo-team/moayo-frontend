@@ -1,3 +1,5 @@
+import type { InterestTag } from "./profile";
+
 //UI
 export type ProfileDetailFieldId = "school" | "major" | "email" | "phone";
 
@@ -19,18 +21,15 @@ export interface AdditionalDetailItem {
     fileObj?: File | null;
 }
 
-export interface ProfileTagItem {
-    id: number;
-    title: string;
-}
-
 export interface ProfileFormData {
     id: number | null;
     name: string;
-    profileImage: string;
+    profileImage: string;//미리보기용
+    imageUrl?: string; //서버 업로드용
+    imageId?: number | null;
     introduction: string;
-
-    tags: ProfileTagItem[];
+    profileFile?: File | null;
+    tags: InterestTag[];
     additionalDetails: AdditionalDetailItem[];
     details: ProfileDetailField[];
 }

@@ -1,9 +1,8 @@
-import axios, { AxiosError, type AxiosResponse } from 'axios';
-import type { BaseResponse } from '../types/profile';
+import axios, { AxiosError } from 'axios';
 
 export const apiClient = axios.create({
-  // base URL은 환경 변수에서 그대로 사용합니다 
-  baseURL: import.meta.env.VITE_API_BASE_URL + "/api/v1",
+  // base URL은 호스트만 사용하고 각 요청에서 /api/v1을 포함합니다
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -27,11 +26,12 @@ apiClient.interceptors.request.use(
 
 // 응답 인터셉터: BaseResponse의 isSuccess 체크 및 401 처리
 apiClient.interceptors.response.use(
-  (response: AxiosResponse<BaseResponse<any>>) => {
-    if (response.data && (response.data as any).isSuccess === false) {
+  (response) => {
+    // 200 OK지만 isSuccess: false일 경우
+    if (response.data && response.data.isSuccess === false) {
       const customError = new AxiosError(
-        response.data.message || "서버 내부 오류가 발생했습니다.",
-        response.data.code,
+        response.data.message || "서버 내부 오류",
+        response.data.code || "SERVER_ERROR",
         response.config,
         response.request,
         response
@@ -40,8 +40,8 @@ apiClient.interceptors.response.use(
     }
     return response;
   },
-  (error: AxiosError) => {
-    if ((error as any).response?.status === 401) {
+  (error) => {
+    if (error.response?.status === 401) {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('user');
     }

@@ -1,216 +1,269 @@
-// src/hooks/useChatRoom.ts
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatMessage } from "../types/message";
 import { apiClient } from "../lib/apiClient";
-import { StompChatClient } from "../lib/stompChatClient"; // ✅ 네가 올린 클래스 파일 경로로 맞춰
+
+import { Client, type IMessage, type StompSubscription } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 type ApiEnvelope<T> = {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  timestamp: string;
-  result: T;
-};
-
-type DebugState = {
-  roomId: number | null;
-  lastEvent: string;
-  lastError: string;
-  messageCount: number;
+	isSuccess: boolean;
+	code: string;
+	message: string;
+	timestamp?: string;
+	result: T;
 };
 
 type UseChatRoomOptions = {
-  roomId: number | null;
-  wsUrl?: string;
-  accessToken?: string;
+	roomId: number | null;
+	currentUserId?: number;
+	wsUrl?: string;
+	accessToken?: string;
 };
 
 export function useChatRoom({
-  roomId,
-  wsUrl = `${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_WS_ENDPOINT}`,
-  accessToken = localStorage.getItem("accessToken") ?? import.meta.env.VITE_MOAYO_ACCESS_TOKEN,
+	roomId,
+	currentUserId,
+	wsUrl = `${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080"}${
+		import.meta.env.VITE_WS_ENDPOINT ?? "/ws-chat"
+	}`,
+	accessToken =
+		localStorage.getItem("accessToken") ??
+		(import.meta.env.VITE_MOAYO_ACCESS_TOKEN as string | undefined)
 }: UseChatRoomOptions) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
+	const [messages, setMessages] = useState<ChatMessage[]>([]);
+	const [input, setInput] = useState("");
 
-  const [connected, setConnected] = useState(false);
-  const [debug, setDebug] = useState<DebugState>({
-    roomId,
-    lastEvent: "-",
-    lastError: "",
-    messageCount: 0,
-  });
+	const [connected, setConnected] = useState(false);
+	const [sending, setSending] = useState(false);
 
-  const clientRef = useRef<StompChatClient | null>(null);
+	const [meId, setMeId] = useState<number | null>(
+		typeof currentUserId === "number" && Number.isFinite(currentUserId)
+			? currentUserId
+			: null
+	);
 
-  // messages 길이 -> debug 동기화
-  useEffect(() => {
-    setDebug((d) => ({ ...d, messageCount: messages.length }));
-  }, [messages.length]);
+	const clientRef = useRef<Client | null>(null);
+	const subRef = useRef<StompSubscription | null>(null);
 
-  // ✅ 1) STOMP 클라이언트 생성 + 연결 (wsUrl/accessToken 바뀌면 재연결)
-  useEffect(() => {
-    setDebug((d) => ({ ...d, lastEvent: "stomp init...", lastError: "" }));
-    setConnected(false);
+	// 내 userId 세팅 (props 우선, 없으면 /users/me 호출)
+	useEffect(() => {
+		if (typeof currentUserId === "number" && Number.isFinite(currentUserId)) {
+			setMeId(currentUserId);
+			return;
+		}
+		let cancelled = false;
 
-    const client = new StompChatClient(wsUrl, {
-      onConnected: () => {
-        setConnected(true);
-        setDebug((d) => ({ ...d, lastEvent: "connected" }));
-      },
-      onDisconnected: () => {
-        setConnected(false);
-        setDebug((d) => ({ ...d, lastEvent: "disconnected" }));
-      },
-      onError: (e) => {
-        setConnected(false);
-        setDebug((d) => ({
-          ...d,
-          lastEvent: "stomp error",
-          lastError: String((e as any)?.message ?? e),
-        }));
-      },
-    });
+		const fetchMe = async () => {
+			try {
+				const res = await apiClient.get<
+					ApiEnvelope<{ id: number; email: string; name: string }>
+				>("/api/v1/users/me");
 
-    client.setAccessToken(accessToken);
-    client.connect();
+				const id = Number(res.data?.result?.id);
+				if (!Number.isFinite(id)) return;
 
-    clientRef.current = client;
+				if (!cancelled) {
+					setMeId(id);
+				}
+			} catch {
+				if (!cancelled) {
+					setMeId(null);
+				}
+			}
+		};
+		fetchMe();
 
-    return () => {
-      setDebug((d) => ({ ...d, lastEvent: "stomp cleanup..." }));
-      client.disconnect().catch((e) => {
-        setDebug((d) => ({
-          ...d,
-          lastEvent: "disconnect error",
-          lastError: String((e as any)?.message ?? e),
-        }));
-      });
-      clientRef.current = null;
-      setConnected(false);
-    };
-  }, [wsUrl, accessToken]);
+		return () => {
+			cancelled = true;
+		};
+	}, [currentUserId]);
 
-  // ✅ 2) roomId가 바뀌면: REST 히스토리 로드 + STOMP 구독
-  useEffect(() => {
-    const client = clientRef.current;
+	// STOMP 클라이언트 생성 + 연결
+	useEffect(() => {
+		setConnected(false);
 
-    if (!roomId) {
-      setDebug((d) => ({ ...d, roomId: null, lastEvent: "idle(no roomId)" }));
-      // 방이 없으면 구독 해제
-      client?.unsubscribe();
-      setMessages([]);
-      return;
-    }
+		const client = new Client({
+			webSocketFactory: () => new SockJS(wsUrl),
+			reconnectDelay: 3000,
+			connectHeaders: accessToken
+				? { Authorization: `Bearer ${accessToken}` }
+				: {},
+			debug: () => {},
+			onConnect: () => {
+				setConnected(true);
+			},
+			onDisconnect: () => {
+				setConnected(false);
+			}
+		});
 
-    setDebug((d) => ({ ...d, roomId, lastEvent: "room changed", lastError: "" }));
-    setMessages([]); // 선택: 방 바뀔 때 화면 초기화
+		clientRef.current = client;
+		client.activate();
 
-    let cancelled = false;
+		return () => {
+			try {
+				subRef.current?.unsubscribe();
+				subRef.current = null;
+			} catch {
+				// ignore
+			}
 
-    // (A) REST: 과거 메시지 조회
-    const fetchHistory = async () => {
-      try {
-        setDebug((d) => ({ ...d, lastEvent: "fetchHistory..." }));
+			client.deactivate().catch(() => {});
+			clientRef.current = null;
+			setConnected(false);
+		};
+	}, [wsUrl, accessToken]);
 
-        //http get요청
-        const res = await apiClient.get<ApiEnvelope<ChatMessage[]>>(
-          `/api/chat/rooms/${roomId}/messages`
-        );
+	// 과거 메시지 불러오기
+	const fetchHistory = useCallback(async () => {
+		if (!roomId) {
+			setMessages([]);
+			return;
+		}
 
-        const list = res.data.result ?? [];
-        // createdAt 오름차순 정렬
-        list.sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
+		try {
+			const res = await apiClient.get<ApiEnvelope<ChatMessage[]>>(
+				`/api/v1/chat/rooms/${roomId}/messages`
+			);
 
-        if (!cancelled) {
-          setMessages(list);
-          setDebug((d) => ({ ...d, lastEvent: `history loaded: ${list.length}` }));
-        }
-      } catch (e: any) {
-        if (!cancelled) {
-          setDebug((d) => ({
-            ...d,
-            lastEvent: "history error",
-            lastError: String(e?.message ?? e),
-          }));
-        }
-      }
-    };
+			const list = res.data.result ?? [];
+			list.sort(
+				(a, b) =>
+					new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+			);
+			setMessages(list);
+		} catch {
+			// 에러 나면 그냥 그대로 둠
+		}
+	}, [roomId]);
 
-    // (B) STOMP: 연결된 상태면 구독
-    // 연결이 아직 안 됐을 수 있으니 connected가 true일 때만 subscribe
-    if (connected && client) {
-      setDebug((d) => ({ ...d, lastEvent: `subscribe: ${roomId}` }));
+	// roomId 바뀔 때마다 히스토리 리로드
+	useEffect(() => {
+		if (!roomId) {
+			setMessages([]);
+			return;
+		}
 
-      client.subscribeRoom(String(roomId), (body) => {
-        // body가 배열/단건 둘 다 올 수 있게 방어
-        const incoming: ChatMessage[] = Array.isArray(body) ? body : [body];
+		setMessages([]);
+		fetchHistory();
+	}, [roomId, fetchHistory]);
 
-        setMessages((prev) => {
-          const map = new Map<number, ChatMessage>();
-          // 기존
-          for (const m of prev) map.set(m.id, m);
-          // 신규
-          for (const m of incoming) {
-            if (m && typeof m.id === "number") map.set(m.id, m);
-          }
+	// 방 구독 (실시간 수신)
+	useEffect(() => {
+		const client = clientRef.current;
+		if (!roomId) {
+			subRef.current?.unsubscribe();
+			subRef.current = null;
+			return;
+		}
+		if (!client || !connected) {
+			return;
+		}
 
-          const merged = Array.from(map.values());
-          merged.sort(
-            (a, b) =>
-              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-          return merged;
-        });
+		try {
+			subRef.current?.unsubscribe();
+		} catch {
+			// ignore
+		}
 
-        const lastId = Array.isArray(body) ? "array" : (body?.id ?? "?");
-        setDebug((d) => ({ ...d, lastEvent: `recv: ${lastId}` }));
-      });
-    } else {
-      setDebug((d) => ({ ...d, lastEvent: "waiting connection to subscribe..." }));
-    }
+		const topic = `/topic/chat/rooms/${roomId}`;
+		const sub = client.subscribe(topic, (msg: IMessage) => {
+			try {
+				const body = JSON.parse(msg.body) as ChatMessage;
+				setMessages((prev) => {
+					// messageId 중복이면 교체, 아니면 뒤에 추가
+					if (body.messageId != null) {
+						const exists = prev.some((m) => m.messageId === body.messageId);
+						if (exists) {
+							const replaced = prev.map((m) =>
+								m.messageId === body.messageId ? body : m
+							);
+							replaced.sort(
+								(a, b) =>
+									new Date(a.createdAt).getTime() -
+									new Date(b.createdAt).getTime()
+							);
+							return replaced;
+						}
+					}
 
-    fetchHistory();
+					const next = [...prev, body];
+					next.sort(
+						(a, b) =>
+							new Date(a.createdAt).getTime() -
+							new Date(b.createdAt).getTime()
+					);
+					return next;
+				});
+			} catch {
+				// parse 실패해도 그냥 무시
+			}
+		});
 
-    return () => {
-      cancelled = true;
-      client?.unsubscribe();
-    };
-  }, [roomId, connected]);
+		subRef.current = sub;
 
-  // ✅ 3) 전송
-  const send = () => {
-    const content = input.trim();
-    if (!content || !roomId) return;
+		return () => {
+			try {
+				subRef.current?.unsubscribe();
+				subRef.current = null;
+			} catch {
+				// ignore
+			}
+		};
+	}, [roomId, connected]);
 
-    const client = clientRef.current;
-    if (!client) {
-      setDebug((d) => ({ ...d, lastEvent: "send blocked(no client)" }));
-      return;
-    }
+	// 전송 로직 (낙관적 UI 없음)
+	const sendText = useCallback(
+		async (content: string, roomIdOverride?: number) => {
+			const text = content.trim();
+			const targetRoomId = roomIdOverride ?? roomId;
 
-    try {
-      client.publish(String(roomId), { content });
-      setDebug((d) => ({ ...d, lastEvent: "published" }));
-      setInput("");
-    } catch (e: any) {
-      setDebug((d) => ({
-        ...d,
-        lastEvent: "publish error",
-        lastError: String(e?.message ?? e),
-      }));
-    }
-  };
+			if (!text) return;
+			if (!targetRoomId) return;
+			if (sending) return;
 
-  return {
-    connected,
-    debug,
-    messages,
-    input,
-    setInput,
-    send,
-  };
+			setSending(true);
+
+			try {
+				const client = clientRef.current;
+				if (!client || !client.connected) {
+					console.warn("[CHAT] STOMP not connected");
+				}
+				const destination = `/app/chat/rooms/${targetRoomId}`;
+
+				client?.publish({
+					destination,
+					body: JSON.stringify({ content: text })
+				});
+			} catch (e) {
+				console.error("[CHAT] send error:", e);
+			} finally {
+				setSending(false);
+			}
+		},
+		[roomId, sending]
+	);
+
+	// 버튼/엔터에서 사용하는 send
+	const send = useCallback(async () => {
+		const text = input.trim();
+		if (!text) return;
+		if (!roomId) return;
+
+
+		setInput("");
+		await sendText(text, roomId);
+	}, [input, roomId, sendText]);
+
+	return {
+		connected,
+		sending,
+		meId,
+		messages,
+		input,
+		setInput,
+		send,
+		sendText,
+		refetchMessages: fetchHistory
+	};
 }

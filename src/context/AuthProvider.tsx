@@ -1,15 +1,17 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../api/client'; // apiClient 추가
-import type { User } from '../types/auth';
+import type { GetProfileResult } from '../types/profile';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AuthContextType {
-  user: User | null;  
+  user: GetProfileResult | null;
   isLoggedIn: boolean;
-  setUser: (user: User | null) => void;
+  setUser: (user: GetProfileResult | null) => void;
   setIsLoggedIn: (val: boolean) => void;
   login: () => void;
   logout: () => Promise<void>;
-  refreshUser: () => Promise<void>; 
+  refreshUser: () => Promise<void>;
+  completeLogin: (token: string) => Promise<void>;
 
 }
 
@@ -30,7 +32,9 @@ export const refreshTokenApi = async () => {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const queryClient = useQueryClient();  // ← 추가
+
+  const [user, setUser] = useState<GetProfileResult | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   
@@ -92,18 +96,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       })();
 
-      return; // URL 토큰 처리 시 아래 로직 건너뜀
-    }
-
+  useEffect(() => {
     // 2. 기존 로직 (새로고침 시 로컬 스토리지에서 복구)
     const savedUser = localStorage.getItem('user');
     const token = localStorage.getItem('accessToken');
+
 
     if (savedUser && token) {
       try {
         setUser(JSON.parse(savedUser));
         setIsLoggedIn(true);
         return; // 이미 로컬에서 복구했으면 추가 호출 불필요
+
       } catch (error) {
         console.error('Failed to parse saved user:', error);
         localStorage.removeItem('user');
@@ -143,7 +147,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // console.debug('No server session or failed to recover user from server:', err);ㅉㅉ
       }
     })();
-  }, []);
+
+    if (token) {
+      refreshUser();
+    }
+
+  }, [refreshUser]);
 
   const login = useCallback(() => {
     // 백엔드의 구글 인증 시작점으로 리다이렉트
@@ -151,6 +160,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 변경된 엔드포인트에 맞춰 리다이렉트
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/oauth/google`;
   }, []);
+
+  const completeLogin = useCallback(async (token: string) => {
+    try {
+      console.log("🔄 로그인 처리 시작...");
+
+      localStorage.setItem('accessToken', token);
+
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      const { data } = await apiClient.get('api/v1/profiles/me');
+      const userData: GetProfileResult = data.result;
+
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      setIsLoggedIn(true);
+
+      console.log('✅ 로그인 성공!');
+    } catch (error) {
+      console.error('❌ 로그인 처리 실패:', error);
+
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      setUser(null);
+      setIsLoggedIn(false);
+      throw error;
+    }
+  }, [setUser, setIsLoggedIn]);
 
   const logout = useCallback(async () => {
     try {
@@ -162,6 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('user');
       setUser(null);
       setIsLoggedIn(false);
+      queryClient.clear()
       window.location.href = '/';
     }
   }, []);
@@ -202,7 +239,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn, setUser, setIsLoggedIn, login, logout,refreshUser }}>
+    <AuthContext.Provider value={{ user, isLoggedIn, setUser, setIsLoggedIn, login, logout, refreshUser, completeLogin }}>
       {children}
     </AuthContext.Provider>
   );
