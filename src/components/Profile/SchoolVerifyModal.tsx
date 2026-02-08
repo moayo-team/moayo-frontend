@@ -4,6 +4,8 @@ import { deleteProfileDocument, getProfileDocuments, uploadProfileDocument } fro
 import { useEffect, useState } from "react";
 import type { ProfileDocument } from "../../types/profile";
 import { getExperienceFiles } from "../../api/profile/experiences";
+import { apiClient } from "../../api/client";
+import axios from "axios";
 
 interface ModalProps {
     isOpen: boolean;
@@ -12,9 +14,10 @@ interface ModalProps {
     onComplete: (files: File[]) => void;
     currentProfileImage?: string;
     experienceIds: number[];
+    documents?: ProfileDocument[];
 }
 
-const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProfileImage, experienceIds }: ModalProps) => {
+const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProfileImage, experienceIds, documents = [] }: ModalProps) => {
     const {
         selectedFiles,
         handleFileUpload,
@@ -42,13 +45,25 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
     };
 
     // 목록 조회 
-    const fetchDocuments = async () => {
+    const fetchAndFilterDocuments = async () => {
+        if (!isOpen) return;
+
+        // [핵심] 수정 모드가 아닐 때는 (타인 프로필 조회 시) 서버 요청 없이 받은 데이터 바로 사용
+        if (!isEditing) {
+            console.log("👤 타인 프로필 서류 표시 중:", documents);
+            // 프사 제외 필터링만 적용
+            const filtered = documents.filter(doc => doc.fileUrl !== currentProfileImage);
+            setUploadedDocuments(filtered);
+            return;
+        }
+
+        // [내 프로필 수정 모드] 일 때만 서버에서 최신 목록 가져옴
         try {
             setIsLoading(true);
             const response = await getProfileDocuments();
 
             if (response.isSuccess) {
-                // 모든 이력서에 연결된 파일 ID
+                // 이력서에 첨부된 파일들은 학력 서류 목록에서 제외하기 위해 ID 수집
                 const expFilesResults = await Promise.all(
                     experienceIds.map(id => getExperienceFiles(id))
                 );
@@ -56,16 +71,14 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                 const expFileIds = new Set(
                     expFilesResults.flatMap(res => {
                         const files = Array.isArray(res) ? res : (res.result || []);
-                        return files.map(f => f.fileId);
+                        return files.map((f: any) => f.fileId);
                     })
                 );
 
-
-                // 필터링 (프사 제외 + 이력서 파일 제외)
+                // 필터링: 프로필 사진 제외 + 이력서 첨부 파일 제외 = 순수 학력 증빙 서류
                 const onlyVerifyDocs = response.result.filter((doc: ProfileDocument) => {
                     const isNotProfileImg = doc.fileUrl !== currentProfileImage;
                     const isNotExpFile = !expFileIds.has(doc.id);
-
                     return isNotProfileImg && isNotExpFile;
                 });
 
@@ -78,9 +91,12 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
         }
     };
 
+    // 모달이 열릴 때마다 실행
     useEffect(() => {
-        if (isOpen) fetchDocuments();
-    }, [isOpen]);
+        if (isOpen) {
+            fetchAndFilterDocuments();
+        }
+    }, [isOpen, isEditing, documents]);
 
     // 서버 파일 삭제
     const handleDeleteServerFile = async (documentId: number) => {
@@ -119,12 +135,12 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
 
             if (allSuccess) {
                 alert(`${selectedFiles.length}개의 파일이 성공적으로 등록되었습니다.`);
-                await fetchDocuments();
+                await fetchAndFilterDocuments();
                 setSelectedFiles([]);
                 onComplete([]);
             } else {
                 alert("일부 파일 업로드에 실패했습니다. 목록을 확인해 주세요.");
-                await fetchDocuments();
+                await fetchAndFilterDocuments();
             }
         } catch (error) {
             alert("파일 업로드 중 오류가 발생했습니다.");
@@ -132,6 +148,46 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
             setIsUploading(false);
         }
     };
+
+    const openFileWithAuth = async (fileUrl: string) => {
+        const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+        const cleanPath = fileUrl.startsWith("/") ? fileUrl : `/${fileUrl}`;
+        const fullUrl = `${baseUrl}${cleanPath}`;
+
+        const newWindow = window.open("", "_blank");
+
+        try {
+            const response = await axios.get(fullUrl, {
+                responseType: "blob",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+                },
+            });
+
+            const contentType = response.headers["content-type"];
+            //  JSON 에러 응답 처리
+            if (contentType?.includes("application/json")) {
+                const text = await response.data.text();
+                const err = JSON.parse(text);
+
+                alert(err.message || "파일을 불러올 수 없습니다.");
+                newWindow?.close();
+                return;
+            }
+
+            const blobUrl = URL.createObjectURL(response.data);
+
+            if (newWindow) {
+                newWindow.location.href = blobUrl;
+            }
+        } catch (error: any) {
+            console.error("❌ 파일 열기 실패:", error);
+            newWindow?.close();
+            alert("파일을 열 수 없습니다.");
+        }
+    };
+
+
 
     if (!isOpen) return null;
 
@@ -157,6 +213,11 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                         <div className="space-y-3 w-full">
                             {isLoading && <div className="flex justify-center py-2"><Loader2 className="animate-spin text-[#6EEBC7]" /></div>}
 
+                            {!isEditing && !isLoading && uploadedDocuments.length === 0 && (
+                                <p className="text-sm text-gray-400 text-center">
+                                    등록된 증빙 서류가 없습니다.
+                                </p>
+                            )}
                             {/**서버에 이미 저장된 파일들 */}
                             {!isLoading && uploadedDocuments.map((doc) => (
                                 <div
@@ -165,12 +226,11 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                                     bg-[#E9FCF7] rounded-[15px]"
                                 >
                                     <span
-                                        onClick={() => {
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+
                                             if (!isEditing) {
-                                                const fullUrl = doc.fileUrl.startsWith('/')
-                                                    ? `${import.meta.env.VITE_API_BASE_URL}${doc.fileUrl}`
-                                                    : doc.fileUrl;
-                                                window.open(`${fullUrl}#toolbar=0`, '_blank', 'noopener,noreferrer');
+                                                await openFileWithAuth(doc.fileUrl);
                                             }
                                         }}
                                         className="cursor-pointer flex-1 text-[14px] sm:text-[16px] text-[#25221D] font-medium leading-[140%]">
@@ -225,14 +285,16 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                                 </div>
                             )}
                         </div>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            multiple
-                            accept=".pdf, image/*"
-                            onChange={(e) => handleFileSelection(e.target.files)}
-                        />
+                        {isEditing && (
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                multiple
+                                accept=".pdf, image/*"
+                                onChange={(e) => handleFileSelection(e.target.files)}
+                            />
+                        )}
                     </div>
 
                     {/**하단 버튼 */}

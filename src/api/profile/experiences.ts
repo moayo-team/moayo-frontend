@@ -196,3 +196,4 @@ export const getPublicExperienceDetail = async (experienceId: number) => {
     return response.data;
 };
 
+
