@@ -304,30 +304,65 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
 
     //다운로드/이동 핸들러
     const handleIconClick = (item: any) => {
-        const target = item.url || item.value;
-        if (!target) return;
+    
+    const targetUrl = item.type === 'file' 
+        ? (item.linkUrl || item.fileUrl || item.url || item.value)
+        : (item.linkUrl || item.url || item.value);
+    
+    if (!targetUrl) {
+        alert("URL을 찾을 수 없습니다.");
+        return;
+    }
 
-        if (item.type === 'file') {
-            const fullUrl = target.startsWith('/')
-                ? `${import.meta.env.VITE_API_BASE_URL}${target}`
-                : target;
-            const viewerWindow = window.open(fullUrl, '_blank', 'noopener,noreferrer');
+    let fullUrl: string;
 
-            if (!viewerWindow) {
-                alert("팝업 차단을 해제해주세요.");
-            }
-        } else if (item.type === 'link') {
-            const targetUrl = target.startsWith('http') ? target : `https://${target}`;
-            window.open(targetUrl, '_blank');
+    if (item.type === 'file') {
+        if (targetUrl.startsWith('http')) {
+            fullUrl = targetUrl;
+        } else {
+            const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+            const cleanPath = targetUrl.startsWith('/') ? targetUrl : `/${targetUrl}`;
+            fullUrl = `${baseUrl}${cleanPath}`;
         }
+        
+        // PDF 툴바 숨김
+        if (fullUrl.toLowerCase().endsWith('.pdf')) {
+            fullUrl += '#toolbar=0';
+        }
+    } else {
+        // 링크: http 프로토콜 추가
+        fullUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+        console.log("🔗 링크 Full URL:", fullUrl);
+    }
+
+    console.log("🌐 최종 URL:", fullUrl);
+    window.open(fullUrl, '_blank', 'noopener,noreferrer');
     };
 
     //기존 리스트 수정/삭제 로직
     const updateCustomField = (id: number | string, key: "label" | "value", val: string) => {
-        const updated = data.additionalDetails.map((item) =>
-            item.id === id ? { ...item, [key]: val } : item
-        );
-        onDataChange("additionalDetails", updated);
+        const updated = data.additionalDetails.map((item) => {
+        if (item.id !== id) return item;
+        
+        if (key === 'value' && item.type === 'link') {
+            return { 
+                ...item, 
+                value: val,
+                linkUrl: val,
+                url: val
+            };
+        }
+        
+        if (key === 'value' && item.type === 'file') {
+            return { 
+                ...item, 
+                value: val
+            };
+        }
+        
+        return { ...item, [key]: val };
+    });
+    onDataChange("additionalDetails", updated);
     };
 
 
@@ -536,6 +571,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                     {/* 커스텀 추가 정보 리스트 */}
                     {data.additionalDetails?.map((item: any) => {
                         if (isReadOnly && !item.value) return null;
+    console.log("📋 렌더링할 item:", item); // ✅ 추가
 
                         return (
                             <div key={item.id} className="flex items-center gap-[8px] h-[50px] lg:h-[56px] w-full animate-in fade-in slide-in-from-top-1">
