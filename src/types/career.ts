@@ -149,3 +149,6 @@ export interface DeleteLinkRequest {
 
 //링크 삭제 응답
 export type DeleteLinkReponse = BaseResponse<null>;
+
+//특정 사용자의 공개 이력 조회 응답
+export type PublicExperienceListResponse = BaseResponse<ExperienceSummary[]>;

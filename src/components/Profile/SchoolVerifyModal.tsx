@@ -170,7 +170,7 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                                                 const fullUrl = doc.fileUrl.startsWith('/')
                                                     ? `${import.meta.env.VITE_API_BASE_URL}${doc.fileUrl}`
                                                     : doc.fileUrl;
-                                                window.open(fullUrl, '_blank');
+                                                window.open(`${fullUrl}#toolbar=0`, '_blank', 'noopener,noreferrer');
                                             }
                                         }}
                                         className="cursor-pointer flex-1 text-[14px] sm:text-[16px] text-[#25221D] font-medium leading-[140%]">

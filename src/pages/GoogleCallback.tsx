@@ -9,18 +9,28 @@ export const GoogleCallback = () => {
   const { completeLogin } = useAuth();
   const [showModal, setShowModal] = useState(false);
 
+  const [isNewUser, setIsNewUser] = useState(false);//신규 유저 여부
+
   const isProcessed = useRef(false);//중복 방지
 
   useEffect(() => {
     if (isProcessed.current) return;
     const accessToken = searchParams.get('accessToken');
 
+    const isFirst = searchParams.get('isFirst');
+
     if (accessToken) {
       isProcessed.current = true;
+
       completeLogin(accessToken)
         .then(() => {
-          // 성공하면 모달 띄우기
-          setShowModal(true);
+          if (isFirst === 'true') {
+            // 신규 유저
+            navigate('/profile', { replace: true });
+          } else {
+            // 기존 유저
+            setShowModal(true);
+          }
         })
         .catch(() => {
           // 실패하면 로그인 화면으로
