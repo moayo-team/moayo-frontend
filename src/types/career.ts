@@ -152,3 +152,20 @@ export type DeleteLinkReponse = BaseResponse<null>;
 
 //특정 사용자의 공개 이력 조회 응답
 export type PublicExperienceListResponse = BaseResponse<ExperienceSummary[]>;
+
+//공개 이력 링크 조회 응답
+export interface PublicExperienceLink {
+  linkId: number;
+  title: string;
+  url: string;
+}
+
+export type GetPublicExperienceLinksResponse = BaseResponse<PublicExperienceLink[]>;
+
+//공개 이력 파일 조회 응답 
+export interface PublicExperienceFile {
+  fileId: number;
+  fileName: string;
+}
+
+export type GetPublicExperienceFilesResponse = BaseResponse<PublicExperienceFile[]>;

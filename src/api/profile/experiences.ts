@@ -178,11 +178,3 @@ export const getPublicExperienceFiles = async (experienceId: number) => {
     );
     return response.data;
 };
-
-//공개 이력 상세 조회
-export const getPublicExperienceDetail = async (experienceId: number) => {
-    const response = await apiClient.get<CareerDetailReponse>(
-        `/api/v1/experiences/public/${experienceId}`
-    );
-    return response.data;
-};
