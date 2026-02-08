@@ -110,7 +110,18 @@ export type UpdateInterestTagsResponse = BaseResponse<null>;
 
 /**추가 항목 관리*/
 //추가 항목 조회
-export type IndexItemListResponse = BaseResponse<IndexItem[]>
+export interface getIndexItemDetail {
+  id: number;
+  indexKey: string;
+  indexValue: string;
+  itemType: IndexItemType;
+  linkUrl: string | null;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileType?: string | null;
+  fileSize?: number | null;
+}
+export type IndexItemListResponse = BaseResponse<getIndexItemDetail[]>
 
 //추가 항목 수정/생성
 export interface IndexItemDetailData {
@@ -122,6 +133,7 @@ export interface IndexItemDetailData {
   fileType?: string | undefined;  
   fileName?: string | undefined;  
   fileSize?: number | undefined; 
+  fileObj?: File | null;
 }
 
 // 생성 API  
