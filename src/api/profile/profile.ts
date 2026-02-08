@@ -20,7 +20,6 @@ import type {
     OtherProfileResult
 } from "../../types/profile";
 import { apiClient } from "../client";
-import axiosInstance from "../axios";
 
 
 export const createProfile = async (profileData: CreateProfileRequest): Promise<ProfileCreateResponse> => {
@@ -56,11 +55,19 @@ export const getAllInterestTag = async (): Promise<AllInterestTagListResponse> =
     return response.data;
 };
 
+/**프로필 조회 (userId) */
+export const getProfileById = async (userId: string | number): Promise<ProfileResponse> => {
+  const response = await apiClient.get<ProfileResponse>(
+        `/api/v1/profiles/${userId}`
+  );
+  return response.data;
+};
+
 /**관심 태그 조회 */
 export const getInterestTags = async (): Promise<InterestTagListResponse> => {
     const response = await apiClient.get<InterestTagListResponse>("/api/v1/users/me/interest-tags");
 
-    return response.data;
+  return response.data;
 
 };
 
@@ -100,7 +107,7 @@ export const updateIndexItem = async (
         formData.append("file", file);
     }
 
-     console.log("📤 [UPDATE] FormData 내용:");  // ← UPDATE 표시 추가
+     console.log("📤 [UPDATE] FormData 내용:");  
     for (let pair of formData.entries()) {
         console.log(pair[0], pair[1]);
     }
@@ -132,7 +139,7 @@ export const createIndexItem = async (
         formData.append("file", file);
     }
 
-    console.log("📤 [CREATE] FormData 내용:");  // ← CREATE 표시 추가
+    console.log("📤 [CREATE] FormData 내용:");  
     for (let pair of formData.entries()) {
         console.log(pair[0], pair[1]);
     }
@@ -169,7 +176,7 @@ export const deleteIndexItem = async (itemId: number): Promise<DeleteIndexItemRe
     return response.data;
 };
 
-/**첨부파일 업로드 */
+/**첨부파일 업로드 (프사/ 학력파일/ 이력 파일)*/
 export const uploadProfileDocument = async (file: File): Promise<UploadDocumentResponse> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -185,12 +192,13 @@ export const uploadProfileDocument = async (file: File): Promise<UploadDocumentR
     );
     return response.data;
 };
-/**첨부 파일 조회 */
+
+/**첨부 파일 조회 (프사/ 학력파일/ 이력 파일)*/
 export const getProfileDocuments = async (): Promise<documentListResponse> => {
   const res = await apiClient.get<documentListResponse>("/api/v1/profiles/me/documents");
   return res.data;
 };
-/**첨부 파일 삭제 */
+/**첨부 파일 삭제 (프사/ 학력파일/ 이력 파일)*/
 export const deleteProfileDocument = async (
   documentId: number
 ): Promise<DeleteDocumentResponse> => {
@@ -204,9 +212,17 @@ export const deleteProfileDocument = async (
 export const getUserProfileById = async (
 	userId: number
 ): Promise<OtherProfileResult> => {
-	const response = await axiosInstance.get<OtherProfileResponse>(
-		`/profiles/${userId}`
+	const response = await apiClient.get<OtherProfileResponse>(
+		`/api/v1/profiles/${userId}`
 	);
+    
+    return response.data.result;
+};
 
-	return response.data.result;
+/**타인 프로필 조회 */
+export const getOtherProfile = async (userId: number): Promise<OtherProfileResponse> => {
+  const response = await apiClient.get<OtherProfileResponse>(
+    `/api/v1/profiles/${userId}`
+  );
+  return response.data;
 };

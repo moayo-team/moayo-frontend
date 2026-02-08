@@ -2,12 +2,15 @@ import type { JSX } from 'react';
 import { calculateDDay, isUrgent } from '../../utils/dateUtils';
 
 interface BadgeProps {
-  deadline: Date;
+  // 서버에서 계산된 D-Day 문자열이 있으면 우선 사용합니다 (예: 'D-3', 'D-Day', '종료').
+  dday?: string;
+  // deadline이 주어지면 클라이언트에서 D-Day를 계산합니다.
+  deadline?: Date | string;
 }
 
-export const Badge = ({ deadline }: BadgeProps): JSX.Element => {
-  const dDay = calculateDDay(deadline);
-  const urgent = isUrgent(deadline);
+export const Badge = ({ dday, deadline }: BadgeProps): JSX.Element => {
+  const dDay = dday ?? (deadline ? calculateDDay(deadline) : '');
+  const urgent = deadline ? isUrgent(deadline) : (typeof dday === 'string' && /D-?\d+|D-Day/.test(dday));
   
   return (
     <div className={`inline-flex px-2 py-[5px] self-stretch flex-[0_0_auto] ${

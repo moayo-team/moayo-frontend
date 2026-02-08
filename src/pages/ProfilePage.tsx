@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import ResumeSection from "../components/Resume/ResumeSection";
 import type { Career } from "../types/career";
@@ -6,7 +6,7 @@ import InfoSection from "../components/Profile/InfoSection";
 import { useAuth } from "../hooks/useAuth";
 
 // 커스텀 훅 Import
-import { useProfileData } from "../hooks/useProfileQueries";
+import { getOtherUserProfile, useProfileData, usePublicExperiences } from "../hooks/useProfileQueries";
 import { useProfileSave } from "../hooks/useProfileMutation";
 import type { ProfileFormData } from "../types/profileForm";
 
@@ -14,6 +14,9 @@ const ProfilePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
+  const viewedUserId = (location.state as { userId?: string | number } | null)?.userId;
+  const numericViewedUserId = viewedUserId !== undefined ? Number(viewedUserId) : undefined;
+  const isViewingOtherUser = Number.isFinite(numericViewedUserId);
 
   const [isEditing, setIsEditing] = useState(false);
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest">("latest");
@@ -24,29 +27,66 @@ const ProfilePage = () => {
 
   const isInitialized = useRef(false);
 
+  const { userId: urlUserId } = useParams(); // URL에서 전달된 ID
+  const { user: me } = useProfileData();
 
-  // 데이터 조회 훅
+  // 데이터 조회 훅(내ID 용)
   const {
     user, profile, tags, indexItems, isLoading, isError, documents,
     experiences,
   } = useProfileData();
 
+  // 내 프로필인지 타인 프로필인지 판단
+  const isMyProfile = useMemo(() => {
+    if (!urlUserId) return true;
+    return String(user?.id) === String(urlUserId);
+  }, [urlUserId, user?.id]);
 
-  // 데이터 저장 훅
+
+  //타인용
+  const { data: otherProfile, isLoading: isOtherLoading, isError: isOtherError } = getOtherUserProfile(isMyProfile ? null : Number(urlUserId));
+  const { experiences: publicExps, isLoading: isPublicExpLoading } = usePublicExperiences(isMyProfile ? null : Number(urlUserId));
+
+  const displayUser = useMemo(() => {
+    if (isMyProfile) return user;
+    if (!otherProfile) return null;
+    return {
+      id: otherProfile.userId,
+      name: otherProfile.name,
+      email: otherProfile.email,
+      phoneNumber: otherProfile.phoneNumber
+    };
+  }, [isMyProfile, user, otherProfile]);
+
+  const displayProfile = useMemo(() => {
+    if (isMyProfile) return profile;
+    if (!otherProfile) return null;
+    return {
+      id: 0,
+      imageUrl: otherProfile.imageUrl,
+      university: otherProfile.university,
+      major: otherProfile.major,
+      bio: otherProfile.bio
+    };
+  }, [isMyProfile, profile, otherProfile]);
+
+  const displayTags = isMyProfile ? tags : (otherProfile?.interestTags ?? []);
+  const displayIndexItems = isMyProfile ? indexItems : (otherProfile?.indexItems ?? []);
+  const displayExperiences = isMyProfile ? experiences : publicExps;
+  const displayDocuments = isMyProfile ? documents : (otherProfile ? documents : []);  // 데이터 저장 훅
   const { mutate: saveProfile, isPending: isSaving } = useProfileSave();
 
   // 서버 데이터 -> 로컬 상태 동기화
   useEffect(() => {
+    if (!displayUser) return;
 
-    if (!user) return;
-
-    const mappedTags = tags?.map((t) => ({
+    const mappedTags = displayTags?.map((t) => ({
       id: t.id,
       name: t.name,
     })) ?? [];
 
     const mappedItems =
-      indexItems?.map((i) => ({
+      displayIndexItems?.map((i) => ({
         id: i.id,
         label: i.indexKey,
         value: i.indexValue,
@@ -54,46 +94,52 @@ const ProfilePage = () => {
         fileObj: null,
       })) ?? [];
 
-    const matchedDoc = documents?.find(
+    const matchedDoc = displayDocuments?.find(
       (doc) => doc.fileUrl === profile?.imageUrl
     );
 
     setInitialIndexItemIds(mappedItems.map((i) => i.id));
 
     const formData: ProfileFormData = {
-      id: profile?.id ?? null,
-      name: user.name,
-      profileImage: profile?.imageUrl ?? "",
-      imageUrl: profile?.imageUrl ?? "",
+      id: displayProfile?.id ?? null,
+      name: displayUser.name,
+      profileImage: displayProfile?.imageUrl ?? "",
+      imageUrl: displayProfile?.imageUrl ?? "",
       imageId: matchedDoc?.id ?? null,
-      introduction: profile?.bio ?? "",
+      introduction: displayProfile?.bio ?? "",
 
       tags: mappedTags,
       additionalDetails: mappedItems,
 
       details: [
-        { id: "school", label: "학력", value: profile?.university ?? "" },
-        { id: "major", label: "학과", value: profile?.major ?? "" },
-        { id: "email", label: "이메일", value: user.email ?? "" },
-        { id: "phone", label: "전화번호", value: user.phoneNumber ?? "" },
+        { id: "school", label: "학력", value: displayProfile?.university ?? "" },
+        { id: "major", label: "학과", value: displayProfile?.major ?? "" },
+        { id: "email", label: "이메일", value: displayUser.email ?? "" },
+        { id: "phone", label: "전화번호", value: displayUser.phoneNumber ?? "" },
       ],
     };
 
     setProfileData(formData);
-  }, [user, profile, tags, indexItems]);
+
+  }, [displayUser, displayProfile, displayTags, displayIndexItems, displayDocuments]);
 
   //이력 동기화
   useEffect(() => {
-    if (experiences) {
-      setAllCareers(experiences);
+    if (displayExperiences) {
+      setAllCareers(displayExperiences);
     }
-  }, [experiences]);
+  }, [displayExperiences]);
 
   useEffect(() => {
     if (!user || isInitialized.current) return;
 
-    if (!profile?.id) setIsEditing(true);
-    else setIsEditing(false);
+    if (isViewingOtherUser) {
+      setIsEditing(false);
+    } else if (!profile?.id) {
+      setIsEditing(true);
+    } else {
+      setIsEditing(false);
+    }
 
     isInitialized.current = true;
   }, [user, profile]);
@@ -131,6 +177,7 @@ const ProfilePage = () => {
   }, []);
 
   const handleModeChange = () => {
+    if (isViewingOtherUser) return;
     if (!profileData) return;
     if (isEditing) {
       console.log("💾 저장 시작:", {
@@ -185,12 +232,17 @@ const ProfilePage = () => {
     setAllCareers((prev) => prev.filter((career) => career.id !== id));
   };
 
-  //  렌더링
-  if (isLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
-  if (isError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;
-  if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
-  if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
 
+  const isDataLoading = isLoading || (!isMyProfile && isOtherLoading);
+  if (isDataLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
+  //  렌더링
+  const resolvedIsLoading = isLoading || isOtherLoading || isPublicExpLoading;
+  const resolvedIsError = isError || isOtherError;
+  
+  if (resolvedIsLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
+  if (resolvedIsError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;
+  if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
+  if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
 
   return (
     <div className="flex flex-col gap-12 w-full">
@@ -206,21 +258,24 @@ const ProfilePage = () => {
 
       <InfoSection
         isEditing={isEditing}
+        isReadOnly={!isMyProfile}
         isDetailsEmpty={isDetailsEmpty}
         data={profileData}
         experienceIds={allCareers.map(c => c.id)}
         onDataChange={handleProfileChange}
-        onModeChange={handleModeChange}      
+        onModeChange={handleModeChange}
       />
 
       <ResumeSection
         carrers={allCareers}
+        isReadOnly={!isMyProfile}
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}
         onSave={handleSaveCareer}
         onDelete={handleDeleteCareer}
-        userName={user?.name}
-        documents={documents}
+        userName={displayUser?.name}
+        documents={displayDocuments}
+
       />
     </div>
   );

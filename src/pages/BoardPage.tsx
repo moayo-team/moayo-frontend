@@ -10,10 +10,11 @@ import menu from '../assets/menu.svg';
 import remove from '../assets/delete.svg';
 import leftarr from '../assets/leftarr.svg';
 import rightarr from '../assets/rightarr.svg';
+import profile_photo from '../assets/profile_photo.svg'
 
 export const BoardPage = (): JSX.Element => {
   const navigate = useNavigate();
-  const { isLoggedIn, login } = useAuth();
+  const { isLoggedIn, login, user } = useAuth();
   const {
     selectedJobFilters,
     currentPage,
@@ -24,6 +25,14 @@ export const BoardPage = (): JSX.Element => {
 
   const { data } = usePosts({ tags: selectedJobFilters, page: currentPage, pageSize: 10 });
   const totalPages = data?.totalPages || 5;
+
+  const profileImageUrl = user?.profile?.imageUrl;
+  const resolvedProfileImage =
+    profileImageUrl && profileImageUrl !== 'default_url'
+      ? (profileImageUrl.startsWith('http')
+          ? profileImageUrl
+          : `${import.meta.env.VITE_API_BASE_URL}${profileImageUrl}`)
+      : profile_photo;
   
   // Generate pagination pages array
   const getPaginationPages = () => {
@@ -73,18 +82,23 @@ export const BoardPage = (): JSX.Element => {
                     <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
                       <img
                         className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-full"
-                        alt="Profile picture of 김주연"
-                        src="https://ui-avatars.com/api/?name=김주연&background=E9FCEF&color=26E1AC&size=152"
+                        alt={`Profile picture of ${user?.user?.name || '사용자'}`}
+                        src={resolvedProfileImage}
+                        onError={(e) => {
+                          e.currentTarget.src = profile_photo;
+                        }}
                       />
                       <div className="flex flex-col w-full items-center gap-0.5">
                         <h2 className="relative mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
-                          김주연
+                          {user?.user?.name || '사용자'}
                         </h2>
-                        <div className="flex items-center justify-center gap-[11px]">
-                          <p className="relative w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap [font-style:var(--body-b2-300-font-style)]">
-                            디자이너
-                          </p>
-                        </div>
+                        {user?.profile?.major && (
+                          <div className="flex items-center justify-center gap-[11px]">
+                            <p className="relative w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap [font-style:var(--body-b2-300-font-style)]">
+                              {user.profile.major}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

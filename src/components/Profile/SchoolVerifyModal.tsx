@@ -44,6 +44,7 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
     // 목록 조회 
     const fetchDocuments = async () => {
         try {
+            setIsLoading(true);
             const response = await getProfileDocuments();
 
             if (response.isSuccess) {
@@ -53,13 +54,18 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                 );
 
                 const expFileIds = new Set(
-                    expFilesResults.flatMap(res => res.result?.map(f => f.fileId) || [])
+                    expFilesResults.flatMap(res => {
+                        const files = Array.isArray(res) ? res : (res.result || []);
+                        return files.map(f => f.fileId);
+                    })
                 );
+
 
                 // 필터링 (프사 제외 + 이력서 파일 제외)
                 const onlyVerifyDocs = response.result.filter((doc: ProfileDocument) => {
                     const isNotProfileImg = doc.fileUrl !== currentProfileImage;
                     const isNotExpFile = !expFileIds.has(doc.id);
+
                     return isNotProfileImg && isNotExpFile;
                 });
 
@@ -164,7 +170,7 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                                                 const fullUrl = doc.fileUrl.startsWith('/')
                                                     ? `${import.meta.env.VITE_API_BASE_URL}${doc.fileUrl}`
                                                     : doc.fileUrl;
-                                                window.open(fullUrl, '_blank');
+                                                window.open(`${fullUrl}#toolbar=0`, '_blank', 'noopener,noreferrer');
                                             }
                                         }}
                                         className="cursor-pointer flex-1 text-[14px] sm:text-[16px] text-[#25221D] font-medium leading-[140%]">
@@ -235,7 +241,7 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                             onClick={onClose}
                             className="px-6 py-2 bg-[#EFEEEB] text-[#5F5749] rounded-[10px] font-medium text-[14px] sm:text-[16px]"
                         >
-                            닫기    
+                            닫기
                         </button>
 
                         {isEditing && selectedFiles.length > 0 && (

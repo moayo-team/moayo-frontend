@@ -4,13 +4,30 @@
  * @returns D-Day string (e.g., "D-4", "D-Day", "종료")
  */
 export function calculateDDay(deadline: Date | string): string {
+  // Helper: parse input into a Date representing local midnight for that date.
+  const toLocalMidnight = (d: Date | string) => {
+    if (typeof d === 'string') {
+      // If string is in YYYY-MM-DD format, construct as local date to avoid
+      // UTC-based parsing which can shift the day across timezones.
+      const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) {
+        const y = Number(m[1]);
+        const mo = Number(m[2]) - 1;
+        const day = Number(m[3]);
+        const nd = new Date(y, mo, day);
+        nd.setHours(0, 0, 0, 0);
+        return nd;
+      }
+    }
+    const nd = new Date(d);
+    nd.setHours(0, 0, 0, 0);
+    return nd;
+  };
+
   // Get today's date at midnight (local time)
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  // Parse deadline and set to midnight (local time)
-  const deadlineDate = new Date(deadline);
-  deadlineDate.setHours(0, 0, 0, 0);
+  const today = toLocalMidnight(new Date());
+  // Parse deadline into local midnight
+  const deadlineDate = toLocalMidnight(deadline);
   
   // Calculate difference in days
   const diffTime = deadlineDate.getTime() - today.getTime();
@@ -38,12 +55,25 @@ export function calculateDDay(deadline: Date | string): string {
  * @returns true if urgent, false otherwise
  */
 export function isUrgent(deadline: Date | string): boolean {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const deadlineDate = new Date(deadline);
-  deadlineDate.setHours(0, 0, 0, 0);
-  
+  const toLocalMidnight = (d: Date | string) => {
+    if (typeof d === 'string') {
+      const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) {
+        const y = Number(m[1]);
+        const mo = Number(m[2]) - 1;
+        const day = Number(m[3]);
+        const nd = new Date(y, mo, day);
+        nd.setHours(0, 0, 0, 0);
+        return nd;
+      }
+    }
+    const nd = new Date(d);
+    nd.setHours(0, 0, 0, 0);
+    return nd;
+  };
+
+  const today = toLocalMidnight(new Date());
+  const deadlineDate = toLocalMidnight(deadline);
   const diffTime = deadlineDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
@@ -58,7 +88,19 @@ export function isUrgent(deadline: Date | string): boolean {
  */
 export function formatDateRange(startDate: Date | string, endDate: Date | string): string {
   const formatDate = (date: Date | string) => {
-    const d = new Date(date);
+    // ensure local date parsing for YYYY-MM-DD strings
+    let d: Date;
+    if (typeof date === 'string') {
+      const m = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) {
+        d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      } else {
+        d = new Date(date);
+      }
+    } else {
+      d = new Date(date);
+    }
+    d.setHours(0, 0, 0, 0);
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');

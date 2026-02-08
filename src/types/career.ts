@@ -103,11 +103,7 @@ export interface ExperienceFileResponse {
     fileName: string;
 }
 
-//파일 조회 요청
-export interface AttachFileRequest {
-    fileId: number;
-    fileName: string;
-}
+export type GetExperienceFilesResponse = BaseResponse<ExperienceFileResponse[]>;
 
 //파일 삭제 요청
 export interface DetachFileRequest {
@@ -118,7 +114,46 @@ export interface DetachFileRequest {
 //파일 삭제 응답
 export type DetachFileResponse = BaseResponse<null>;
 
+//링크 생성 요청
+export interface CreateExperienceLinkRequset {
+  title?: string;
+  url: string;
+}
+
+//링크 생성 응답
+export type CreateExperienceLinkResponse = BaseResponse<null>;
+
+//링크 조회 응답
+export interface ExperienceLink {
+  linkId: number;
+  title: string;
+  url: string;
+}
+
+export type GetExperienceLinksResponse = BaseResponse<ExperienceLink[]>
+
+//링크 수정 요청
+export interface UpdateExperienceLinkRequest {
+  title: string;
+  url: string;
+}
+
+//링크 수정 응답
+export type UpdateExperienceLinkResponse = BaseResponse<null>;
+
+//링크 삭제 요청
+export interface DeleteLinkRequest {
+  experienceId: number;
+  linkId: number;
+}
+
+//링크 삭제 응답
+export type DeleteLinkReponse = BaseResponse<null>;
+
+//특정 사용자의 공개 이력 조회 응답
+export type PublicExperienceListResponse = BaseResponse<ExperienceSummary[]>;
+
 //ai 초안 작성글
 export type DraftRequest = {
   prompt: string;
-};
+}

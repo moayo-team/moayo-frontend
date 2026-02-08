@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import defaultImage from "../../assets/profile_photo.svg"
+import defaultImage from "../../assets/default_profile.svg"
 import { FileText, ImageIcon, Paperclip, Pencil, Plus, X } from "lucide-react";
 import { formatPhoneNumber } from "../../utils/format";
 import { useUploadManager } from "../../hooks/useUploadManager";
@@ -12,6 +12,7 @@ import type { InterestTag } from "../../types/profile";
 
 interface ProfileDetailsProps {
     isEditing: boolean;
+    isReadOnly: boolean;
     isDetailsEmpty: boolean;
     data: ProfileFormData;
     experienceIds: number[];
@@ -29,7 +30,9 @@ interface ProfileDetailsProps {
     ) => void;
 }
 
-const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onDataChange }: ProfileDetailsProps) => {
+const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienceIds, onDataChange }: ProfileDetailsProps) => {
+    const canEdit = isEditing && !isReadOnly;
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isTagModalOpen, setIsTagModalOpen] = useState(false);
 
@@ -226,7 +229,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
             alert('JPG, PNG, GIF 형식의 이미지만 업로드 가능합니다.');
             return;
         }
-        
+
         const maxSize = 10 * 1024 * 1024; // 10MB
 
         let finalFile = file;
@@ -349,8 +352,14 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
         if (!target) return;
 
         if (item.type === 'file') {
-            const fullUrl = target.startsWith('/') ? `${import.meta.env.VITE_API_BASE_URL}${target}` : target;
-            window.open(fullUrl, '_blank');
+            const fullUrl = target.startsWith('/')
+                ? `${import.meta.env.VITE_API_BASE_URL}${target}`
+                : target;
+            const viewerWindow = window.open(fullUrl, '_blank', 'noopener,noreferrer');
+
+            if (!viewerWindow) {
+                alert("팝업 차단을 해제해주세요.");
+            }
         } else if (item.type === 'link') {
             const targetUrl = target.startsWith('http') ? target : `https://${target}`;
             window.open(targetUrl, '_blank');
@@ -452,27 +461,29 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                         onDragOver={handleProfileDragOver}
                         onDragLeave={handleProfileDragLeave}
                         onDrop={handleProfileDrop}
-                        onClick={isEditing ? () => {
-                            // profileUpload.setSelectedFiles([]);
+                        onClick={canEdit ? () => {
                             profileUpload.fileInputRef.current?.click();
                         } : undefined}
                         className={`relative flex justify-center items-center bg-[#FBFAF9]
                          ${isEditing ? "cursor-pointer" : "cursor-default"}`}
                     >
-                        <div className="w-[140px] h-[140px] lg:w-[160px] lg:h-[160px] rounded-full overflow-hidden">
+                        <div className="w-[140px] h-[140px] lg:w-[160px] lg:h-[160px] rounded-[10px] overflow-hidden">
                             <img
                                 src={getFullImageUrl(data.profileImage)}
                                 alt="프로필 이미지"
-                                className="w-full h-full object-cover"
+                                className={`w-full h-full rounded-[10px]
+                                    ${!data.profileImage ? "object-contain p-2" : "object-cover"}
+                                `}
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     if (target.src !== defaultImage) {
                                         target.src = defaultImage;
+                                        target.className = "w-full h-full object-contain p-2";
                                     }
                                 }}
                             />
                         </div>
-                        {isEditing && (
+                        {canEdit && (
                             <div className="absolute bottom-0 right-1 lg:right-2 flex w-[36px] h-[36px] 
                                     justify-center items-center rounded-full z-20 shadow-md
                                     bg-[#EFEEEB] border border-[#C2BBB0] text-[#C2BBB0]">
@@ -493,15 +504,15 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                     </div>
                     <div className="flex items-center justify-center relative w-fit mx-auto group">
                         <input
-                            readOnly={!isEditing}
+                            readOnly={!canEdit}
                             maxLength={6}
                             value={data.name}
                             onChange={(e) => onDataChange("name", e.target.value)}
-                            className="outline-none bg-transparent
+                            className={`outline-none bg-transparent
                             text-center self-stretch text-[#25221D] font-pretendard text-[20px] lg:text-[24px] font-bold leading-[130%] tracking-[-0.01em]
-                            w-full max-w-[120px]"
+                            w-full max-w-[120px] ${!canEdit ? "cursor-default" : "cursor-text"}`}
                         />
-                        {isEditing && (
+                        {canEdit && (
                             <div className="ml-1 shrink-0">
                                 <Pencil size={18} color="#C2BBB0" />
                             </div>
@@ -513,7 +524,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                     {/**디폴트 정보 */}
                     {fieldConfig.map((item) => {
                         // 편집 모드가 아닌데 값이 없으면 렌더링 스킵
-                        if (!isEditing && !item.value) return null;
+                        if (isReadOnly && !item.value) return null;
                         return (
                             <div
                                 key={item.id}
@@ -531,36 +542,39 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
 
                                     <input
                                         maxLength={item.max}
-                                        readOnly={item.id === "email" || !isEditing}
-                                        value={item.value || ""}
+                                        readOnly={item.id === "email" || !canEdit}
+                                        value={item.id === "phone" ? formatPhoneNumber(item.value || "") : (item.value || "")}
                                         onChange={(e) => {
                                             if (item.id === "email") return;
                                             handleBasicInfoChange(e, item.id, item.value || "")
                                         }}
                                         placeholder="입력해주세요."
-                                        className="w-full h-full outline-none font-pretendard text-[15px] lg:text-[16px]
-                                            placeholder:text-[#978B78] text-[#342F28] font-medium leading-[130%] bg-transparent"
+                                        className={`w-full h-full outline-none font-pretendard text-[15px] lg:text-[16px]
+                                            placeholder:text-[#978B78] text-[#342F28] font-medium leading-[130%] bg-transparent
+                                            ${!canEdit ? "cursor-default" : "cursor-text"}`}
                                     />
 
                                     {item.id === "school" ? (
-                                        <div className="flex items-center gap-2 shrink-0"> 
-                                            
-                                            <button
-                                                // 수정 모드일 때만 클릭 가능하게 설정
-                                                onDoubleClick={() => setIsModalOpen(true)}
-                                                className={`flex py-[4px] px-[8px] items-center gap-[4px] rounded-[8px] transition-colors shrink-0
+                                        (item.value || canEdit) && (
+                                            <div className="flex items-center gap-2 shrink-0">
+
+                                                <button
+                                                    // 수정 모드일 때만 클릭 가능하게 설정
+                                                    onDoubleClick={() => setIsModalOpen(true)}
+                                                    className={`flex py-[4px] px-[8px] items-center gap-[4px] rounded-[8px] transition-colors shrink-0
                                                 bg-[#E9FCF7] text-[#1BA07A]  cursor-pointer hover:opacity-80
                                                 `}
-                                            >
-                                                <Paperclip size={18} />
-                                                <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em] text-[#1BA07A]">
-                                                    첨부파일
-                                                </span>
-                                            </button>
-                                            {isEditing && <Pencil size={16} color="#C2BBB0" className="shrink-0" />}
-                                        </div>
+                                                >
+                                                    <Paperclip size={18} />
+                                                    <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em] text-[#1BA07A]">
+                                                        첨부파일
+                                                    </span>
+                                                </button>
+                                                {isEditing && <Pencil size={16} color="#C2BBB0" className="shrink-0" />}
+                                            </div>
+                                        )
                                     ) : (
-                                        isEditing && item.id !== "email" && (
+                                        canEdit && item.id !== "email" && (
                                             <Pencil size={16} color="#C2BBB0" />
                                         )
                                     )}
@@ -574,18 +588,18 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                         onClose={() => setIsModalOpen(false)}
                         onComplete={handleVerifyComplete}
                         currentProfileImage={data.imageUrl}
-                       experienceIds={experienceIds}
+                        experienceIds={experienceIds}
                     />
 
                     {/* 커스텀 추가 정보 리스트 */}
                     {data.additionalDetails?.map((item: any) => {
-                        if (!isEditing && !item.value) return null;
+                        if (isReadOnly && !item.value) return null;
 
                         return (
                             <div key={item.id} className="flex items-center gap-[8px] h-[50px] lg:h-[56px] w-full animate-in fade-in slide-in-from-top-1">
                                 <div className="flex w-[70px] lg:w-[85px] h-full justify-center items-center rounded-l-[10px] bg-[#E9FCF7] shrink-0">
                                     <input
-                                        readOnly={!isEditing}
+                                        readOnly={!canEdit}
                                         value={item.label}
                                         onChange={(e) => updateCustomField(item.id, 'label', e.target.value)}
                                         className={`bg-transparent w-full text-center outline-none text-[#423C33] font-medium text-[14px] lg:text-[16px] 
@@ -596,18 +610,18 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
 
                                     <div className="relative flex items-center w-full h-full">
                                         <input
-                                            readOnly={!isEditing}
+                                            readOnly={!canEdit}
                                             value={item.type === 'link' ? (item.url || item.value) : item.value}
                                             onChange={(e) => updateCustomField(item.id, 'value', e.target.value)}
                                             placeholder="내용을 입력해주세요."
                                             className={`w-full h-full outline-none text-[#25221D] text-[15px] lg:text-[16px] font-medium bg-transparent
-                                                ${isEditing ? "cursor-text pr-[30px]" : "cursor-default pr-[40px]"} 
+                                                ${!canEdit ? "cursor-default pr-[40px]" : "cursor-text pr-[30px]"} 
                                                 truncate`}
                                         />
 
                                         {/* 아이콘 영역 */}
                                         <div className="absolute right-0 flex items-center gap-1 shrink-0 bg-white/80 h-full pl-2">
-                                            {isEditing ? (
+                                            {canEdit ? (
                                                 <button
                                                     onClick={() => onDataChange("additionalDetails", data.additionalDetails.filter((d: any) => d.id !== item.id))}
                                                     className="p-1 text-[#7C7160] hover:text-red-500"
@@ -617,8 +631,8 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                                             ) : (
                                                 (item.type === 'file' || item.type === 'link') && (
                                                     <button
-                                                        onClick={() => !isEditing && handleIconClick(item)}
-                                                        className={`${isEditing ? "cursor-default opacity-30" : "cursor-pointer"} p-1 transition-opacity`}
+                                                        onClick={() => !canEdit && handleIconClick(item)}
+                                                        className={`${canEdit ? "cursor-default opacity-30" : "cursor-pointer"} p-1 transition-opacity`}
                                                     >
                                                         <Paperclip size={18} className="text-[#5F5749]" />
                                                     </button>
@@ -631,7 +645,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                     })}
 
                     {/* [+] 버튼 및 옵션창 */}
-                    {showPlusButton && (
+                    {canEdit && !isDetailsEmpty && (data.additionalDetails?.length || 0) < 4 && (
                         <div className="mt-2 w-full">
                             {!showAddOptions ? (
                                 <button
@@ -641,6 +655,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                                 >
                                     <Plus size={20} className="aspect-ratio shrink-0" color="#C2BBB0" />
                                 </button>
+
                             ) : (
                                 <div className="flex flex-col items-center w-full max-w-[720px] px-[20px] py-[30px] 
                                     shadow-sm animate-in fade-in zoom-in-95 gap-[16px]
@@ -806,7 +821,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                         {/* 태그 영역 클릭 시 모달 오픈 */}
                         <div
                             onClick={() => {
-                                if (isEditing) setIsTagModalOpen(true);
+                                if (canEdit) setIsTagModalOpen(true);
                             }}
                             className={`flex w-full justify-center min-h-[auto]
                                 ${isEditing
@@ -835,7 +850,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                                         >
                                             {tag.name}
 
-                                            {isEditing && (
+                                            {canEdit && (
                                                 <div
                                                     onClick={(e) => handleDeleteTag(tag.id, e)}
                                                     className="flex items-center justify-center w-[18px] h-[18px] 
@@ -848,17 +863,17 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                                     ))}
                                 </div>
                             ) : (
-                                <>
+                                isReadOnly && (
                                     <div className="flex flex-col md:flex-row gap-[12px] items-center text-center">
                                         <img
                                             src={MascotIcon}
                                             className="w-[40px] lg:w-[50px] h-auto"
                                         />
                                         <span className="text-[#7C7160] font-pretendard text-[14px] lg:text-[16px] font-medium ">
-                                            {getDisplayName(data.name)}님의 관심사를 알려주세요!
+                                            {data.name}님의 관심사를 알려주세요!
                                         </span>
                                     </div>
-                                </>
+                                )
                             )}
                         </div>
                     </div>
@@ -875,12 +890,12 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                             <span className="text-[#423C33] font-pretendard text-[18px] lg:text-[20px] font-semibold leading0[130%]">
                                 자기소개
                             </span>
-                            {isEditing && <Pencil size={18} color="#C2BBB0" />}
+                            {canEdit && <Pencil size={18} color="#C2BBB0" />}
                         </div>
                         <div className="relative w-full">
                             <textarea
-                                readOnly={!isEditing}
-                                value={data.introduction || ""}
+                                readOnly={!canEdit}
+                                value={isReadOnly && !data.introduction ? "등록된 자기소개가 없습니다." : (data.introduction || "")}
                                 maxLength={500}
                                 onChange={(e) => onDataChange("introduction", e.target.value)}
                                 placeholder="입력해주세요."
@@ -892,7 +907,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, experienceIds, onData
                                         : "cursor-default"
                                     }`}
                             />
-                            {isEditing && (
+                            {canEdit && (
                                 <div className="absolute bottom-3 right-4 flex items-center">
                                     <span className={`font-pretendard text-[12px] font-medium 
                                     ${(data.introduction?.length || 0) >= 500 ? "text-red-500" : "text-[#978B78]"}`}>
