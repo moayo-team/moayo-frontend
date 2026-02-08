@@ -163,6 +163,7 @@ export const getPublicExperiences = async (targetUserId: number): Promise<Public
   return response.data;
 };
 
+//ai 초안 작성
 export async function createAIDraft(experienceId: number, body: DraftRequest) {
   const res = await apiClient.post<BaseResponse<CreateExperienceRequest>>(
     `/api/v1/experiences/${experienceId}/ai/draft`,
@@ -170,3 +171,28 @@ export async function createAIDraft(experienceId: number, body: DraftRequest) {
   );
   return res.data;
 }
+
+//공개 이력 링크 조회
+export const getPublicExperienceLinks = async (experienceId: number) => {
+    const response = await apiClient.get<GetExperienceLinksResponse>(
+        `/api/v1/experiences/public/${experienceId}/attachments/links`
+    );
+    return response.data;
+};
+
+//공개 이력 파일 조회
+export const getPublicExperienceFiles = async (experienceId: number) => {
+    const response = await apiClient.get<GetExperienceFilesResponse>(
+        `/api/v1/experiences/public/${experienceId}/attachments/files`
+    );
+    return response.data;
+};
+
+//공개 이력 상세 조회
+export const getPublicExperienceDetail = async (experienceId: number) => {
+    const response = await apiClient.get<CareerDetailReponse>(
+        `/api/v1/experiences/public/${experienceId}`
+    );
+    return response.data;
+};
+

@@ -28,6 +28,23 @@ const InfoSection = ({ isEditing, isReadOnly = false, isDetailsEmpty, data, expe
         if (isEditing) return "저장하기";
         return "수정하기";
     };
+
+    const handleButtonClick = () => {
+        if (isEditing) {
+            // 필수 항목 체크
+            const school = data.details.find(d => d.id === "school")?.value?.trim();
+            const major = data.details.find(d => d.id === "major")?.value?.trim();
+            const intro = data.introduction?.trim();
+
+            if (!school || !major || !intro) {
+                alert("학력, 학과, 자기소개는 모두 필수 입력 항목입니다.");
+                return; 
+            }
+        }
+
+        // 문제 없으면 모드 전환
+        onModeChange();
+    };
     return (
         <>
             <div className="flex flex-col w-full gap-[30px] pt-8">
@@ -41,9 +58,7 @@ const InfoSection = ({ isEditing, isReadOnly = false, isDetailsEmpty, data, expe
                     {!isReadOnly && (
                         <div className="flex justify-end items-center">
                             <button
-                                onClick={() => {
-                                    onModeChange();
-                                }}
+                                onClick={handleButtonClick}
                                 className={`flex w-[100px] sm:w-[120px] h-[44px] sm:h-[48px] justify-center items-center rounded-[10px] transition-colors
                                     ${isEditing ? "bg-[#6EEBC7] text-[#25221D]" : "bg-[#EFEEEB] text-[#5F5749]"} 
                                 `}

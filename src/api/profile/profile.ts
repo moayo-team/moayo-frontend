@@ -57,17 +57,17 @@ export const getAllInterestTag = async (): Promise<AllInterestTagListResponse> =
 
 /**프로필 조회 (userId) */
 export const getProfileById = async (userId: string | number): Promise<ProfileResponse> => {
-  const response = await apiClient.get<ProfileResponse>(
+    const response = await apiClient.get<ProfileResponse>(
         `/api/v1/profiles/${userId}`
-  );
-  return response.data;
+    );
+    return response.data;
 };
 
 /**관심 태그 조회 */
 export const getInterestTags = async (): Promise<InterestTagListResponse> => {
     const response = await apiClient.get<InterestTagListResponse>("/api/v1/users/me/interest-tags");
 
-  return response.data;
+    return response.data;
 
 };
 
@@ -107,7 +107,7 @@ export const updateIndexItem = async (
         formData.append("file", file);
     }
 
-     console.log("📤 [UPDATE] FormData 내용:");  
+    console.log("📤 [UPDATE] FormData 내용:");
     for (let pair of formData.entries()) {
         console.log(pair[0], pair[1]);
     }
@@ -116,7 +116,7 @@ export const updateIndexItem = async (
         formData,
         {
             headers: {
-                "Content-Type": "multipart/form-data" 
+                "Content-Type": "multipart/form-data"
             },
         }
     );
@@ -124,25 +124,37 @@ export const updateIndexItem = async (
     return response.data;
 };
 
-
-/**추가 항목 생성 */
 export const createIndexItem = async (
     detailData: IndexItemDetailData,
     file?: File | null
 ): Promise<CreateIndexItemResponse> => {
     const formData = new FormData();
 
+    const jsonString = JSON.stringify(detailData);
+    console.log("📝 [1. JSON 데이터]:", jsonString);
+
     formData.append("data", JSON.stringify(detailData));
 
     if (file) {
-        console.log("📎 파일 추가:", file.name, file.type, file.size);
-        formData.append("file", file);
+        console.log("📎 [2. 파일 정보]:", {
+            name: file.name,
+            type: file.type,
+            size: `${(file.size / 1024).toFixed(2)} KB`,
+            isActualFile: file instanceof File
+        }); formData.append("file", file);
+    } else {
+        console.log("📎 [2. 파일 정보]: 첨부된 파일 없음");
     }
 
-    console.log("📤 [CREATE] FormData 내용:");  
-    for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
+    console.group("📤 [3. 서버로 날아가는 FormData 최종 체크]");
+    for (let [key, value] of formData.entries()) {
+        if (key === "data") {
+            console.log(`🔑 Key: ${key} | 📄 Value:`, value);
+        } else {
+            console.log(`🔑 Key: ${key} | 📁 Value:`, value instanceof File ? `File: ${value.name}` : value);
+        }
     }
+    console.groupEnd();
 
     try {
         const response = await apiClient.post<CreateIndexItemResponse>(
@@ -150,23 +162,19 @@ export const createIndexItem = async (
             formData,
             { headers: { "Content-Type": "multipart/form-data" } }
         );
-        
-        console.log("✅ createIndexItem 성공:", response.data);
+
+        console.log("✨ [RESULT] 서버 응답 성공:", response.data);
         return response.data;
     } catch (error: any) {
-        console.error("❌ [CREATE] 실패:", {
-            status: error.response?.status,
-            data: error.response?.data,
-        });
-        
+        console.error("💥 [RESULT] 서버 응답 실패:", error.response?.data || error.message);
+
         if (error.response?.data) {
             console.error("📋 [CREATE] 에러 상세:", JSON.stringify(error.response.data, null, 2));
         }
-        
+
         throw error;
     }
 };
-
 /** 추가 항목 삭제 */
 export const deleteIndexItem = async (itemId: number): Promise<DeleteIndexItemResponse> => {
     const response = await apiClient.delete<DeleteIndexItemResponse>(
@@ -195,34 +203,34 @@ export const uploadProfileDocument = async (file: File): Promise<UploadDocumentR
 
 /**첨부 파일 조회 (프사/ 학력파일/ 이력 파일)*/
 export const getProfileDocuments = async (): Promise<documentListResponse> => {
-  const res = await apiClient.get<documentListResponse>("/api/v1/profiles/me/documents");
-  return res.data;
+    const res = await apiClient.get<documentListResponse>("/api/v1/profiles/me/documents");
+    return res.data;
 };
 /**첨부 파일 삭제 (프사/ 학력파일/ 이력 파일)*/
 export const deleteProfileDocument = async (
-  documentId: number
+    documentId: number
 ): Promise<DeleteDocumentResponse> => {
-  const res = await apiClient.delete<DeleteDocumentResponse>(
-    `/api/v1/profiles/me/documents/${documentId}`
-  );
-  return res.data;
+    const res = await apiClient.delete<DeleteDocumentResponse>(
+        `/api/v1/profiles/me/documents/${documentId}`
+    );
+    return res.data;
 };
 
 // 타인 프로필 조회(GET) API 
 export const getUserProfileById = async (
-	userId: number
+    userId: number
 ): Promise<OtherProfileResult> => {
-	const response = await apiClient.get<OtherProfileResponse>(
-		`/api/v1/profiles/${userId}`
-	);
-    
+    const response = await apiClient.get<OtherProfileResponse>(
+        `/api/v1/profiles/${userId}`
+    );
+
     return response.data.result;
 };
 
 /**타인 프로필 조회 */
 export const getOtherProfile = async (userId: number): Promise<OtherProfileResponse> => {
-  const response = await apiClient.get<OtherProfileResponse>(
-    `/api/v1/profiles/${userId}`
-  );
-  return response.data;
+    const response = await apiClient.get<OtherProfileResponse>(
+        `/api/v1/profiles/${userId}`
+    );
+    return response.data;
 };

@@ -74,15 +74,22 @@ export default function HomePage(): JSX.Element {
       myName
     )}&background=E9FCEF&color=26E1AC&size=152`;
   }, [user, myName]);
+  
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
-    if (!isToastVisible) return;
-    const t = setTimeout(() => setIsToastVisible(false), 1200);
-    return () => clearTimeout(t);
-  }, [isToastVisible]);
+    console.log("[HOME] effect fired", { isLoggedIn, userId: user?.user?.id });
 
-  useEffect(() => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) {
+      console.log("[HOME] effect return: not logged in", { isLoggedIn });
+      return;
+    }
+
+    if (fetchedRef.current) {
+      console.log("[HOME] skip: already fetched");
+      return;
+    }
+    fetchedRef.current = true;
 
     let mounted = true;
 
@@ -92,28 +99,27 @@ export default function HomePage(): JSX.Element {
 
       try {
         const { apiClient } = await import("../api/client");
-        const { data } = await apiClient.get<BaseResponse<HomeResult>>(
-          "/api/v1/home"
-        );
+        console.log("HOME params userId=", user?.user?.id);
+        const { data } = await apiClient.get<BaseResponse<HomeResult>>("/api/v1/home");
+
+        console.log("HOME data=", data);
 
         if (!mounted) return;
 
         if (!data?.isSuccess) {
           setHomeData(null);
-          setHomeError(
-            `${data?.message ?? "서버 오류"} (${data?.code ?? "UNKNOWN"})`
-          );
-          return;
-        }
-
-        if (!data.result) {
-          setHomeData(null);
-          setHomeError("홈 데이터가 비어있습니다. (result=null)");
+          setHomeError(`${data?.message ?? "서버 오류"} (${data?.code ?? "UNKNOWN"})`);
           return;
         }
 
         setHomeData(data.result);
       } catch (e: any) {
+        console.log("[HOME] request error raw=", e);
+        console.log("[HOME] status=", e?.response?.status);
+        console.log("[HOME] data=", e?.response?.data);
+        console.log("[HOME] headers=", e?.response?.headers);
+        console.log("[HOME] config=", e?.config);
+
         if (!mounted) return;
         setHomeData(null);
         setHomeError(e?.message ?? "홈 데이터 로드 실패");
@@ -121,11 +127,13 @@ export default function HomePage(): JSX.Element {
         if (mounted) setHomeLoading(false);
       }
     })();
+    
 
     return () => {
       mounted = false;
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, user?.user?.id]); // userId도 같이 넣는 편이 안전
+
 
   const imminentPosts = homeData?.imminentPosts ?? [];
   const recommendedUsers = homeData?.recommendedUsers ?? [];
@@ -347,27 +355,27 @@ export default function HomePage(): JSX.Element {
                 imminentPosts.slice(0, 3).map((p) => (
                   <article
                     key={p.postId}
-                    className="w-full rounded-[10px] border border-[#ECE7DF] bg-white p-4 flex items-center gap-4 cursor-pointer hover:bg-[#F7F6F3]"
+                    className="w-full rounded-[14px] bg-[#F7F6F3] p-4 sm:p-5 flex items-center gap-4 cursor-pointer hover:opacity-95 transition"
                     onClick={() => navigate(`/board/${p.postId}`)}
                   >
-                    <div className="w-[92px] h-[62px] rounded-[8px] bg-[#F2F2F2] border border-[#EEE]" />
+                    <div className="w-[86px] h-[86px] rounded-[14px] bg-[#E9E6E1] shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-[#342F28] truncate">
-                        {p.title}
-                      </div>
-                      <div className="text-[13px] text-[#7A7368] mt-1">
-                        {p.categoryLabel}
-                      </div>
-                      <div className="mt-2 inline-flex items-center gap-2">
-                        <span className="text-[12px] px-2 py-0.5 rounded-full bg-[#F7F6F3] border border-[#ECE7DF] text-[#7A7368]">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-[16px] sm:text-[18px] font-semibold text-[#2E2A25] truncate">
+                            {p.title}
+                          </div>
+                          <div className="mt-1 text-[13px] sm:text-[14px] text-[#6F6A61]">
+                            {p.categoryLabel}
+                            {p.role ? ` · ${p.role}` : ""}
+                          </div>
+                        </div>
+                        <span className="shrink-0 rounded-[10px] bg-[#ECE9E4] px-3 py-1 text-[12px] font-semibold text-[#6F6A61]">
                           {p.dday}
-                        </span>
-                        <span className="text-[12px] px-2 py-0.5 rounded-full bg-[#F7F6F3] border border-[#ECE7DF] text-[#7A7368]">
-                          {p.role}
                         </span>
                       </div>
                     </div>
-                    <div className="text-[#9A948A] text-xl">›</div>
+                    <div className="text-[#8D877E] text-[22px] leading-none shrink-0">›</div>
                   </article>
                 ))
               )}

@@ -180,13 +180,6 @@ const ProfilePage = () => {
     if (isViewingOtherUser) return;
     if (!profileData) return;
     if (isEditing) {
-      console.log("💾 저장 시작:", {
-        hasProfileFile: !!profileData.profileFile,
-        profileFileName: profileData.profileFile?.name,
-        profileFileSize: profileData.profileFile?.size,
-        imageUrl: profileData.imageUrl,
-        imageId: profileData.imageId
-      });
       // 유효성 검사
       const inputName = profileData.name || "";
       const rawPhone = profileData.details.find((d: any) => d.id === "phone")?.value || "";

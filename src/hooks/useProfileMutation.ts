@@ -108,9 +108,9 @@ export const useProfileSave = () => {
                     name: profileData.name,
                     phoneNumber: rawPhone.replace(/-/g, ""),
                     imageUrl: finalImageUrl,
-                    university: getValueOrUndefined("school"),
-                    major: getValueOrUndefined("major"),
-                    email: getValueOrUndefined("email"),
+                    university: getValueOrUndefined("school")?? "",
+                    major: getValueOrUndefined("major")?? "",
+                    email: getValueOrUndefined("email")|| "",
                     bio: profileData.introduction,
                 };
 
@@ -155,28 +155,19 @@ export const useProfileSave = () => {
                         if (!item.value || item.value.trim() === "") return;
                         if (!item.label || item.label.trim() === "") return;
 
-                        let cleanFileType = null;
-                        if (item.type === "file" && item.fileType) {
-                            cleanFileType = item.fileType.includes('/')
-                                ? item.fileType.split('/')[1]
-                                : item.fileType;
-                        }
+                        // File 객체
+                        const fileToSend = item.fileObj instanceof File
+                            ? item.fileObj
+                            : item.fileObj?.fileObj;
 
                         const detailData = {
                             indexKey: item.label,
                             indexValue: String(item.value).substring(0, 20),
                             itemType: item.type,
-                            linkUrl: item.type === "link" ? (item.url || item.value) : null,
-                            fileUrl: item.type === "file" && item.url ? item.url : null,
-                            fileType: item.type === "file" ? cleanFileType : null,
-                            fileName: item.type === "file" ? item.value : null,  // value에 파일명이 들어있음
-                            fileSize: item.type === "file" ? (item.fileSize || 0) : null
+                            linkUrl: item.type === "link" ? (item.url || item.value) : null
                         };
-                        console.log("📤 전송 데이터 확인:", detailData);
 
-                        const fileToSend = item.type === "file" && item.fileObj ? item.fileObj : null;
-                        console.log("📎 전송할 파일:", fileToSend);
-
+                        console.log("📎 진짜 전송할 파일 객체:", fileToSend);
                         if (typeof item.id === "number") {
                             promises.push(updateIndexItem(item.id, detailData, fileToSend));
                         } else {
@@ -330,8 +321,8 @@ export const useExperienceFileDelete = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ experienceId, fileId }: { experienceId: number; fileId: number }) => 
-            deleteExperienceFile(experienceId, fileId), 
+        mutationFn: ({ experienceId, fileId }: { experienceId: number; fileId: number }) =>
+            deleteExperienceFile(experienceId, fileId),
 
         onSuccess: (_, variables) => {
             // 파일 목록 UI 갱신

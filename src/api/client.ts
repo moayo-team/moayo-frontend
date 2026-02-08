@@ -32,7 +32,7 @@ const requestTokenRefresh = async () => {
 };
 
 // 요청 인터셉터: 모든 요청에 저장된 액세스 토큰 삽입
-apiClient.interceptors.request.use(
+{/*apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken'); 
     if (token && config.headers) {
@@ -43,11 +43,45 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => Promise.reject(error)
-);
+);*/}
+
+apiClient.interceptors.request.use((config) => {
+  const raw = localStorage.getItem("accessToken");
+
+  // headers 객체 보장
+  config.headers = config.headers ?? {};
+
+  if (!raw) {
+    // ✅ 토큰 없으면 Authorization 키 자체를 제거
+    delete (config.headers as any).Authorization;
+    return config;
+  }
+
+  let token = raw;
+  try { token = JSON.parse(raw); } catch {}
+
+  // ✅ Bearer 중복 제거
+  token = String(token).replace(/^Bearer\s+/i, "").trim();
+
+  if (token) {
+    (config.headers as any).Authorization = `Bearer ${token}`;
+  } else {
+    delete (config.headers as any).Authorization;
+  }
+
+  return config;
+});
+
+
 
 // 응답 인터셉터: BaseResponse의 isSuccess 체크 및 401 처리
 apiClient.interceptors.response.use(
   (response) => {
+    if (response.config.url?.includes("/api/v1/home")) {
+      console.log("[HOME][INTERCEPT] status=", response.status);
+      console.log("[HOME][INTERCEPT] data=", response.data);
+      console.log("[HOME][INTERCEPT] auth sent=", response.config.headers?.Authorization);
+    }
     // 200 OK지만 isSuccess: false일 경우
     if (response.data && response.data.isSuccess === false) {
       const customError = new AxiosError(
@@ -84,11 +118,32 @@ apiClient.interceptors.response.use(
       }
     }
 
-    if (error.response?.status === 401) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
+    if (error.response?.status === 401 && !originalRequest?._retry) {
+      originalRequest._retry = true;
+      try {
+        const newToken = await requestTokenRefresh();
+        originalRequest.headers = originalRequest.headers ?? {};
+        setAuthHeader(originalRequest.headers, newToken);
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+        return Promise.reject(refreshError);
+      }
     }
     console.error('API Error:', error);
     return Promise.reject(error);
   }
 );
+
+const setAuthHeader = (headers: any, token?: string | null) => {
+  if (!headers) return;
+  if (!token) {
+    delete headers.Authorization;
+    return;
+  }
+  const t = String(token).replace(/^Bearer\s+/i, "").trim();
+  if (t) headers.Authorization = `Bearer ${t}`;
+  else delete headers.Authorization;
+};
+
