@@ -490,7 +490,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                             if (item.id === "email") return;
                                             handleBasicInfoChange(e, item.id, item.value || "")
                                         }}
-                                        placeholder="입력해주세요."
+                                        placeholder={item.id === "school" || item.id === "major" ? "필수 입력 항목입니다." : "입력해주세요."}
                                         className={`w-full h-full outline-none font-pretendard text-[15px] lg:text-[16px]
                                             placeholder:text-[#978B78] text-[#342F28] font-medium leading-[130%] bg-transparent
                                             ${!canEdit ? "cursor-default" : "cursor-text"}`}
@@ -840,7 +840,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                 value={isReadOnly && !data.introduction ? "등록된 자기소개가 없습니다." : (data.introduction || "")}
                                 maxLength={500}
                                 onChange={(e) => onDataChange("introduction", e.target.value)}
-                                placeholder="입력해주세요."
+                                placeholder="자기소개는 필수 입력 입니다."
                                 className={`flex flex-col items-start gap-[10px] shrink-0 w-full h-[140px] lg:h-[180px] px-[15px] py-[20px]
                                 bg-transparent rounded-[10px] border-[#D9D5CE] border placeholder:text-[#D9D5CE] text-[#342F28]
                                 outline-none resize-none font-pretendard text-[16px] md:text-[18px] 

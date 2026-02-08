@@ -4,11 +4,11 @@ import { useUploadManager, type LinkItem } from "../../hooks/useUploadManager";
 import { FileText, X } from "lucide-react";
 import type { AttachedFile, Career, ExperienceLink, UpdateExperienceRequest } from "../../types/career";
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod } from "../../utils/format";
-import { useExperienceDetail, useExperienceFiles, useExperienceLinks } from "../../hooks/useProfileQueries";
+import { useExperienceDetail, useExperienceFiles, useExperienceLinks, usePublicExperienceDetail, usePublicExperienceFiles, usePublicExperienceLinks } from "../../hooks/useProfileQueries";
 import { useExperienceDelete, useExperienceFileAttach, useExperienceFileDelete, useExperienceLinkDelete, useExperienceUpdate, useExperienceVisibility } from "../../hooks/useProfileMutation";
 import { deleteProfileDocument, uploadProfileDocument } from "../../api/profile/profile";
-import { useQueryClient } from "@tanstack/react-query";
-import { addExperienceLink, deleteExperienceFile, deleteExperienceLink, updateExperienceLink } from "../../api/profile/experiences";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { addExperienceLink, deleteExperienceFile, deleteExperienceLink, getExperienceFiles, getExperienceLinks, getPublicExperienceFiles, getPublicExperienceLinks, updateExperienceLink } from "../../api/profile/experiences";
 import type { ProfileDocument } from "../../types/profile";
 
 interface CarrerDetailModalProps {
@@ -21,10 +21,23 @@ interface CarrerDetailModalProps {
 }
 const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, documents, isReadOnly = false }: CarrerDetailModalProps) => {
     const queryClient = useQueryClient();
+    //상세 데이터
+    const { data: myDetail, isLoading: isMyDetailLoading } = useExperienceDetail(!isReadOnly ? initialData?.id : null);
+    const { data: publicDetail, isLoading: isPublicDetailLoading } = usePublicExperienceDetail(isReadOnly ? initialData?.id : null);
 
-    const { data: detailRes, isLoading } = useExperienceDetail(initialData?.id);
-    const { data: filesRes, isLoading: isFilesLoading } = useExperienceFiles(initialData?.id);
-    const { data: linksRes } = useExperienceLinks(initialData?.id);
+    //  파일 목록 조회
+    const { data: myFiles, isLoading: isMyFilesLoading } = useExperienceFiles(!isReadOnly ? initialData?.id : null);
+    const { data: publicFiles, isLoading: isPublicFilesLoading } = usePublicExperienceFiles(isReadOnly ? initialData?.id : null);
+
+    //  링크 목록 조회
+    const { data: myLinks } = useExperienceLinks(!isReadOnly ? initialData?.id : null);
+    const { data: publicLinks } = usePublicExperienceLinks(isReadOnly ? initialData?.id : null);
+
+    const isLoading = isMyDetailLoading || isPublicDetailLoading || isMyFilesLoading || isPublicFilesLoading;
+    // 최종 데이터 결정
+    const detailRes = isReadOnly ? publicDetail : myDetail;
+    const filesRes = isReadOnly ? publicFiles?.result : myFiles; // 내 파일 API는 result 없이 바로 배열인지 확인 필요
+    const linksRes = isReadOnly ? publicLinks?.result : myLinks;
 
     const serverData = detailRes?.result;
 
@@ -61,10 +74,13 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     {/**외부에서 받은 데이터(텍스트) 로컬 state에 동기화 */ }
     useEffect(() => {
         if (serverData) {
+            const start = serverData.startDate ? serverData.startDate.replace(/-/g, ".") : "";
+            const end = serverData.endDate ? serverData.endDate.replace(/-/g, ".") : "";
+
             setFormData({
                 title: serverData.title || "",
                 organizer: serverData.organization || "",
-                period: `${serverData.startDate.replace(/-/g, ".")} - ${serverData.endDate.replace(/-/g, ".")}`,
+                period: start && end ? `${start} - ${end}` : (start || end || ""),
                 participation: serverData.activity || "",
                 role: serverData.role || "",
                 intro: serverData.summary || "",
@@ -86,7 +102,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                     return {
                         id: f.fileId,
                         name: f.fileName,
-                        url: matchedDoc?.fileUrl,
+                        url: matchedDoc?.fileUrl || f.fileUrl,
                         type: 'file'
                     };
                 });
@@ -106,32 +122,26 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
         }
     }, [linksRes, linksToDelete, setLinks]);
 
+
     const handleFileClick = (file: AttachedFile) => {
         if (isEditMode) return;
 
-        // 새로 업로드한 파일 (File 객체)
-        if (!isReadOnly && file.fileObj) {
+        if (file.id) {
+            // 서버 파일 URL 생성 (도메인 + 경로)
+            const fileUrl = file.url?.startsWith('http')
+                ? file.url
+                : `${import.meta.env.VITE_API_BASE_URL}${file.url}`;
+            window.open(fileUrl, '_blank', 'noopener,noreferrer');
+            return;
+        }
+
+        if (file.fileObj) {
             const url = URL.createObjectURL(file.fileObj);
             const link = document.createElement("a");
             link.href = url;
             link.download = file.name;
-            document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            return;
-        }
-
-        // 서버 파일 - documents에서 URL 찾기
-        if (file.id && documents) {
-            const matchedDoc = documents.find(doc => doc.id === file.id);
-            if (matchedDoc?.fileUrl) {
-                const fullUrl = matchedDoc.fileUrl.startsWith('/')
-                    ? `${import.meta.env.VITE_API_BASE_URL}${matchedDoc.fileUrl}`
-                    : matchedDoc.fileUrl;
-                window.open(fullUrl, '_blank', 'noopener,noreferrer');
-                return;
-            }
         }
 
         alert("파일 다운로드 경로를 찾을 수 없습니다.");

@@ -108,9 +108,9 @@ export const useProfileSave = () => {
                     name: profileData.name,
                     phoneNumber: rawPhone.replace(/-/g, ""),
                     imageUrl: finalImageUrl,
-                    university: getValueOrUndefined("school"),
-                    major: getValueOrUndefined("major"),
-                    email: getValueOrUndefined("email"),
+                    university: getValueOrUndefined("school")?? "",
+                    major: getValueOrUndefined("major")?? "",
+                    email: getValueOrUndefined("email")|| "",
                     bio: profileData.introduction,
                 };
 

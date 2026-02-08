@@ -124,48 +124,6 @@ export const updateIndexItem = async (
     return response.data;
 };
 
-
-// /**추가 항목 생성 */
-// export const createIndexItem = async (
-//     detailData: IndexItemDetailData,
-//     file?: File | null
-// ): Promise<CreateIndexItemResponse> => {
-//     const formData = new FormData();
-
-//     const payload: any = {
-//         indexKey: detailData.indexKey.trim(),
-//         indexValue: detailData.indexValue?.trim() || "",
-//         itemType: detailData.itemType,
-//     };
-
-//     // linkUrl 처리: 텍스트일 때는 필드를 아예 안 보내거나 null로 명시
-//     if (detailData.itemType === 'link') {
-//         payload.linkUrl = detailData.linkUrl || detailData.indexValue;
-//     } else {
-//         payload.linkUrl = null;
-//     }
-
-//     console.log("🚀 [FINAL CHECK] Payload:", payload);
-//     formData.append("data", new Blob([JSON.stringify(payload)], {
-//         type: "application/json"
-//     }));
-
-//     if (file instanceof File) {
-//         formData.append("file", file);
-//         console.log("📎 전송 직전 최종 체크(File):", file.name);
-
-//     } else {
-//         // 파일이 없으면 빈 Blob 전송
-//         formData.append("file", new Blob([], { type: "application/octet-stream" }));
-//     }
-
-//     const response = await apiClient.post<CreateIndexItemResponse>(
-//         "/api/v1/profiles/me/index-items",
-//         formData
-//     );
-
-//     return response.data;
-// };
 export const createIndexItem = async (
     detailData: IndexItemDetailData,
     file?: File | null

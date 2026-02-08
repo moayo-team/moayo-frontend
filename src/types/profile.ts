@@ -15,10 +15,10 @@ export interface BaseResponse<T> {
 //프로필 생성 
 export interface CreateProfileRequest {
   name: string;        
-  phoneNumber: string;
-  university?: string;
-  major?: string;
-  bio?: string;
+  phoneNumber?: string;
+  university: string;
+  major: string;
+  bio: string;
   imageUrl?: string;
 }
 export interface ProfileCreateResult {
@@ -78,14 +78,14 @@ export type ProfileResponse =  BaseResponse<GetProfileResult>;
 
 //프로필 수정 
 export interface UpdateProfileRequest {
-  name?: string;
-  email?: string;
+  name: string;
+  email: string;
   phoneNumber?: string | null;
 
   imageUrl?: string | null;
-  university?: string | null;
-  major?: string | null;
-  bio?: string | null;
+  university: string | null;
+  major: string | null;
+  bio: string | null;
 }
 
 //프로필 수정 
