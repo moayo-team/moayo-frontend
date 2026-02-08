@@ -9,8 +9,6 @@ export const GoogleCallback = () => {
   const { completeLogin } = useAuth();
   const [showModal, setShowModal] = useState(false);
 
-  const [isNewUser, setIsNewUser] = useState(false);//신규 유저 여부
-
   const isProcessed = useRef(false);//중복 방지
 
   useEffect(() => {

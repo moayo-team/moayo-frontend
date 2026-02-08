@@ -6,7 +6,7 @@ import InfoSection from "../components/Profile/InfoSection";
 import { useAuth } from "../hooks/useAuth";
 
 // 커스텀 훅 Import
-import { useOtherUserProfile, useProfileData, usePublicExperiences } from "../hooks/useProfileQueries";
+import { getOtherUserProfile, useProfileData, usePublicExperiences } from "../hooks/useProfileQueries";
 import { useProfileSave } from "../hooks/useProfileMutation";
 import type { ProfileFormData } from "../types/profileForm";
 
@@ -14,6 +14,9 @@ const ProfilePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
+  const viewedUserId = (location.state as { userId?: string | number } | null)?.userId;
+  const numericViewedUserId = viewedUserId !== undefined ? Number(viewedUserId) : undefined;
+  const isViewingOtherUser = Number.isFinite(numericViewedUserId);
 
   const [isEditing, setIsEditing] = useState(false);
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest">("latest");
@@ -39,8 +42,9 @@ const ProfilePage = () => {
     return String(user?.id) === String(urlUserId);
   }, [urlUserId, user?.id]);
 
+
   //타인용
-  const { data: otherProfile, isLoading: isOtherLoading } = useOtherUserProfile(isMyProfile ? null : Number(urlUserId));
+  const { data: otherProfile, isLoading: isOtherLoading, isError: isOtherError } = getOtherUserProfile(isMyProfile ? null : Number(urlUserId));
   const { experiences: publicExps, isLoading: isPublicExpLoading } = usePublicExperiences(isMyProfile ? null : Number(urlUserId));
 
   const displayUser = useMemo(() => {
@@ -72,21 +76,8 @@ const ProfilePage = () => {
   const displayDocuments = isMyProfile ? documents : (otherProfile ? documents : []);  // 데이터 저장 훅
   const { mutate: saveProfile, isPending: isSaving } = useProfileSave();
 
-  console.log("----------------------------------");
-  console.log("🔍 [상태 체크]");
-  console.log("내 프로필인가?:", isMyProfile);
-  console.log("URL ID:", urlUserId);
-  console.log("타인 프로필 원본(otherProfile):", otherProfile);
-  console.log("타인 공개이력(publicExps):", publicExps);
-
-  // 2. 가공 데이터 확인
-  console.log("🔍 [가공 체크]");
-  console.log("displayUser:", displayUser);
-  console.log("displayProfile:", displayProfile);
-  console.log("최종 profileData (이게 null이면 화면 안뜸):", profileData);
   // 서버 데이터 -> 로컬 상태 동기화
   useEffect(() => {
-
     if (!displayUser) return;
 
     const mappedTags = displayTags?.map((t) => ({
@@ -129,6 +120,7 @@ const ProfilePage = () => {
     };
 
     setProfileData(formData);
+
   }, [displayUser, displayProfile, displayTags, displayIndexItems, displayDocuments]);
 
   //이력 동기화
@@ -141,8 +133,13 @@ const ProfilePage = () => {
   useEffect(() => {
     if (!user || isInitialized.current) return;
 
-    if (!profile?.id) setIsEditing(true);
-    else setIsEditing(false);
+    if (isViewingOtherUser) {
+      setIsEditing(false);
+    } else if (!profile?.id) {
+      setIsEditing(true);
+    } else {
+      setIsEditing(false);
+    }
 
     isInitialized.current = true;
   }, [user, profile]);
@@ -180,6 +177,7 @@ const ProfilePage = () => {
   }, []);
 
   const handleModeChange = () => {
+    if (isViewingOtherUser) return;
     if (!profileData) return;
     if (isEditing) {
       console.log("💾 저장 시작:", {
@@ -238,8 +236,11 @@ const ProfilePage = () => {
   const isDataLoading = isLoading || (!isMyProfile && isOtherLoading);
   if (isDataLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
   //  렌더링
-  if (isLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
-  if (isError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;
+  const resolvedIsLoading = isLoading || isOtherLoading || isPublicExpLoading;
+  const resolvedIsError = isError || isOtherError;
+  
+  if (resolvedIsLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
+  if (resolvedIsError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;
   if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
   if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
 
@@ -274,6 +275,7 @@ const ProfilePage = () => {
         onDelete={handleDeleteCareer}
         userName={displayUser?.name}
         documents={displayDocuments}
+
       />
     </div>
   );

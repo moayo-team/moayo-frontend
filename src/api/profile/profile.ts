@@ -20,7 +20,6 @@ import type {
     OtherProfileResult
 } from "../../types/profile";
 import { apiClient } from "../client";
-import axiosInstance from "../axios";
 
 
 export const createProfile = async (profileData: CreateProfileRequest): Promise<ProfileCreateResponse> => {
@@ -56,11 +55,19 @@ export const getAllInterestTag = async (): Promise<AllInterestTagListResponse> =
     return response.data;
 };
 
+/**프로필 조회 (userId) */
+export const getProfileById = async (userId: string | number): Promise<ProfileResponse> => {
+  const response = await apiClient.get<ProfileResponse>(
+        `/api/v1/profiles/${userId}`
+  );
+  return response.data;
+};
+
 /**관심 태그 조회 */
 export const getInterestTags = async (): Promise<InterestTagListResponse> => {
     const response = await apiClient.get<InterestTagListResponse>("/api/v1/users/me/interest-tags");
 
-    return response.data;
+  return response.data;
 
 };
 
@@ -205,7 +212,7 @@ export const deleteProfileDocument = async (
 export const getUserProfileById = async (
 	userId: number
 ): Promise<OtherProfileResult> => {
-	const response = await axiosInstance.get<OtherProfileResponse>(
+	const response = await apiClient.get<OtherProfileResponse>(
 		`/api/v1/profiles/${userId}`
 	);
     

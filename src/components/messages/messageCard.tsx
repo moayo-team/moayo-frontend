@@ -1,4 +1,5 @@
 import { useOtherUserProfile } from "../../hooks/useOtherUserProfile";
+import profilePhoto from "../../assets/profile_photo.svg";
 import type { ChatRoomSummary } from "../../types/message";
 
 type Props = {
@@ -16,6 +17,14 @@ export default function ThreadListItem({ thread, active, onClick }: Props) {
 		? `User #${thread.opponentUserId}`
 		: "-";
 
+  const resolvedAvatar = (() => {
+    const url = OtherProfileResult?.imageUrl ?? thread.opponentImageUrl;
+    if (!url || url === "default_url") return profilePhoto;
+    return url.startsWith("http")
+      ? url
+      : `${import.meta.env.VITE_API_BASE_URL}${url}`;
+  })();
+
   const title = displayName;
   const preview = thread.lastMessageContent ?? "";
   const unread = thread.hasUnread;
@@ -31,7 +40,15 @@ export default function ThreadListItem({ thread, active, onClick }: Props) {
         "shadow-sm",
       ].join(" ")}
     >
-      <div className="flex items-start justify-between gap-[10px] h-full">
+      <div className="flex items-start gap-[10px] h-full">
+        <img
+          src={resolvedAvatar}
+          alt={displayName}
+          className="h-10 w-10 rounded-full object-cover bg-gray-200 flex-shrink-0"
+          onError={(e) => {
+            e.currentTarget.src = profilePhoto;
+          }}
+        />
         <div className="min-w-0 flex-1 overflow-hidden">
           <div className="flex items-baseline gap-2">
             <span

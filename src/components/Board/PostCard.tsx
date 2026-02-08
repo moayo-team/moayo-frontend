@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import type { Post } from '../../types';
 import { Badge } from '../common/Badge';
-import { formatDateRange } from '../../utils/dateUtils';
+// 서버에서 dday를 제공하면 그 값을 우선 사용하고, 없을 때만 클라이언트 계산을 사용합니다.
+// 클라이언트 계산 함수는 utils/dateUtils에서 제공되지만, 여기서는 서버-provided dday를 우선 사용하기 위해 직접 참조합니다.
 import { useAuth } from '../../hooks/useAuth';
-import type { JSX } from 'react';
+import { apiClient } from '../../lib/apiClient';
+import type { JSX, MouseEvent } from 'react';
 
 const stripHtml = (html: string | undefined | null) => {
   if (!html) return "";
@@ -25,13 +27,76 @@ interface PostCardProps {
 
 export const PostCard = ({ post }: PostCardProps): JSX.Element => {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
-  const dateRange = formatDateRange(post.createdAt, post.deadline);
+  const { isLoggedIn, user } = useAuth();
+  const serverDDay = (post as any).dday as string | undefined;
   // const positionsArray = post.positions.split(',').map(p => p.trim()).filter(Boolean);
+
+  const isOwner = Boolean(
+    isLoggedIn &&
+      user &&
+      (
+        String((post as any).userId ?? '') === String(user.user?.id ?? '') ||
+        String((post as any).authorId ?? '') === String(user.user?.id ?? '') ||
+        String(post.createdByUserId ?? '') === String(user.user?.id ?? '') ||
+        String((post as any).author?.id ?? '') === String(user.user?.id ?? '')
+      )
+  );
+
+  const handleSendMessage = async (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+
+    if (!isLoggedIn) {
+      alert('로그인이 필요한 서비스입니다.');
+      return;
+    }
+
+    const authorId =
+      (post as any).userId ??
+      (post as any).authorId ??
+      post.createdByUserId ??
+      (post as any).author?.id ??
+      undefined;
+
+    if (!authorId) {
+      alert('작성자 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    if (String(authorId) === String(user?.user?.id ?? '')) {
+      alert('내 게시글에는 쪽지를 보낼 수 없습니다.');
+      return;
+    }
+
+    const originPostId = Number(post.id);
+    const payload: { userBId: number; originPostId?: number } = {
+      userBId: Number(authorId)
+    };
+
+    if (Number.isFinite(originPostId)) {
+      payload.originPostId = originPostId;
+    }
+
+    try {
+      const res = await apiClient.post<
+        { isSuccess: boolean; result: { roomId: number } }
+      >('/api/v1/chat/rooms', payload);
+
+      const roomId = res.data?.result?.roomId;
+      if (!roomId) {
+        alert('쪽지방 생성에 실패했습니다.');
+        return;
+      }
+
+      navigate('/message', { state: { roomId } });
+    } catch (error) {
+      console.error('Failed to create chat room:', error);
+      alert('쪽지방 생성에 실패했습니다.');
+    }
+  };
   
   return (
     <article
-      className="w-full flex flex-col min-h-[276px] items-center justify-center gap-2.5 p-4 sm:p-5 lg:p-6 relative bg-gray-scalewhite rounded-[10px] border border-solid border-gray-scalegray-scale-300 cursor-pointer hover:shadow-lg transition-shadow"
+      className="w-full max-w-[500px] flex flex-col min-h-[276px] items-center justify-center gap-2.5 p-4 sm:p-5 lg:p-6 relative bg-gray-scalewhite rounded-[10px] border border-solid border-gray-scalegray-scale-300 cursor-pointer hover:shadow-lg transition-shadow"
       onClick={() => navigate(`/post/${post.id}`)}
     >
       <div className="flex flex-col w-full min-h-[212px] items-center justify-between relative">
@@ -41,24 +106,15 @@ export const PostCard = ({ post }: PostCardProps): JSX.Element => {
               <h2 className="relative flex-1 mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[length:var(--heading-h2-100-font-size)] tracking-[var(--heading-h2-100-letter-spacing)] leading-[var(--heading-h2-100-line-height)] [font-style:var(--heading-h2-100-font-style)] truncate min-w-0">
                 {post.title}
               </h2>
-              <Badge deadline={post.deadline} />
+              <Badge dday={serverDDay} deadline={post.deadline} />
             </div>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 relative flex-[0_0_auto]">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 relative flex-[0_0_auto]">
               <a
                 href="#"
-                className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] underline whitespace-nowrap [font-style:var(--body-b1-100-font-style)] text-sm sm:text-base"
+                className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)] text-sm sm:text-base"
               >
                 {post.author?.name || '익명'}
               </a>
-              <img
-                className="relative w-px h-[19.5px] hidden sm:block"
-                alt=""
-                src="https://c.animaapp.com/ThzHYGdj/img/vector-203-7.svg"
-                aria-hidden="true"
-              />
-              <time className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)] text-sm sm:text-base">
-                {dateRange}
-              </time>
             </div>
           </header>
           <p className="whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
@@ -68,12 +124,9 @@ export const PostCard = ({ post }: PostCardProps): JSX.Element => {
         
         <footer className="flex items-center justify-end relative self-stretch w-full flex-[0_0_auto] mt-4">
           <div className="flex w-full items-center justify-end gap-2 sm:gap-2.5 relative flex-wrap">
-            {isLoggedIn && (
+            {isLoggedIn && !isOwner && (
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // 쪽지 보내기 기능 구현
-                }}
+                onClick={handleSendMessage}
                 className="all-[unset] box-border min-w-[120px] sm:w-[143px] px-3 sm:px-[15px] py-2 sm:py-2.5 bg-primaryprimary-50 hover:bg-primaryprimary-100 cursor-pointer rounded-[10px] flex items-center justify-center gap-2 sm:gap-2.5 relative transition-colors"
                 type="button"
                 aria-label="쪽지 보내기"

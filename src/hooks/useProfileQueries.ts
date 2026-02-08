@@ -119,7 +119,8 @@ export const usePublicExperiences = (targetUserId: number | null) => {
       intro: exp.summary || "", 
       visible: exp.visible,
       isPublic: exp.visible,
-      files: exp.files || [],
+      files:[],
+      //files: exp.files || [],
       link: [],
     }));
   }, [publicExpQuery.data?.result]);
@@ -133,7 +134,7 @@ export const usePublicExperiences = (targetUserId: number | null) => {
 };
 
 // 타인 프로필 정보 조회 
-export const useOtherUserProfile = (userId: number | null) => {
+export const getOtherUserProfile = (userId: number | null) => {
   const query = useQuery({
     queryKey: ["otherUserProfile", userId],
     queryFn: () => getOtherProfile(userId!),
