@@ -17,17 +17,18 @@ interface CarrerDetailModalProps {
     onDelete?: (id: string | number) => void; //삭제 콜백
     onSave?: (updatedData: any) => void; // 저장 콜백
     documents?: ProfileDocument[];
-
+    isReadOnly?: boolean;
 }
-const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, documents }: CarrerDetailModalProps) => {
+const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, documents, isReadOnly = false }: CarrerDetailModalProps) => {
     const queryClient = useQueryClient();
 
     const { data: detailRes, isLoading } = useExperienceDetail(initialData?.id);
-    const { data: filesRes } = useExperienceFiles(initialData?.id);
+    const { data: filesRes, isLoading: isFilesLoading } = useExperienceFiles(initialData?.id);
     const { data: linksRes } = useExperienceLinks(initialData?.id);
 
     const serverData = detailRes?.result;
 
+    //수정용
     const { mutate: deleteExp } = useExperienceDelete();
     const { mutateAsync: updateExp } = useExperienceUpdate();
     const { mutateAsync: attachFile } = useExperienceFileAttach();
@@ -37,7 +38,6 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     const [isEditMode, setIsEditMode] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [filesToDelete, setFilesToDelete] = useState<number[]>([]);
-
     const [linksToDelete, setLinksToDelete] = useState<number[]>([]);
 
     {/**기본 정보 폼 상태 */ }
@@ -80,10 +80,9 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             console.log("📥 서버에서 받은 파일 목록:", filesRes);
 
             const mappedFiles: AttachedFile[] = filesRes
-                .filter((f: any) => !filesToDelete.includes(f.fileId))
+                .filter((f: any) => !filesToDelete.includes(Number(f.fileId)))
                 .map((f: any) => {
                     const matchedDoc = documents?.find(doc => doc.id === f.fileId);
-
                     return {
                         id: f.fileId,
                         name: f.fileName,
@@ -91,23 +90,27 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                         type: 'file'
                     };
                 });
-            setSelectedFiles(mappedFiles);
+            setSelectedFiles(prev => {
+                const newFilesOnly = prev.filter(f => !f.id);
+                return [...mappedFiles, ...newFilesOnly];
+            });
         }
-    }, [filesRes, filesToDelete, documents]);
+    }, [filesRes, filesToDelete, documents, setSelectedFiles]);
 
     // 서버 데이터 동기화(링크)
     useEffect(() => {
         if (Array.isArray(linksRes)) {
             console.log("🔗 서버에서 받은 링크 목록:", linksRes);
-            setLinks(linksRes);
+            const activeLinks = linksRes.filter(l => !linksToDelete.includes(Number(l.linkId)));
+            setLinks(activeLinks);
         }
-    }, [linksRes, setLinks]);
+    }, [linksRes, linksToDelete, setLinks]);
 
     const handleFileClick = (file: AttachedFile) => {
         if (isEditMode) return;
 
         // 새로 업로드한 파일 (File 객체)
-        if (file.fileObj) {
+        if (!isReadOnly && file.fileObj) {
             const url = URL.createObjectURL(file.fileObj);
             const link = document.createElement("a");
             link.href = url;
@@ -314,11 +317,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
         const targetFile = selectedFiles[index];
 
         if (targetFile.id) {
-            setFilesToDelete(prev => {
-                // 이미 목록에 있다면 추가하지 않음
-                if (prev.includes(targetFile.id as number)) return prev;
-                return [...prev, targetFile.id as number];
-            });
+            setFilesToDelete(prev => [...prev, Number(targetFile.id)]);
         }
 
         // UI에서 즉시 제거
@@ -331,7 +330,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
         // 서버에서 불러온 링크(linkId가 있음)인 경우 삭제 대기 목록에 추가
         if (targetLink.linkId) {
-            setLinksToDelete(prev => [...prev, targetLink.linkId as number]);
+            setLinksToDelete(prev => [...prev, Number(targetLink.linkId)]);
         }
 
         // UI에서 즉시 제거
@@ -427,28 +426,31 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
                         <div className="flex justify-between items-center w-full">
                             <span className="text-[#25221D] font-pretendard text-[20px] sm:text-[24px] font-semibold leading-[130%] tracking-[-0.01em]">
-                                이력관리
+                                {isReadOnly ? "이력 상세" : "이력 관리"}
                             </span>
-                            <div className="flex items-center gap-[8px]">
-                                <span className="text-[#25221D] font-pretendard text-[13px] sm:text-[14px] font-normal leading-[150%]">
-                                    이력 공개 여부
-                                </span>
-                                <div
-                                    className={`flex items-center cursor-pointer ${!isEditMode && "pointer-events-none opacity-80"}`}
-                                    onClick={() => {
-                                        if (isEditMode) {
-                                            setIsPublic(!isPublic);
-                                        }
-                                    }} // 클릭 시 상태 반전
-                                >
-                                    <PublicToggle
-                                        isPublic={isPublic}
-                                        onChange={(val) => {
-                                            if (isEditMode) setIsPublic(val);
-                                        }}
-                                    />
+
+                            {!isReadOnly && (
+                                <div className="flex items-center gap-[8px]">
+                                    <span className="text-[#25221D] font-pretendard text-[13px] sm:text-[14px] font-normal leading-[150%]">
+                                        이력 공개 여부
+                                    </span>
+                                    <div
+                                        className={`flex items-center cursor-pointer ${!isEditMode && "pointer-events-none opacity-80"}`}
+                                        onClick={() => {
+                                            if (isEditMode) {
+                                                setIsPublic(!isPublic);
+                                            }
+                                        }} // 클릭 시 상태 반전
+                                    >
+                                        <PublicToggle
+                                            isPublic={isPublic}
+                                            onChange={(val) => {
+                                                if (isEditMode) setIsPublic(val);
+                                            }}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
 
@@ -633,34 +635,43 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                     </div>
 
                     {/**버튼 */}
-                    <div className="flex justify-end gap-[12px] mt-8 mb-10 mr-10">
-                        {isEditMode ? (
-                            <button
-                                onClick={handleSave}
-                                className="px-8 py-3
+                    {!isReadOnly && (
+                        <div className="flex justify-end gap-[12px] mt-8 mb-10 mr-10">
+                            {isEditMode ? (
+                                <button
+                                    onClick={handleSave}
+                                    className="px-8 py-3
                                         bg-[#6EEBC7] rounded-[10px] 
                                         text-[#25221D] text-[16px] font-pretendard font-medium leading-[140%]">
-                                저장하기
+                                    저장하기
+                                </button>
+                            ) : (
+                                <>
+                                    <button
+                                        className="px-6 py-3
+                                            rounded-[10px] bg-[#EFEEEB]
+                                            text-[#5F5749] font-pretendard text-[16px] font-medium leading-[140%]"
+                                        onClick={handleDeleteExperience}>
+                                        삭제하기
+                                    </button>
+                                    <button
+                                        className="px-6 py-3
+                                            rounded-[10px] bg-[#EFEEEB]
+                                            text-[#5F5749] font-pretendard text-[16px] font-medium leading-[140%]"
+                                        onClick={() => setIsEditMode(true)}>
+                                        수정하기
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    )}
+                    {isReadOnly && (
+                        <div className="flex justify-end mt-8">
+                            <button onClick={onClose} className="px-8 py-3 bg-[#EFEEEB] text-[#5F5749] rounded-[10px] font-medium">
+                                닫기
                             </button>
-                        ) : (
-                            <>
-                                <button
-                                    className="px-6 py-3
-                                            rounded-[10px] bg-[#EFEEEB]
-                                            text-[#5F5749] font-pretendard text-[16px] font-medium leading-[140%]"
-                                    onClick={handleDeleteExperience}>
-                                    삭제하기
-                                </button>
-                                <button
-                                    className="px-6 py-3
-                                            rounded-[10px] bg-[#EFEEEB]
-                                            text-[#5F5749] font-pretendard text-[16px] font-medium leading-[140%]"
-                                    onClick={() => setIsEditMode(true)}>
-                                    수정하기
-                                </button>
-                            </>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
 
             </div >

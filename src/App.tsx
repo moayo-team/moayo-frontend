@@ -54,7 +54,8 @@ const router = createBrowserRouter([
     path: "/profile",
     element: <ProtectedRoute><ProfileLayout /></ProtectedRoute>,
     children: [
-      { index: true, element: <ProfilePage /> },
+      { index: true, element: <ProfilePage /> }, //내 프로필
+      { path: ":userId", element: <ProfilePage /> }, // 타인 프로필
       { path: "add-career", element: <CareerAddPage />},
     ],
   },

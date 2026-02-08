@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { getProfile, getProfileById } from "../api/profile/profile";
+import { getOtherProfile, getProfile, getUserProfileById } from "../api/profile/profile";
 import axios from "axios";
-import { getExperienceDetail, getExperienceFiles, getExperienceLinks, getMyExperiences } from "../api/profile/experiences";
+import { getExperienceDetail, getExperienceFiles, getExperienceLinks, getMyExperiences, getPublicExperiences } from "../api/profile/experiences";
 import type { Career, ExperienceSummary } from "../types/career";
 import { useMemo } from "react";
 
@@ -91,4 +91,62 @@ export const useExperienceLinks = (experienceId: number | null) => {
         queryFn: () => getExperienceLinks(experienceId!),
         enabled: !!experienceId,
     });
+};
+
+//특정 사용자 공개 이력 조회
+export const usePublicExperiences = (targetUserId: number | null) => {
+  const publicExpQuery = useQuery({
+    queryKey: ["publicExperiences", targetUserId],
+    queryFn: () => getPublicExperiences(targetUserId!),
+    enabled: !!targetUserId, 
+    retry: false,
+  });
+
+  // 데이터 가공 
+  const mappedPublicExperiences = useMemo(() => {
+    const res = publicExpQuery.data?.result;
+    if (!Array.isArray(res)) return [];
+
+    return res.map((exp: ExperienceSummary) => ({
+      id: exp.experienceId,
+      title: exp.title,
+      organizer: exp.organization,
+      role: exp.role,
+      startDate: exp.startDate,
+      endDate: exp.endDate,
+      period: `${exp.startDate.replace(/-/g, ".")} - ${exp.endDate.replace(/-/g, ".")}`,
+      participation: exp.activity,
+      intro: exp.summary || "", 
+      visible: exp.visible,
+      isPublic: exp.visible,
+      files:[],
+      //files: exp.files || [],
+      link: [],
+    }));
+  }, [publicExpQuery.data?.result]);
+
+  return {
+    experiences: mappedPublicExperiences,
+    isLoading: publicExpQuery.isLoading,
+    isError: publicExpQuery.isError,
+    refetch: publicExpQuery.refetch,
+  };
+};
+
+// 타인 프로필 정보 조회 
+export const getOtherUserProfile = (userId: number | null) => {
+  const query = useQuery({
+    queryKey: ["otherUserProfile", userId],
+    queryFn: () => getOtherProfile(userId!),
+    enabled: !!userId,
+    retry: false,
+  });
+
+  return {
+    data: query.data?.result, 
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  };
 };

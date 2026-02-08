@@ -213,8 +213,16 @@ export const getUserProfileById = async (
 	userId: number
 ): Promise<OtherProfileResult> => {
 	const response = await apiClient.get<OtherProfileResponse>(
-        `/api/v1/profiles/${userId}`
+		`/api/v1/profiles/${userId}`
 	);
+    
+    return response.data.result;
+};
 
-	return response.data.result;
+/**타인 프로필 조회 */
+export const getOtherProfile = async (userId: number): Promise<OtherProfileResponse> => {
+  const response = await apiClient.get<OtherProfileResponse>(
+    `/api/v1/profiles/${userId}`
+  );
+  return response.data;
 };

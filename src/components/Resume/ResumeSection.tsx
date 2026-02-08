@@ -16,6 +16,7 @@ interface ResumeSectionProps {
   onDelete: (id: string | number) => void;
   setSortOrder: (order: 'latest' | 'oldest') => void;
   documents?: ProfileDocument[];
+  isReadOnly?: boolean;
 }
 
 const ResumeSection = ({
@@ -24,12 +25,15 @@ const ResumeSection = ({
   onSave,
   onDelete,
   setSortOrder,
-  documents
+  documents,
+  isReadOnly = false
 }: ResumeSectionProps) => {
   const [selectedCarrer, setSelectedCareer] = useState<any | null>(null);
   const navigate = useNavigate();
 
-  const hasData = carrers.length > 0; //데이터 유무 판단
+  // 타인이 볼 때는 visible이 true인 것만, 내가 볼 때는 전부 다 보여줌
+  const filteredCarrers = carrers.filter(career => isReadOnly ? career.visible : true);
+  const hasData = filteredCarrers.length > 0;
 
   //정렬 로직
   const sortedCarrers = [...carrers].sort((a, b) => {
@@ -60,16 +64,18 @@ const ResumeSection = ({
               </button>
             )}
             {/* 이력 추가 버튼 */}
-            <button
-              type="button"
-              onClick={() => navigate("/profile/add-career")}
-              className="flex w-[100px] sm:w-[120px] h-[44px] sm:h-[48px] justify-center items-center 
+            {!isReadOnly && (
+              <button
+                type="button"
+                onClick={() => navigate("/profile/add-career")}
+                className="flex w-[100px] sm:w-[120px] h-[44px] sm:h-[48px] justify-center items-center 
               bg-[#6EEBC7] rounded-[10px] hover:bg-[#5BD9B5] transition-colors shadow-sm"
-            >
-              <span className="text-[#25221D] font-pretendard font-medium text-[14px] sm:text-[16px]">
-                이력 추가
-              </span>
-            </button>
+              >
+                <span className="text-[#25221D] font-pretendard font-medium text-[14px] sm:text-[16px]">
+                  이력 추가
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -96,7 +102,7 @@ const ResumeSection = ({
               />
               <span className="font-pretendard text-[16px] sm:text-[18px] font-medium leading-[130%] text-[#7C7160]
                 text-center md:text-left break-keep">
-                {getDisplayName(userName || "사용자")}님의 활동경험을 알려주세요!
+                {isReadOnly ? "공개된 활동 경험이 없습니다." : `${getDisplayName(userName || "사용자")}님의 활동경험을 알려주세요!`}
               </span>
             </div>
           </div>
@@ -106,6 +112,7 @@ const ResumeSection = ({
           <CarrerDetailModal
             data={selectedCarrer}
             documents={documents}
+            isReadOnly={isReadOnly}
             onClose={() => setSelectedCareer(null)}
             onDelete={(id) => {
               onDelete(id);

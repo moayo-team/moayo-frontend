@@ -138,6 +138,7 @@ export type DeleteDocumentResponse = BaseResponse<null>;
 //첨부 파일 조회
 export type documentListResponse = BaseResponse<ProfileDocument[]>;
 
+//타인 프로필 조회 응답
 export interface OtherProfileResult {
 	userId: number;
 	name: string;
