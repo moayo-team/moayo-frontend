@@ -6,22 +6,32 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRightLeft } from "lucide-react";
 import MascotIcon from "../../assets/white.svg"
 import { getDisplayName } from "../../utils/name";
-import { DUMMY_PROFILE } from "../../data/ProfileData";
+import type { ProfileDocument } from "../../types/profile";
 
 interface ResumeSectionProps {
   carrers: Career[];
   sortOrder: 'latest' | 'oldest';
+  userName?: string;
   onSave: (updatedData: Career) => void;
   onDelete: (id: string | number) => void;
   setSortOrder: (order: 'latest' | 'oldest') => void;
+  documents?: ProfileDocument[];
 }
 
-const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder }: ResumeSectionProps) => {
+const ResumeSection = ({
+  carrers = [], sortOrder,
+  userName,
+  onSave,
+  onDelete,
+  setSortOrder,
+  documents
+}: ResumeSectionProps) => {
   const [selectedCarrer, setSelectedCareer] = useState<any | null>(null);
   const navigate = useNavigate();
 
   const hasData = carrers.length > 0; //데이터 유무 판단
 
+  //정렬 로직
   const sortedCarrers = [...carrers].sort((a, b) => {
     const dateA = new Date(a.startDate).getTime();
     const dateB = new Date(b.startDate).getTime();
@@ -51,6 +61,7 @@ const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder
             )}
             {/* 이력 추가 버튼 */}
             <button
+              type="button"
               onClick={() => navigate("/profile/add-career")}
               className="flex w-[100px] sm:w-[120px] h-[44px] sm:h-[48px] justify-center items-center 
               bg-[#6EEBC7] rounded-[10px] hover:bg-[#5BD9B5] transition-colors shadow-sm"
@@ -73,39 +84,40 @@ const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder
               />
             ))}
           </div>
-        ):(
+        ) : (
           <div className="flex flex-col justify-center items-center 
               w-full min-h-[200px] sm:min-h-[240px] p-8 gap-4
               border rounded-[10px] border-dashed border-[#5F5749]">
-              <div className="flex h-[88px] gap-[20px] justify-center items-center shrink-0 self-stretch">
-                <img
-                  src={MascotIcon}
-                  className="w-[50px] sm:w-[60px] h-auto object-contain"
-                  alt="mascot"
-                />
-                <span className="font-pretendard text-[16px] sm:text-[18px] font-medium leading-[130%] text-[#7C7160]
+            <div className="flex h-[88px] gap-[20px] justify-center items-center shrink-0 self-stretch">
+              <img
+                src={MascotIcon}
+                className="w-[50px] sm:w-[60px] h-auto object-contain"
+                alt="mascot"
+              />
+              <span className="font-pretendard text-[16px] sm:text-[18px] font-medium leading-[130%] text-[#7C7160]
                 text-center md:text-left break-keep">
-                  {getDisplayName(DUMMY_PROFILE.name)}님의 활동경험을 알려주세요!
-                </span>
-              </div>
+                {getDisplayName(userName || "사용자")}님의 활동경험을 알려주세요!
+              </span>
+            </div>
           </div>
         )}
-            {/* 상세 모달*/}
-            {selectedCarrer && (
-              <CarrerDetailModal
-                data={selectedCarrer}
-                onClose={() => setSelectedCareer(null)}
-                onDelete={(id) => {
-                  onDelete(id);
-                  setSelectedCareer(null);
-                }}
-                onSave={(updatedData) => {
-                  onSave(updatedData);
-                  setSelectedCareer(null);
-                }}
-              />
-            )}
-    </div>
+        {/* 상세 모달*/}
+        {selectedCarrer && (
+          <CarrerDetailModal
+            data={selectedCarrer}
+            documents={documents}
+            onClose={() => setSelectedCareer(null)}
+            onDelete={(id) => {
+              onDelete(id);
+              setSelectedCareer(null);
+            }}
+            onSave={(updatedData) => {
+              onSave(updatedData);
+              setSelectedCareer(null);
+            }}
+          />
+        )}
+      </div>
     </>
 
   );

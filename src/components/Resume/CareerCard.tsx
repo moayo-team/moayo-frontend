@@ -7,7 +7,7 @@ interface CarrerCardProps {
 }
 
 const CarrerCard = ({ data, onDoubleClick }: CarrerCardProps) => {
-  const { title, period, organizer, participation, role, isPublic } = data;
+  const { title, period, organizer, participation, role, visible } = data;
 
   return (
     <>
@@ -22,7 +22,7 @@ const CarrerCard = ({ data, onDoubleClick }: CarrerCardProps) => {
               {organizer}
             </span>
             <div className="text-[#ADA395]">
-              {isPublic ? (
+              {visible ? (
                 <Eye size={20} strokeWidth={2} />
               ) : (
                 <EyeOff size={20} strokeWidth={2} />

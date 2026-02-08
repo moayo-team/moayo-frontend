@@ -27,7 +27,8 @@ const ProfilePage = () => {
 
   // 데이터 조회 훅
   const {
-    user, profile, tags, indexItems, isLoading, isError, documents
+    user, profile, tags, indexItems, isLoading, isError, documents,
+    experiences,
   } = useProfileData();
 
 
@@ -81,6 +82,13 @@ const ProfilePage = () => {
     setProfileData(formData);
   }, [user, profile, tags, indexItems]);
 
+  //이력 동기화
+  useEffect(() => {
+    if (experiences) {
+      setAllCareers(experiences);
+    }
+  }, [experiences]);
+
   useEffect(() => {
     if (!user || isInitialized.current) return;
 
@@ -89,6 +97,7 @@ const ProfilePage = () => {
 
     isInitialized.current = true;
   }, [user, profile]);
+
 
 
   // 이력서 생성 페이지 복귀 처리
@@ -124,6 +133,13 @@ const ProfilePage = () => {
   const handleModeChange = () => {
     if (!profileData) return;
     if (isEditing) {
+      console.log("💾 저장 시작:", {
+        hasProfileFile: !!profileData.profileFile,
+        profileFileName: profileData.profileFile?.name,
+        profileFileSize: profileData.profileFile?.size,
+        imageUrl: profileData.imageUrl,
+        imageId: profileData.imageId
+      });
       // 유효성 검사
       const inputName = profileData.name || "";
       const rawPhone = profileData.details.find((d: any) => d.id === "phone")?.value || "";
@@ -135,12 +151,20 @@ const ProfilePage = () => {
 
       // 저장 요청
       saveProfile(
-        { profileData, initialIndexItemIds, profileFile: profileData.profileFile },
+        {
+          profileData,
+          initialIndexItemIds,
+          profileFile: profileData.profileFile
+        },
         {
           onSuccess: async () => {
             await refreshUser();
             setIsEditing(false);
+          },
+          onError: (error) => {
+            console.error("💥 저장 실패:", error);
           }
+
         }
       );
     } else {
@@ -150,9 +174,11 @@ const ProfilePage = () => {
 
   // 이력 수정(저장) 핸들러
   const handleSaveCareer = (updatedData: Career) => {
-    setAllCareers((prev) =>
-      prev.map((career) => (career.id === updatedData.id ? updatedData : career))
-    );
+    setAllCareers((prev) => {
+      return prev.map((career) =>
+        String(career.id) === String(updatedData.id) ? { ...updatedData } : career
+      );
+    });
   };
 
   const handleDeleteCareer = (id: string | number) => {
@@ -182,8 +208,9 @@ const ProfilePage = () => {
         isEditing={isEditing}
         isDetailsEmpty={isDetailsEmpty}
         data={profileData}
+        experienceIds={allCareers.map(c => c.id)}
         onDataChange={handleProfileChange}
-        onModeChange={handleModeChange}
+        onModeChange={handleModeChange}      
       />
 
       <ResumeSection
@@ -192,6 +219,8 @@ const ProfilePage = () => {
         setSortOrder={setSortOrder}
         onSave={handleSaveCareer}
         onDelete={handleDeleteCareer}
+        userName={user?.name}
+        documents={documents}
       />
     </div>
   );
