@@ -15,10 +15,10 @@ export interface BaseResponse<T> {
 //프로필 생성 
 export interface CreateProfileRequest {
   name: string;        
-  phoneNumber: string;
-  university?: string;
-  major?: string;
-  bio?: string;
+  phoneNumber?: string;
+  university: string;
+  major: string;
+  bio: string;
   imageUrl?: string;
 }
 export interface ProfileCreateResult {
@@ -78,14 +78,14 @@ export type ProfileResponse =  BaseResponse<GetProfileResult>;
 
 //프로필 수정 
 export interface UpdateProfileRequest {
-  name?: string;
-  email?: string;
+  name: string;
+  email: string;
   phoneNumber?: string | null;
 
   imageUrl?: string | null;
-  university?: string | null;
-  major?: string | null;
-  bio?: string | null;
+  university: string | null;
+  major: string | null;
+  bio: string | null;
 }
 
 //프로필 수정 
@@ -110,7 +110,18 @@ export type UpdateInterestTagsResponse = BaseResponse<null>;
 
 /**추가 항목 관리*/
 //추가 항목 조회
-export type IndexItemListResponse = BaseResponse<IndexItem[]>
+export interface getIndexItemDetail {
+  id: number;
+  indexKey: string;
+  indexValue: string;
+  itemType: IndexItemType;
+  linkUrl: string | null;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileType?: string | null;
+  fileSize?: number | null;
+}
+export type IndexItemListResponse = BaseResponse<getIndexItemDetail[]>
 
 //추가 항목 수정/생성
 export interface IndexItemDetailData {
@@ -122,6 +133,7 @@ export interface IndexItemDetailData {
   fileType?: string | undefined;  
   fileName?: string | undefined;  
   fileSize?: number | undefined; 
+  fileObj?: File | null;
 }
 
 // 생성 API  

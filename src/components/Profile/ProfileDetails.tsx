@@ -252,9 +252,6 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
         //onDataChange("profileFile", finalFile);
         onDataChange("profileFile", file);
 
-        // profileUpload 훅의 선택된 파일 리스트 업데이트
-        // profileUpload.setSelectedFiles([file]);
-
         console.log("📸 프로필 사진 변경:", {
             name: file.name,
             type: file.type,
@@ -266,42 +263,12 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
         const isFile = activeType === "file";
         const isLink = activeType === "link";
 
+        const selectedFile = uploadManager.selectedFiles[0] as unknown as File;
+
         const hasValue = isFile ? uploadManager.selectedFiles.length > 0 : tempValue.trim() !== "";
 
         if (!activeType || !hasValue || !tempLabel.trim()) return;
-
-        // let serverFileUrl = null;
-        // let serverFileType = "";
-        // let finalValue = tempValue;
-        // let serverFileSize = null; 
-
-        // if (activeType === 'file' && uploadManager.selectedFiles.length > 0) {
-        //     setIsUploading(true);
-        //     try {
-        //         const response = await uploadProfileDocument(uploadManager.selectedFiles[0]);
-        //         if (response.isSuccess) {
-        //             // 추가 정보 생성용 URL과 타입을 가져옵니다.
-        //             serverFileUrl = response.result.fileUrl;
-        //             serverFileType = response.result.fileType;
-        //             finalValue = response.result.fileName;
-
-        //             console.log("✅ 파일 업로드 성공:", {
-        //                 fileUrl: serverFileUrl,
-        //                 fileType: serverFileType,
-        //                 fileName: finalValue,
-        //                 fileSize: serverFileSize
-        //             });
-        //         } else {
-        //             alert("업로드 실패: " + response.message);
-        //             return;
-        //         }
-        //     } catch (error) {
-        //         console.error(error);
-        //         return;
-        //     } finally {
-        //         setIsUploading(false);
-        //     }
-        // }
+        if (isFile && !selectedFile) return alert("파일을 선택해주세요.");
 
         let displayValueForServer = tempValue;
         if (isLink && tempValue.length > 20) {
@@ -310,29 +277,18 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
             displayValueForServer = uploadManager.selectedFiles[0]?.name.substring(0, 20);
         }
 
-        // const newField = {
-        //     id: `new_${Date.now()}`,
-        //     type: activeType,
-        //     label: tempLabel,
-        //     value: displayValueForServer, // 서버 indexValue 컬럼
-        //     //url: isLink ? tempValue : null,(파일 저장시)
-        //     url: isLink ? tempValue : serverFileUrl,
-        //     //fileType: isFile ? uploadManager.selectedFiles[0]?.type : null,
-        //     fileType: isFile ? serverFileType : null,
-        //     fileSize: isFile ? serverFileSize : null,  
-
-        //     //fileObj: fileToUpload
-        //     fileObj: null
-        // };
         // 리스트에 들어갈 객체 구성
         const newField = {
             id: `new_${Date.now()}`,
             type: activeType,
             label: tempLabel,
-            value: isFile ? uploadManager.selectedFiles[0].name : displayValueForServer,
-            url: isLink ? tempValue : null,
-            fileType: isFile ? uploadManager.selectedFiles[0].type : null,
-            fileObj: isFile ? uploadManager.selectedFiles[0] : null
+            value: isFile ? selectedFile.name : displayValueForServer,
+            // ERD 필수 컬럼들 매핑 준비
+            linkUrl: activeType === "link" ? tempValue : null,
+            fileName: isFile ? selectedFile.name : null,
+            fileType: isFile ? selectedFile.type : null,
+            fileSize: isFile ? selectedFile.size : null,
+            fileObj: isFile ? selectedFile : null,
         };
         console.log("🔍 newField 확인:", newField);
 
@@ -405,20 +361,6 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
             setTempValue(uploadManager.selectedFiles[uploadManager.selectedFiles.length - 1].name);
         }
     }, [uploadManager.selectedFiles]);
-
-    //프로필 사진 미리보기 및 부모 상태 반영 
-    // useEffect(() => {
-    //     if (profileUpload.selectedFiles.length > 0) {
-    //         const file = profileUpload.selectedFiles[0];
-    //         const previewUrl = URL.createObjectURL(file);
-
-    //         // 화면에 미리보기 즉시 반영 
-    //         onDataChange("profileImage", previewUrl);
-    //         onDataChange("profileFile", file);
-
-    //         return () => URL.revokeObjectURL(previewUrl);
-    //     }
-    // }, [profileUpload.selectedFiles]);
 
     const handleVerifyComplete = (files: File[]) => {
         console.log("업로드 완료:", files);
@@ -548,7 +490,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                             if (item.id === "email") return;
                                             handleBasicInfoChange(e, item.id, item.value || "")
                                         }}
-                                        placeholder="입력해주세요."
+                                        placeholder={item.id === "school" || item.id === "major" ? "필수 입력 항목입니다." : "입력해주세요."}
                                         className={`w-full h-full outline-none font-pretendard text-[15px] lg:text-[16px]
                                             placeholder:text-[#978B78] text-[#342F28] font-medium leading-[130%] bg-transparent
                                             ${!canEdit ? "cursor-default" : "cursor-text"}`}
@@ -898,7 +840,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                 value={isReadOnly && !data.introduction ? "등록된 자기소개가 없습니다." : (data.introduction || "")}
                                 maxLength={500}
                                 onChange={(e) => onDataChange("introduction", e.target.value)}
-                                placeholder="입력해주세요."
+                                placeholder="자기소개는 필수 입력 입니다."
                                 className={`flex flex-col items-start gap-[10px] shrink-0 w-full h-[140px] lg:h-[180px] px-[15px] py-[20px]
                                 bg-transparent rounded-[10px] border-[#D9D5CE] border placeholder:text-[#D9D5CE] text-[#342F28]
                                 outline-none resize-none font-pretendard text-[16px] md:text-[18px] 
