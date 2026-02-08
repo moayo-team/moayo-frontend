@@ -162,6 +162,7 @@ export interface OtherProfileResult {
 	bio: string;
 	interestTags: InterestTag[];
 	indexItems: IndexItem[];
+  documents : ProfileDocument[];
 }
 
 export type OtherProfileResponse = BaseResponse<OtherProfileResult>;

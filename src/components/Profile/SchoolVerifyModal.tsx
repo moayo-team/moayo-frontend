@@ -14,9 +14,10 @@ interface ModalProps {
     onComplete: (files: File[]) => void;
     currentProfileImage?: string;
     experienceIds: number[];
+    documents?: ProfileDocument[];
 }
 
-const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProfileImage, experienceIds }: ModalProps) => {
+const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProfileImage, experienceIds, documents = [] }: ModalProps) => {
     const {
         selectedFiles,
         handleFileUpload,
@@ -44,13 +45,25 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
     };
 
     // 목록 조회 
-    const fetchDocuments = async () => {
+    const fetchAndFilterDocuments = async () => {
+        if (!isOpen) return;
+
+        // [핵심] 수정 모드가 아닐 때는 (타인 프로필 조회 시) 서버 요청 없이 받은 데이터 바로 사용
+        if (!isEditing) {
+            console.log("👤 타인 프로필 서류 표시 중:", documents);
+            // 프사 제외 필터링만 적용
+            const filtered = documents.filter(doc => doc.fileUrl !== currentProfileImage);
+            setUploadedDocuments(filtered);
+            return;
+        }
+
+        // [내 프로필 수정 모드] 일 때만 서버에서 최신 목록 가져옴
         try {
             setIsLoading(true);
             const response = await getProfileDocuments();
 
             if (response.isSuccess) {
-                // 모든 이력서에 연결된 파일 ID
+                // 이력서에 첨부된 파일들은 학력 서류 목록에서 제외하기 위해 ID 수집
                 const expFilesResults = await Promise.all(
                     experienceIds.map(id => getExperienceFiles(id))
                 );
@@ -58,16 +71,14 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                 const expFileIds = new Set(
                     expFilesResults.flatMap(res => {
                         const files = Array.isArray(res) ? res : (res.result || []);
-                        return files.map(f => f.fileId);
+                        return files.map((f: any) => f.fileId);
                     })
                 );
 
-
-                // 필터링 (프사 제외 + 이력서 파일 제외)
+                // 필터링: 프로필 사진 제외 + 이력서 첨부 파일 제외 = 순수 학력 증빙 서류
                 const onlyVerifyDocs = response.result.filter((doc: ProfileDocument) => {
                     const isNotProfileImg = doc.fileUrl !== currentProfileImage;
                     const isNotExpFile = !expFileIds.has(doc.id);
-
                     return isNotProfileImg && isNotExpFile;
                 });
 
@@ -80,9 +91,12 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
         }
     };
 
+    // 모달이 열릴 때마다 실행
     useEffect(() => {
-        if (isOpen) fetchDocuments();
-    }, [isOpen]);
+        if (isOpen) {
+            fetchAndFilterDocuments();
+        }
+    }, [isOpen, isEditing, documents]);
 
     // 서버 파일 삭제
     const handleDeleteServerFile = async (documentId: number) => {
@@ -121,12 +135,12 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
 
             if (allSuccess) {
                 alert(`${selectedFiles.length}개의 파일이 성공적으로 등록되었습니다.`);
-                await fetchDocuments();
+                await fetchAndFilterDocuments();
                 setSelectedFiles([]);
                 onComplete([]);
             } else {
                 alert("일부 파일 업로드에 실패했습니다. 목록을 확인해 주세요.");
-                await fetchDocuments();
+                await fetchAndFilterDocuments();
             }
         } catch (error) {
             alert("파일 업로드 중 오류가 발생했습니다.");

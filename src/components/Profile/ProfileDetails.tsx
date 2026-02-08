@@ -40,8 +40,12 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
     const schoolData = data.details.find((d: any) => d.id === "school");
     const isVerified = schoolData?.isVerified || false;
 
+    const additionalDetails = data.additionalDetails || [];
+    const tags = data.tags || [];
+    const documents = data.documents || [];
+    
     //추가 정보 생성을 위한 상태
-    const showPlusButton = isEditing && !isDetailsEmpty && (data.additionalDetails?.length || 0) < 4;
+    const showPlusButton = isEditing && !isDetailsEmpty && (additionalDetails.length || 0) < 4;
     const [showAddOptions, setShowAddOptions] = useState(false);
     const [activeType, setActiveType] = useState<'file' | 'link' | 'text' | null>(null);
 
@@ -304,65 +308,63 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
 
     //다운로드/이동 핸들러
     const handleIconClick = (item: any) => {
-    
-    const targetUrl = item.type === 'file' 
-        ? (item.linkUrl || item.fileUrl || item.url || item.value)
-        : (item.linkUrl || item.url || item.value);
-    
-    if (!targetUrl) {
-        alert("URL을 찾을 수 없습니다.");
-        return;
-    }
 
-    let fullUrl: string;
+        const targetUrl = item.type === 'file'
+            ? (item.linkUrl || item.fileUrl || item.url || item.value)
+            : (item.linkUrl || item.url || item.value);
 
-    if (item.type === 'file') {
-        if (targetUrl.startsWith('http')) {
-            fullUrl = targetUrl;
+        if (!targetUrl) {
+            alert("URL을 찾을 수 없습니다.");
+            return;
+        }
+
+        let fullUrl: string;
+
+        if (item.type === 'file') {
+            if (targetUrl.startsWith('http')) {
+                fullUrl = targetUrl;
+            } else {
+                const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+                const cleanPath = targetUrl.startsWith('/') ? targetUrl : `/${targetUrl}`;
+                fullUrl = `${baseUrl}${cleanPath}`;
+            }
+
+            // PDF 툴바 숨김
+            if (fullUrl.toLowerCase().endsWith('.pdf')) {
+                fullUrl += '#toolbar=0';
+            }
         } else {
-            const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
-            const cleanPath = targetUrl.startsWith('/') ? targetUrl : `/${targetUrl}`;
-            fullUrl = `${baseUrl}${cleanPath}`;
+            // 링크: http 프로토콜 추가
+            fullUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
         }
-        
-        // PDF 툴바 숨김
-        if (fullUrl.toLowerCase().endsWith('.pdf')) {
-            fullUrl += '#toolbar=0';
-        }
-    } else {
-        // 링크: http 프로토콜 추가
-        fullUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
-        console.log("🔗 링크 Full URL:", fullUrl);
-    }
 
-    console.log("🌐 최종 URL:", fullUrl);
-    window.open(fullUrl, '_blank', 'noopener,noreferrer');
+        window.open(fullUrl, '_blank', 'noopener,noreferrer');
     };
 
     //기존 리스트 수정/삭제 로직
     const updateCustomField = (id: number | string, key: "label" | "value", val: string) => {
-        const updated = data.additionalDetails.map((item) => {
-        if (item.id !== id) return item;
-        
-        if (key === 'value' && item.type === 'link') {
-            return { 
-                ...item, 
-                value: val,
-                linkUrl: val,
-                url: val
-            };
-        }
-        
-        if (key === 'value' && item.type === 'file') {
-            return { 
-                ...item, 
-                value: val
-            };
-        }
-        
-        return { ...item, [key]: val };
-    });
-    onDataChange("additionalDetails", updated);
+        const updated = additionalDetails.map((item) => {
+            if (item.id !== id) return item;
+
+            if (key === 'value' && item.type === 'link') {
+                return {
+                    ...item,
+                    value: val,
+                    linkUrl: val,
+                    url: val
+                };
+            }
+
+            if (key === 'value' && item.type === 'file') {
+                return {
+                    ...item,
+                    value: val
+                };
+            }
+
+            return { ...item, [key]: val };
+        });
+        onDataChange("additionalDetails", updated);
     };
 
 
@@ -373,7 +375,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
     //태그 삭제 핸들러
     const handleDeleteTag = (tagId: number, e: React.MouseEvent) => {
         e.stopPropagation();
-        const newTags = data.tags.filter((t: InterestTag) => t.id !== tagId);
+        const newTags = tags.filter((t: InterestTag) => t.id !== tagId);
         onDataChange("tags", newTags);
     };
 
@@ -565,13 +567,13 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                         onClose={() => setIsModalOpen(false)}
                         onComplete={handleVerifyComplete}
                         currentProfileImage={data.imageUrl}
+                        documents={data.documents}
                         experienceIds={experienceIds}
                     />
 
                     {/* 커스텀 추가 정보 리스트 */}
                     {data.additionalDetails?.map((item: any) => {
                         if (isReadOnly && !item.value) return null;
-    console.log("📋 렌더링할 item:", item); // ✅ 추가
 
                         return (
                             <div key={item.id} className="flex items-center gap-[8px] h-[50px] lg:h-[56px] w-full animate-in fade-in slide-in-from-top-1">
@@ -601,7 +603,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                         <div className="absolute right-0 flex items-center gap-1 shrink-0 bg-white/80 h-full pl-2">
                                             {canEdit ? (
                                                 <button
-                                                    onClick={() => onDataChange("additionalDetails", data.additionalDetails.filter((d: any) => d.id !== item.id))}
+                                                    onClick={() => onDataChange("additionalDetails", additionalDetails.filter((d: any) => d.id !== item.id))}
                                                     className="p-1 text-[#7C7160] hover:text-red-500"
                                                 >
                                                     <X size={18} />
