@@ -73,8 +73,10 @@ const ProfilePage = () => {
   const displayTags = isMyProfile ? tags : (otherProfile?.interestTags ?? []);
   const displayIndexItems = isMyProfile ? indexItems : (otherProfile?.indexItems ?? []);
   const displayExperiences = isMyProfile ? experiences : publicExps;
-  const displayDocuments = isMyProfile ? documents : (otherProfile ? documents : []);  // 데이터 저장 훅
-  const { mutate: saveProfile, isPending: isSaving } = useProfileSave();
+  const displayDocuments = useMemo(() => {
+    if (isMyProfile) return documents; // 내 프로필이면 내 파일함
+    return otherProfile?.documents ?? []; // 남의 프로필이면 그 사람이 보낸 파일 목록
+  }, [isMyProfile, documents, otherProfile]); const { mutate: saveProfile, isPending: isSaving } = useProfileSave();
 
   // 서버 데이터 -> 로컬 상태 동기화
   useEffect(() => {
@@ -91,8 +93,8 @@ const ProfilePage = () => {
         label: i.indexKey,
         value: i.indexValue,
         type: i.itemType,
-        linkUrl: i.linkUrl,    
-        url: i.linkUrl,        
+        linkUrl: i.linkUrl,
+        url: i.linkUrl,
       })) ?? [];
 
     const matchedDoc = displayDocuments?.find(
@@ -111,7 +113,8 @@ const ProfilePage = () => {
 
       tags: mappedTags,
       additionalDetails: mappedItems,
-
+      documents: displayDocuments,
+      
       details: [
         { id: "school", label: "학력", value: displayProfile?.university ?? "" },
         { id: "major", label: "학과", value: displayProfile?.major ?? "" },

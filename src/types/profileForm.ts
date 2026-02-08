@@ -1,4 +1,4 @@
-import type { InterestTag } from "./profile";
+import type { InterestTag, ProfileDocument } from "./profile";
 
 //UI
 export type ProfileDetailFieldId = "school" | "major" | "email" | "phone";
@@ -29,7 +29,8 @@ export interface ProfileFormData {
     imageId?: number | null;
     introduction: string;
     profileFile?: File | null;
-    tags: InterestTag[];
-    additionalDetails: AdditionalDetailItem[];
+    tags?: InterestTag[];
+    additionalDetails?: AdditionalDetailItem[];
     details: ProfileDetailField[];
+    documents?: ProfileDocument[];
 }
