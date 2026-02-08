@@ -8,6 +8,7 @@ export const GoogleCallback = () => {
   const navigate = useNavigate();
   const { completeLogin } = useAuth();
   const [showModal, setShowModal] = useState(false);
+  const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
 
   const isProcessed = useRef(false);//중복 방지
 
@@ -15,18 +16,19 @@ export const GoogleCallback = () => {
     if (isProcessed.current) return;
     const accessToken = searchParams.get('accessToken');
 
-    const isFirst = searchParams.get('isFirst');
+    const isFirst = searchParams.get('isFirst') === 'true'; 
 
     if (accessToken) {
       isProcessed.current = true;
 
       completeLogin(accessToken)
         .then(() => {
-          if (isFirst === 'true') {
+          if (isFirst) {
             // 신규 유저
             navigate('/profile', { replace: true });
           } else {
             // 기존 유저
+            setIsNewUser(false);
             setShowModal(true);
           }
         })
