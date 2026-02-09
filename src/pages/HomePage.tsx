@@ -7,21 +7,14 @@ import plane from "../assets/plane.png";
 
 import { useAuth } from "../hooks/useAuth";
 import { CircleCheck, Mic } from "lucide-react";
-
-type BaseResponse<T> = {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  timestamp?: string;
-  result: T;
-};
+import type { BaseResponse } from "../types/career";
 
 type HomeNotification = {
   unreadCount: number;
   items: any[];
 };
 
-type ImminentPost = {
+type ImminentPosts = {
   postId: number;
   userId: number;
   title: string;
@@ -35,7 +28,7 @@ type ImminentPost = {
   dday: string;
 };
 
-type RecommendedUser = {
+type RecommendedUsers = {
   userId: number;
   name: string;
   imageUrl: string;
@@ -45,8 +38,8 @@ type RecommendedUser = {
 
 type HomeResult = {
   notifications: HomeNotification;
-  imminentPosts: ImminentPost[];
-  recommendedUsers: RecommendedUser[];
+  imminentPosts: ImminentPosts[];
+  recommendedUsers: RecommendedUsers[];
 };
 
 export default function HomePage(): JSX.Element {
@@ -154,8 +147,10 @@ export default function HomePage(): JSX.Element {
     const prompt = aiText.trim();
     if (!prompt || isAnalysing) return;
 
-    setIsAnalysing(true);
+    //setIsAnalysing(true);
     navigate("/profile/add-career", { state: { prompt } });
+    setAiText("");
+    setIsAIInputOpen(false);
   };
 
   if (!isLoggedIn) {

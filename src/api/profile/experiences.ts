@@ -1,4 +1,4 @@
-import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse, type CreateExperienceLinkRequset, type GetExperienceLinksResponse, type ExperienceLink,  type GetExperienceFilesResponse, type UpdateExperienceLinkRequest, type UpdateExperienceLinkResponse, type PublicExperienceListResponse, type DraftRequest, } from "../../types/career";
+import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse, type CreateExperienceLinkRequset, type GetExperienceLinksResponse, type ExperienceLink,  type GetExperienceFilesResponse, type UpdateExperienceLinkRequest, type UpdateExperienceLinkResponse, type PublicExperienceListResponse, } from "../../types/career";
 import { apiClient } from "../client";
 
 /** 내 이력서 목록 조회 */
@@ -163,15 +163,6 @@ export const getPublicExperiences = async (targetUserId: number): Promise<Public
   return response.data;
 };
 
-//ai 초안 작성
-export async function createAIDraft(experienceId: number, body: DraftRequest) {
-  const res = await apiClient.post<BaseResponse<CreateExperienceRequest>>(
-    `/api/v1/experiences/${experienceId}/ai/draft`,
-    body
-  );
-  return res.data;
-}
-
 //공개 이력 링크 조회
 export const getPublicExperienceLinks = async (experienceId: number) => {
     const response = await apiClient.get<GetExperienceLinksResponse>(
@@ -195,5 +186,6 @@ export const getPublicExperienceDetail = async (experienceId: number) => {
     );
     return response.data;
 };
+
 
 
