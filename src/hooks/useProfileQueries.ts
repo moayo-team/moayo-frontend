@@ -23,21 +23,30 @@ export const useProfileData = () => {
     const res = experienceQuery.data?.result;
 
     if (!Array.isArray(res)) return [];
-    return res.map((exp: ExperienceSummary) => ({
-      id: exp.experienceId,
-      title: exp.title,
-      organizer: exp.organization,
-      role: exp.role,
-      startDate: exp.startDate,
-      endDate: exp.endDate,
-      period: `${exp.startDate.replace(/-/g, ".")} - ${exp.endDate.replace(/-/g, ".")}`,
-      participation: exp.activity,
-      intro: exp.summary || "",
-      visible: exp.visible,
-      isPublic: exp.visible,
-      fileName: [],
-      link: [],
-    }));
+    return res.map((exp: ExperienceSummary) => {
+      const safeStart = exp.startDate?.replace(/-/g, ".") || "";
+      const safeEnd = exp.endDate?.replace(/-/g, ".") || "";
+
+      const period = safeStart
+        ? `${safeStart} - ${safeEnd}`
+        : (safeEnd ? `- ${safeEnd}` : "");
+
+      return {
+        id: exp.experienceId,
+        title: exp.title,
+        organizer: exp.organization,
+        role: exp.role,
+        startDate: exp.startDate,
+        endDate: exp.endDate,
+        period: period,
+        participation: exp.activity,
+        intro: exp.summary || "",
+        visible: exp.visible,
+        isPublic: exp.visible,
+        fileName: [],
+        link: [],
+      };
+    });
   }, [experienceQuery.data?.result]);
 
   const isProfileRealError =
@@ -104,27 +113,36 @@ export const usePublicExperiences = (targetUserId: number | null) => {
 
   // 데이터 가공 
   const mappedPublicExperiences = useMemo(() => {
-    const res = publicExpQuery.data?.result;
-    console.log("백엔드에서 온 공개 이력 원본 데이터:", res);
-    if (!Array.isArray(res)) return [];
+  const res = publicExpQuery.data?.result;
+  if (!Array.isArray(res)) return [];
 
-    return res.map((exp: ExperienceSummary) => ({
+  return res.map((exp: ExperienceSummary) => {
+    // 1. null 체크를 포함한 안전한 변환 (상단 훅에서 쓰신 로직과 동일하게!)
+    const safeStart = exp.startDate?.replace(/-/g, ".") || "";
+    const safeEnd = exp.endDate?.replace(/-/g, ".") || "";
+
+    // 2. 기간 문자열 생성
+    const period = safeStart && safeEnd 
+      ? `${safeStart} - ${safeEnd}` 
+      : (safeStart || safeEnd || "");
+
+    return {
       id: exp.experienceId,
       title: exp.title,
       organizer: exp.organization,
       role: exp.role,
       startDate: exp.startDate,
       endDate: exp.endDate,
-      period: `${exp.startDate.replace(/-/g, ".")} - ${exp.endDate.replace(/-/g, ".")}`,
+      period: period, // 안전하게 계산된 period 사용
       participation: exp.activity,
       intro: exp.summary || "",
       visible: exp.visible,
       isPublic: exp.visible,
       files: [],
-      //files: exp.files || [],
       link: [],
-    }));
-  }, [publicExpQuery.data?.result]);
+    };
+  });
+}, [publicExpQuery.data?.result]);
 
   return {
     experiences: mappedPublicExperiences,
@@ -135,7 +153,7 @@ export const usePublicExperiences = (targetUserId: number | null) => {
 };
 
 export const usePublicExperienceDetail = (
-  targetUserId: number | null, 
+  targetUserId: number | null,
   experienceId: number | null
 ) => {
   const { experiences, isLoading, isError } = usePublicExperiences(targetUserId);
