@@ -10,7 +10,7 @@ import type { JSX } from 'react';
 import leftarr from '../assets/leftarr.svg';
 import rightarr from '../assets/rightarr.svg';
 import menu from '../assets/menu.svg';
-import profile_photo from '../assets/profile_photo.svg'
+import profile_photo from '../assets/default_profile.svg'
 
 interface PostCardProps {
   post: {
@@ -34,13 +34,13 @@ interface PostCardProps {
 
 const stripHtml = (html: string | undefined | null) => {
   if (!html) return "";
-  
+
   // 1. <br> 태그를 줄바꿈 문자(\n)로 변환
   let formatted = html.replace(/<br\s*\/?>/gi, '\n');
-  
+
   // 2. </p>와 </div> 태그 뒤에도 줄바꿈 추가 (단락 구분)
   formatted = formatted.replace(/<\/p>/gi, '\n').replace(/<\/div>/gi, '\n');
-  
+
   // 3. 나머지 HTML 태그 제거
   const doc = new DOMParser().parseFromString(formatted, "text/html");
   return (doc.body.textContent || "").trim();
@@ -123,8 +123,8 @@ export const MyPostsPage = (): JSX.Element => {
   const pageSize = 10;
 
   // Fetch only posts created by current user
-  const { data, isPending, error } = usePosts({ 
-    page: currentPage, 
+  const { data, isPending, error } = usePosts({
+    page: currentPage,
     pageSize,
     createdByCurrentUser: true
   });
@@ -192,7 +192,7 @@ export const MyPostsPage = (): JSX.Element => {
     const totalPages = data?.totalPages || 1;
     const pages = [];
     const maxPagesToShow = 5;
-    
+
     if (totalPages <= maxPagesToShow) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -212,7 +212,7 @@ export const MyPostsPage = (): JSX.Element => {
         }
       }
     }
-    
+
     return pages;
   };
 
@@ -220,6 +220,14 @@ export const MyPostsPage = (): JSX.Element => {
   const posts = data?.posts || [];
   const totalPages = data?.totalPages || 1;
 
+  const getFullImageUrl = (url?: string | null) => {
+    if (!url || url === 'default_url') return profile_photo;
+    if (url.startsWith('blob:') || url.startsWith('http')) return url;
+
+    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
+    const cleanPath = url.startsWith('/') ? url : `/${url}`;
+    return `${baseUrl}${cleanPath}`;
+  };
   return (
     <div className="relative w-full min-h-screen bg-white pb-20">
       <NavigationBar />
@@ -231,15 +239,14 @@ export const MyPostsPage = (): JSX.Element => {
               <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-gray-scale30 rounded-[10px] flex flex-col">
                 <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
                   <img
-                    className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-full"
+                    className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative rounded-[10px] border border-gray-100 transition-all
+                      ${user?.profile?.imageUrl && user.profile.imageUrl !== 'default_url'
+                                          ? "object-cover"   
+                                          : "object-contain"
+                                        }
+                    `}
                     alt={`Profile picture of ${user?.user?.name || '사용자'}`}
-                    src={(() => {
-                      const url = user?.profile?.imageUrl;
-                      if (!url || url === 'default_url') return profile_photo;
-                      return url.startsWith('http')
-                        ? url
-                        : `${import.meta.env.VITE_API_BASE_URL}${url}`;
-                    })()}
+                    src={getFullImageUrl(user?.profile?.imageUrl)}
                     onError={(e) => {
                       e.currentTarget.src = profile_photo;
                     }}
@@ -258,7 +265,7 @@ export const MyPostsPage = (): JSX.Element => {
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => navigate('/board')}
                 className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-gray-scale30 rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                 type="button"
@@ -374,38 +381,31 @@ export const MyPostsPage = (): JSX.Element => {
                     {paginationPages.map((page) => (
                       <button
                         key={page}
-                        className={`${
-                          currentPage === page
+                        className={`${currentPage === page
                             ? "inline-flex flex-col items-center gap-2.5 px-2 py-px relative flex-[0_0_auto] rounded-sm overflow-hidden border border-solid border-[#26e1ac]"
                             : "flex-col items-center gap-2.5 px-2 py-px inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors"
-                        }`}
+                          }`}
                         onClick={() => handlePageChange(page)}
                         aria-label={`Page ${page}`}
                         aria-current={currentPage === page ? "page" : undefined}
                         type="button"
                       >
                         <div
-                          className={`relative ${
-                            currentPage === page ? "w-2" : "w-fit"
-                          } mt-[-1.00px] ${
-                            currentPage === page
+                          className={`relative ${currentPage === page ? "w-2" : "w-fit"
+                            } mt-[-1.00px] ${currentPage === page
                               ? "font-body-medium font-[number:var(--body-medium-font-weight)] text-primaryprimary-500 text-[length:var(--body-medium-font-size)]"
                               : "font-body-regular font-[number:var(--body-regular-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-regular-font-size)]"
-                          } text-center tracking-[${
-                            currentPage === page
+                            } text-center tracking-[${currentPage === page
                               ? "var(--body-medium-letter-spacing)"
                               : "var(--body-regular-letter-spacing)"
-                          }] leading-[${
-                            currentPage === page
+                            }] leading-[${currentPage === page
                               ? "var(--body-medium-line-height)"
                               : "var(--body-regular-line-height)"
-                          }] ${
-                            currentPage === page ? "" : "whitespace-nowrap"
-                          } [font-style:${
-                            currentPage === page
+                            }] ${currentPage === page ? "" : "whitespace-nowrap"
+                            } [font-style:${currentPage === page
                               ? "var(--body-medium-font-style)"
                               : "var(--body-regular-font-style)"
-                          }]`}
+                            }]`}
                         >
                           {page}
                         </div>

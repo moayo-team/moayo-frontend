@@ -82,7 +82,7 @@ export const BoardPage = (): JSX.Element => {
                     <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
                       <img
                         className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] rounded-[10px]
-                          ${resolvedProfileImage === profile_photo ? "object-contain p-2" : "object-cover"}
+                          ${resolvedProfileImage === profile_photo ? "object-contain " : "object-cover"}
                         `}
                         alt={`Profile picture of ${user?.user?.name || '사용자'}`}
                         src={resolvedProfileImage}
