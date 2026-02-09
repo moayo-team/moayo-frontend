@@ -14,7 +14,7 @@ import like from '../assets/like.svg';
 import send from '../assets/send.svg';
 import menu from '../assets/menu.svg';
 import 'react-quill-new/dist/quill.snow.css';
-import profile_photo from '../assets/profile_photo.svg'
+import profile_photo from '../assets/default_profile.svg'
 
 export const PostDetailPage = (): JSX.Element => {
   const { id } = useParams<{ id: string }>();
@@ -76,10 +76,10 @@ export const PostDetailPage = (): JSX.Element => {
 
   const isOwner = Boolean(
     isLoggedIn &&
-      user &&
-      (
-        String(authorId ?? '') === String(user.user?.id ?? '')
-      )
+    user &&
+    (
+      String(authorId ?? '') === String(user.user?.id ?? '')
+    )
   );
 
   const numericAuthorId = Number(authorId);
@@ -146,10 +146,19 @@ export const PostDetailPage = (): JSX.Element => {
     }
   };
 
+  const getFullImageUrl = (url?: string | null) => {
+    if (!url || url === 'default_url') return profile_photo;
+    if (url.startsWith('blob:') || url.startsWith('http')) return url;
+
+    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
+    const cleanPath = url.startsWith('/') ? url : `/${url}`;
+    return `${baseUrl}${cleanPath}`;
+  };
+
   return (
     <div className="relative w-full min-h-screen bg-white pb-20">
       <NavigationBar />
-      
+
       <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Sidebar - Left Column */}
@@ -158,15 +167,14 @@ export const PostDetailPage = (): JSX.Element => {
               <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-gray-scale30 rounded-[10px] flex flex-col">
                 <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
                   <img
-                    className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-full"
+                    className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-[10px]
+                    ${(isOwner ? user?.profile?.imageUrl : authorProfile?.imageUrl)
+                        ? "object-cover"
+                        : "object-contain p-1"
+                      }
+                    `}
                     alt="Profile"
-                    src={(() => {
-                      const url = user?.profile?.imageUrl;
-                      if (!url || url === 'default_url') return profile_photo;
-                      return url.startsWith('http')
-                        ? url
-                        : `${import.meta.env.VITE_API_BASE_URL}${url}`;
-                    })()}
+                    src={getFullImageUrl(user?.profile?.imageUrl)}
                     onError={(e) => {
                       e.currentTarget.src = profile_photo;
                     }}
@@ -185,7 +193,7 @@ export const PostDetailPage = (): JSX.Element => {
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => navigate('/board')}
                 className="all-[unset] box-border flex items-center justify-center gap-2.5 px-[15px] py-2.5 relative flex-1 self-stretch w-full grow bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
               >
@@ -208,17 +216,17 @@ export const PostDetailPage = (): JSX.Element => {
               <div className="flex w-full items-start justify-center gap-[100px] px-5 py-2.5 bg-gray-scale30 rounded-[5px] shadow-[0px_0px_4px_#0000004c] mb-6">
                 <div className="flex items-center gap-[15px] relative flex-1 self-stretch grow">
                   <img
-                    className="w-[62px] h-[63px] relative object-cover rounded-full"
+                    className={`w-[62px] h-[63px] relative rounded-[10px] overflow-hidden
+                    ${(isOwner ? user?.profile?.imageUrl : authorProfile?.imageUrl)
+                        ? "object-cover"
+                        : "object-contain p-2"
+                      }`}
                     alt="작성자 프로필 이미지"
-                    src={(() => {
-                      const ownerUrl = isOwner ? user?.profile?.imageUrl : undefined;
-                      const otherUrl = authorProfile?.imageUrl;
-                      const url = ownerUrl || otherUrl || (post as any).profileImageUrl || post.author?.avatar;
-                      if (!url || url === 'default_url') return profile_photo;
-                      return url.startsWith('http')
-                        ? url
-                        : `${import.meta.env.VITE_API_BASE_URL}${url}`;
-                    })()}
+                    src={getFullImageUrl(
+                      isOwner
+                        ? user?.profile?.imageUrl
+                        : (authorProfile?.imageUrl || (post as any).profileImageUrl)
+                    )}
                     onError={(e) => {
                       e.currentTarget.src = profile_photo;
                     }}
@@ -278,11 +286,11 @@ export const PostDetailPage = (): JSX.Element => {
               {/* Post Content */}
               <div className="flex flex-col w-full min-h-[400px] items-start justify-start gap-2.5 p-6 mb-6 rounded-[3px] border border-solid border-[#a7a7aa]">
                 <div className="w-full ql-snow">
-                  <div 
-                      className="ql-editor !p-0 text-[17px] leading-relaxed" 
-                      dangerouslySetInnerHTML={{ __html: post.content || post.description }} 
-                    />
-                  </div>
+                  <div
+                    className="ql-editor !p-0 text-[17px] leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: post.content || post.description }}
+                  />
+                </div>
                 {post.requirements && (
                   <div className="w-full mt-4">
                     <h3 className="font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-black text-[length:var(--heading-h3-200-font-size)] mb-2">
@@ -312,15 +320,13 @@ export const PostDetailPage = (): JSX.Element => {
 
                 <button
                   onClick={handleLikeToggle}
-                  className={`flex w-[83px] h-[33px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${
-                    isLiked
+                  className={`flex w-[83px] h-[33px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${isLiked
                       ? 'bg-primaryprimary-50 border-2 border-primaryprimary-500'
                       : 'bg-gray-scalegray-scale-50 border-2 border-transparent'
-                  } ${
-                    isLoggedIn 
-                      ? 'hover:bg-primaryprimary-100 cursor-pointer' 
+                    } ${isLoggedIn
+                      ? 'hover:bg-primaryprimary-100 cursor-pointer'
                       : 'cursor-not-allowed opacity-60'
-                  } rounded-[5px] transition-all`}
+                    } rounded-[5px] transition-all`}
                   aria-label={`공감 ${likes}개`}
                   aria-pressed={isLiked}
                   disabled={!isLoggedIn}
@@ -331,26 +337,23 @@ export const PostDetailPage = (): JSX.Element => {
                     src={like}
                   />
                   <div className="inline-flex items-center gap-1 relative flex-[0_0_auto]">
-                    <span className={`w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] ${
-                      isLiked ? 'text-primaryprimary-700' : 'text-gray-scalegray-scale-300'
-                    } text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]`}>
+                    <span className={`w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] ${isLiked ? 'text-primaryprimary-700' : 'text-gray-scalegray-scale-300'
+                      } text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]`}>
                       공감
                     </span>
-                    <span className={`relative w-fit mt-[-1.00px] font-body-b2-100 font-[number:var(--body-b2-100-font-weight)] ${
-                      isLiked ? 'text-primaryprimary-700' : 'text-gray-scalegray-scale-300'
-                    } text-[length:var(--body-b2-200-font-size)] tracking-[var(--body-b2-200-letter-spacing)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap [font-style:var(--body-b2-200-font-style)]`}>
+                    <span className={`relative w-fit mt-[-1.00px] font-body-b2-100 font-[number:var(--body-b2-100-font-weight)] ${isLiked ? 'text-primaryprimary-700' : 'text-gray-scalegray-scale-300'
+                      } text-[length:var(--body-b2-200-font-size)] tracking-[var(--body-b2-200-letter-spacing)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap [font-style:var(--body-b2-200-font-style)]`}>
                       {likes}
                     </span>
                   </div>
                 </button>
                 {!isOwner && (
-                  <button 
+                  <button
                     onClick={handleSendMessage}
-                    className={`flex w-[83px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${
-                      isLoggedIn
-                        ? 'bg-gray-scalegray-scale-50 hover:bg-gray-scalegray-scale-100 cursor-pointer' 
+                    className={`flex w-[83px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${isLoggedIn
+                        ? 'bg-gray-scalegray-scale-50 hover:bg-gray-scalegray-scale-100 cursor-pointer'
                         : 'bg-gray-scalegray-scale-50 cursor-not-allowed opacity-60'
-                    } rounded-[5px] transition-colors`}
+                      } rounded-[5px] transition-colors`}
                     disabled={!isLoggedIn}
                   >
                     <img

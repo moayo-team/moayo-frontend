@@ -26,17 +26,25 @@ export const NavigationBar = (): JSX.Element => {
     { id: 4, label: "쪽지", path: "/message" },
   ];
 
-   // 이미지 URL 처리 함수 
-  const getProfileImageUrl = (imageUrl?: string | null) => {
-    if (!imageUrl) return defultProfile;
-    if (imageUrl.startsWith('blob:')) return imageUrl;
-    if (imageUrl.startsWith('/uploads')) {
-      return `${import.meta.env.VITE_API_BASE_URL}${imageUrl}`;
-    }
-    return imageUrl;
-  };
 
+  // 이미지 URL 처리 함수 
+  const getProfileImageUrl = (imageUrl?: string | null) => {
+    
+  if (!imageUrl) return defultProfile;
+  
+  // 이미 풀 경로(http)거나 방금 바꾼 미리보기(blob)라면 그대로 반환
+  if (imageUrl.startsWith('blob:') || imageUrl.startsWith('http')) return imageUrl;
+  
+  // 서버 경로인 경우만 베이스 URL 붙이기
+  const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
+  const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+  return `${baseUrl}${path}`;
+};
+console.log("Full User Object:", user);
+console.log("Profile Data:", user?.profile);
+console.log("Image Value:", user?.profile?.imageUrl);
   return (
+    
     <nav
       className="fixed w-full top-0 left-0 h-16 sm:h-20 bg-white shadow-[0px_0px_6px_#0000001f] z-50"
       role="navigation"
@@ -79,12 +87,16 @@ export const NavigationBar = (): JSX.Element => {
             <>
               <div className=" sm:flex items-center gap-2 cursor-pointer"
                 onClick={() => navigate('/profile')}>
+                  
                 <img
-                  className="w-8 h-8 rounded-full object-cover"
+                  className={`w-8 h-8 rounded-[10px]
+                    ${user.profile?.imageUrl
+                        ? "object-cover"
+                        : "object-contain p-1"
+                      }
+                   `}
                   alt={user.user?.name || '사용자'}
-                  src={user.profile?.imageUrl
-                    ? `${import.meta.env.VITE_API_BASE_URL}${user.profile.imageUrl}`
-                    : defultProfile}
+                  src={getProfileImageUrl(user.profile?.imageUrl)}
                   onError={(e) => {
                     e.currentTarget.src = defultProfile;
                   }}

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import menu from "../assets/menu.svg";
 import plane from "../assets/plane.png";
+import defaultImage from "../assets/default_profile.svg"
 
 import { useAuth } from "../hooks/useAuth";
 import { CircleCheck, Mic } from "lucide-react";
@@ -59,15 +60,22 @@ export default function HomePage(): JSX.Element {
 
   const myName = useMemo(() => user?.user?.name ?? "사용자", [user]);
 
-  const myAvatar = useMemo(() => {
-    const url = user?.profile?.imageUrl;
-    if (url && typeof url === "string" && url.trim().length > 0) return url;
+  const getAvatarUrl = (url?: string | null) => {
+    if (url && typeof url === "string" && url.trim().length > 0) {
+      return url.startsWith("http")
+        ? url
+        : `${import.meta.env.VITE_API_BASE_URL}${url}`;
+    }
+    return defaultImage;
+  };
 
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      myName
-    )}&background=E9FCEF&color=26E1AC&size=152`;
-  }, [user, myName]);
-  
+  const myAvatar = useMemo(() => {
+    return getAvatarUrl(user?.profile?.imageUrl);
+  }, [user]);
+
+  const isMyDefaultImage = myAvatar === defaultImage;
+
+
   const fetchedRef = useRef(false);
 
   useEffect(() => {
@@ -120,7 +128,7 @@ export default function HomePage(): JSX.Element {
         if (mounted) setHomeLoading(false);
       }
     })();
-    
+
 
     return () => {
       mounted = false;
@@ -254,7 +262,7 @@ export default function HomePage(): JSX.Element {
                       "bg-[#6EEBC7] px-4 py-2 rounded-[10px] text-[13px] sm:text-[14px] text-[#25221D] font-medium transition-colors shadow-sm",
                       "hover:bg-[#5BD9B5]",
                       (isAnalysing || !aiText.trim()) &&
-                        "opacity-60 cursor-not-allowed hover:bg-[#6EEBC7]",
+                      "opacity-60 cursor-not-allowed hover:bg-[#6EEBC7]",
                     ].join(" ")}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -281,7 +289,9 @@ export default function HomePage(): JSX.Element {
               <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-gray-scale30 rounded-[10px] flex flex-col">
                 <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
                   <img
-                    className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-full"
+                    className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] rounded-[10px]
+                      ${isMyDefaultImage ? "object-contain p-2" : "object-cover"}
+                    `}
                     alt={`${myName} profile`}
                     src={myAvatar}
                   />
@@ -396,61 +406,62 @@ export default function HomePage(): JSX.Element {
                   추천 유저가 없습니다.
                 </div>
               ) : (
-                recommendedUsers.slice(0, 4).map((u) => (
-                  <div
-                    key={u.userId}
-                    className="rounded-[10px] border border-[#ECE7DF] bg-white p-4"
-                  >
-                    <div className="flex flex-col items-center gap-3">
-                      <img
-                        className="w-[120px] h-[120px] object-cover rounded-[30px]"
-                        alt="profile"
-                        src={
-                          u.imageUrl && u.imageUrl.trim().length > 0
-                            ? u.imageUrl
-                            : `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                u.name ?? "User"
-                              )}&background=E9FCEF&color=26E1AC&size=152`
-                        }
-                      />
-                      <div className="text-center">
-                        <div className="font-semibold text-[#342F28]">
-                          {u.name}
-                        </div>
-                        <div className="text-[12px] text-[#7A7368]">
-                          {u.bio ?? ""}
+                recommendedUsers.slice(0, 4).map((u) => {
+                  const userAvatar = getAvatarUrl(u.imageUrl);
+                  const isDefault = userAvatar === defaultImage;
+
+                  return (
+                    <div
+                      key={u.userId}
+                      className="rounded-[10px] border border-[#ECE7DF] bg-white p-4"
+                    >
+                      <div className="flex flex-col items-center gap-3">
+                        <img
+                          className={`w-[120px] h-[120px] rounded-[10px]
+                          ${isDefault ? "object-contain p-2" : "object-cover"}
+                        `}
+                          alt="profile"
+                          src={userAvatar}
+                        />
+                        <div className="text-center">
+                          <div className="font-semibold text-[#342F28]">
+                            {u.name}
+                          </div>
+                          <div className="text-[12px] text-[#7A7368]">
+                            {u.bio ?? ""}
+                          </div>
                         </div>
                       </div>
+
+                      <div className="mt-4 flex flex-col gap-2">
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[10px] bg-[#E9FCEF] border border-[#BFEDE1] text-[#1F8F76] font-semibold"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => navigate(`/message?to=${u.userId}`)}
+                        >
+                          <img className="w-5 h-5" alt="" src={plane} aria-hidden="true" />
+                          <span className="text-[14px] leading-none">
+                            쪽지보내기
+                          </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="h-10 rounded-[10px] bg-[#F7F6F3] border border-[#ECE7DF] text-[#7A7368] hover:opacity-90"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => navigate(`/profile/${u.userId}`)}
+                        >
+                          프로필 보러가기
+                        </button>
+                      </div>
+
+                      <p className="mt-3 text-[11px] text-[#9A948A] leading-4">
+                        {u.matchReason ?? ""}
+                      </p>
                     </div>
-
-                    <div className="mt-4 flex flex-col gap-2">
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[10px] bg-[#E9FCEF] border border-[#BFEDE1] text-[#1F8F76] font-semibold"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => navigate(`/message?to=${u.userId}`)}
-                      >
-                        <img className="w-5 h-5" alt="" src={plane} aria-hidden="true" />
-                        <span className="text-[14px] leading-none">
-                          쪽지보내기
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        className="h-10 rounded-[10px] bg-[#F7F6F3] border border-[#ECE7DF] text-[#7A7368] hover:opacity-90"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => navigate(`/profile/${u.userId}`)}
-                      >
-                        프로필 보러가기
-                      </button>
-                    </div>
-
-                    <p className="mt-3 text-[11px] text-[#9A948A] leading-4">
-                      {u.matchReason ?? ""}
-                    </p>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
           </aside>

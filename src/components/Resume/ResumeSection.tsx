@@ -17,6 +17,7 @@ interface ResumeSectionProps {
   setSortOrder: (order: 'latest' | 'oldest') => void;
   documents?: ProfileDocument[];
   isReadOnly?: boolean;
+  isMyProfile?: boolean;
 }
 
 const ResumeSection = ({
@@ -26,7 +27,8 @@ const ResumeSection = ({
   onDelete,
   setSortOrder,
   documents,
-  isReadOnly = false
+  isReadOnly = false,
+  isMyProfile = true 
 }: ResumeSectionProps) => {
   const [selectedCarrer, setSelectedCareer] = useState<any | null>(null);
   const navigate = useNavigate();
@@ -113,6 +115,7 @@ const ResumeSection = ({
             data={selectedCarrer}
             documents={documents}
             isReadOnly={isReadOnly}
+            isMyProfile={isMyProfile}
             onClose={() => setSelectedCareer(null)}
             onDelete={(id) => {
               onDelete(id);

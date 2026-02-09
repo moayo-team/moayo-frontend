@@ -1,4 +1,4 @@
-import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse, type CreateExperienceLinkRequset, type GetExperienceLinksResponse, type ExperienceLink,  type GetExperienceFilesResponse, type UpdateExperienceLinkRequest, type UpdateExperienceLinkResponse, type PublicExperienceListResponse, } from "../../types/career";
+import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse, type CreateExperienceLinkRequset, type GetExperienceLinksResponse, type ExperienceLink, type GetExperienceFilesResponse, type UpdateExperienceLinkRequest, type UpdateExperienceLinkResponse, type PublicExperienceListResponse, type GetPublicExperienceLinksResponse, type GetPublicExperienceFilesResponse, } from "../../types/career";
 import { apiClient } from "../client";
 
 /** 내 이력서 목록 조회 */
@@ -133,15 +133,15 @@ export const getExperienceLinks = async (experienceId: number): Promise<Experien
 
 //이력 링크 수정
 export const updateExperienceLink = async (
-  experienceId: number,
-  linkId: number,
-  data: UpdateExperienceLinkRequest
+    experienceId: number,
+    linkId: number,
+    data: UpdateExperienceLinkRequest
 ): Promise<UpdateExperienceLinkResponse> => {
-  const response = await apiClient.patch<UpdateExperienceLinkResponse>(
-    `/api/v1/experiences/${experienceId}/attachments/links/${linkId}`,
-    data
-  );
-  return response.data;
+    const response = await apiClient.patch<UpdateExperienceLinkResponse>(
+        `/api/v1/experiences/${experienceId}/attachments/links/${linkId}`,
+        data
+    );
+    return response.data;
 };
 
 // 이력 링크 삭제
@@ -157,35 +157,24 @@ export const deleteExperienceLink = async (
 
 //특정 사용자 공개 이력 조회
 export const getPublicExperiences = async (targetUserId: number): Promise<PublicExperienceListResponse> => {
-  const response = await apiClient.get<PublicExperienceListResponse>(
-    `/api/v1/experiences/public/${targetUserId}`
-  );
-  return response.data;
+    const response = await apiClient.get<PublicExperienceListResponse>(
+        `/api/v1/experiences/public/${targetUserId}`
+    );
+    return response.data;
 };
 
-//공개 이력 링크 조회
-export const getPublicExperienceLinks = async (experienceId: number) => {
-    const response = await apiClient.get<GetExperienceLinksResponse>(
+// 공개 이력 링크 조회
+export const getPublicExperienceLinks = async (experienceId: number): Promise<GetPublicExperienceLinksResponse> => {
+    const { data } = await apiClient.get<GetPublicExperienceLinksResponse>(
         `/api/v1/experiences/public/${experienceId}/attachments/links`
     );
-    return response.data;
+    return data; // .result가 아니라 data 전체를 넘겨야 Hook에서 .result로 접근 가능
 };
 
-//공개 이력 파일 조회
-export const getPublicExperienceFiles = async (experienceId: number) => {
-    const response = await apiClient.get<GetExperienceFilesResponse>(
+// 공개 이력 파일 조회
+export const getPublicExperienceFiles = async (experienceId: number): Promise<GetPublicExperienceFilesResponse> => {
+    const { data } = await apiClient.get<GetPublicExperienceFilesResponse>(
         `/api/v1/experiences/public/${experienceId}/attachments/files`
     );
-    return response.data;
+    return data;
 };
-
-//공개 이력 상세 조회
-export const getPublicExperienceDetail = async (experienceId: number) => {
-    const response = await apiClient.get<CareerDetailReponse>(
-        `/api/v1/experiences/public/${experienceId}`
-    );
-    return response.data;
-};
-
-
-

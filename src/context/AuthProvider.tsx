@@ -39,23 +39,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const u = usersMe?.result ?? usersMe;
     const p = profilesMe?.result ?? profilesMe;
 
+    const profileInfo = p?.profile;
+    const userInfo = p?.user ?? u;
+
     return {
       user: {
-        id: u?.id ?? p?.userId ?? "",
-        name: u?.name ?? "",
-        email: u?.email ?? "",
-        phoneNumber: u?.phoneNumber ?? null,
+        id: userInfo?.id ?? profileInfo?.userId ?? "",
+        name: userInfo?.name ?? "",
+        email: userInfo?.email ?? "",
+        phoneNumber: userInfo?.phoneNumber ?? null,
       },
       profile: {
-        id: p?.id ?? 0,
-        imageUrl: p?.imageUrl ?? null,
-        university: p?.university ?? null,
-        major: p?.major ?? null,
-        bio: p?.bio ?? null,
+        id: profileInfo?.id ?? 0,
+        imageUrl: profileInfo?.imageUrl ?? null,
+        university: profileInfo?.university ?? null,
+        major: profileInfo?.major ?? null,
+        bio: profileInfo?.bio ?? null,
       },
-      interestTags: p?.interestTags ?? [],
-      indexItems: p?.indexItems ?? [],
-      documents: p?.documents ?? [],
+      interestTags: profileInfo?.interestTags ?? [],
+      indexItems: profileInfo?.indexItems ?? [],
+      documents: profileInfo?.documents ?? [],
     } as GetProfileResult;
   };
 
