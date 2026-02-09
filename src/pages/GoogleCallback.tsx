@@ -47,9 +47,13 @@ export const GoogleCallback = () => {
     navigate(destination, { replace: true });
   };
 
+   if (isNewUser === null && !showModal) {
+    return null; 
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      {!showModal && (
+      {!showModal && isNewUser === false && (
         <>
           <div className="text-xl font-bold mb-4">로그인 정보를 확인 중입니다...</div>
           <div className="w-12 h-12 border-4 border-primaryprimary-300 border-t-transparent rounded-full animate-spin"></div>
@@ -57,7 +61,7 @@ export const GoogleCallback = () => {
       )}
       {showModal && (
         <LoginSuccessModal
-          onClose={() => handleClose('/profile')}
+          onClose={() => handleClose('/')}
         />
       )}
     </div>

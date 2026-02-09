@@ -9,6 +9,8 @@ import defaultImage from "../assets/default_profile.svg";
 import { useAuth } from "../hooks/useAuth";
 import { CircleCheck, Mic } from "lucide-react";
 import { useHomeStore } from "../store/homeStore";
+import { apiClient } from "../api/client";
+
 
 export default function HomePage(): JSX.Element {
   const navigate = useNavigate();
@@ -75,6 +77,53 @@ export default function HomePage(): JSX.Element {
     navigate("/profile/add-career", { state: { prompt } });
     setAiText("");
     setIsAIInputOpen(false);
+  };
+  const handleSendMessageToUser = async (targetUserId: number) => {
+    if (!isLoggedIn) {
+      alert("로그인이 필요한 서비스입니다.");
+      return;
+    }
+
+    const myId = Number(user?.user?.id);
+    if (!Number.isFinite(myId) || myId <= 0) {
+      alert("내 사용자 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    const otherId = Number(targetUserId);
+    if (!Number.isFinite(otherId) || otherId <= 0) {
+      alert("대상 사용자 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    if (String(otherId) === String(myId)) {
+      alert("자기 자신에게는 쪽지를 보낼 수 없습니다.");
+      return;
+    }
+
+    const payload: { userBId: number } = { userBId: otherId };
+
+    try {
+      const res = await apiClient.post<{ isSuccess: boolean; result: { roomId: number } }>(
+        "/api/v1/chat/rooms",
+        payload
+      );
+
+      const roomId = res.data?.result?.roomId;
+
+      if (!roomId) {
+        console.error("[CHAT CREATE] no roomId. data=", res.data);
+        alert("쪽지방 생성에 실패했습니다.");
+        return;
+      }
+
+      navigate("/message", { state: { roomId } });
+    } catch (e: any) {
+      console.error("[CHAT CREATE] status=", e?.response?.status);
+      console.error("[CHAT CREATE] data=", e?.response?.data);
+      console.error("[CHAT CREATE] payload=", payload);
+      alert("쪽지방 생성에 실패했습니다.");
+    }
   };
 
   if (!isLoggedIn) {
@@ -341,12 +390,11 @@ export default function HomePage(): JSX.Element {
                           type="button"
                           className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[10px] bg-[#E9FCEF] border border-[#BFEDE1] text-[#1F8F76] font-semibold"
                           onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => navigate(`/message?to=${u.userId}`)}
+                          onClick={() => handleSendMessageToUser(u.userId)}
                         >
                           <img className="w-5 h-5" alt="" src={plane} aria-hidden="true" />
                           <span className="text-[14px] leading-none">쪽지보내기</span>
                         </button>
-
                         <button
                           type="button"
                           className="h-10 rounded-[10px] bg-[#F7F6F3] border border-[#ECE7DF] text-[#7A7368] hover:opacity-90"

@@ -92,10 +92,17 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     {/**외부에서 받은 데이터(텍스트) 로컬 state에 동기화 */ }
     useEffect(() => {
         if (serverData) {
+            const safeStart = serverData.startDate?.replace(/-/g, ".") || "";
+            const safeEnd = serverData.endDate?.replace(/-/g, ".") || "";
+
+            const period = safeStart 
+                ? `${safeStart} - ${safeEnd}` 
+                : (safeEnd ? `- ${safeEnd}` : "");
+
             setFormData({
                 title: serverData.title || "",
                 organizer: serverData.organization || "",
-                period: `${serverData.startDate.replace(/-/g, ".")} - ${serverData.endDate.replace(/-/g, ".")}`,
+                period: period,
                 participation: serverData.activity || "",
                 role: serverData.role || "",
                 intro: serverData.summary || "",

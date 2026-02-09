@@ -13,6 +13,7 @@ import { addExperienceLink, postExperienceFile } from "../api/profile/experience
 import type { UploadDocumentResponse } from "../types/profile";
 
 import { createExperienceSession, createAIDraft, patchExperience } from "../api/profile/session";
+import { useQueryClient } from "@tanstack/react-query";
 
 // --------------------
 // types (페이지 내부 상태용)
@@ -30,6 +31,7 @@ type DraftAiResult = Partial<{
 const CareerAddPage = (): JSX.Element => {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
 
   // ✅ HomePage에서 넘긴 prompt
   const initialPrompt = (location.state as any)?.prompt as string | undefined;
@@ -404,34 +406,53 @@ const CareerAddPage = (): JSX.Element => {
 
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
 
-    const requiredFields = [
-      { value: newCareer.title, label: "활동명" },
-      { value: newCareer.period, label: "기간" }
-    ];
-    const emptyField = requiredFields.find((f) => !f.value || f.value.trim() === "");
-    if (emptyField) {
-      alert(`${emptyField.label} 항목을 입력해주세요.`);
-      return;
-    }
-    if (!validatePeriod(newCareer.period)) {
-      alert("날짜 형식이 올바르지 않습니다.\n예: 2024.01.01 - 2024.12.31");
+    //모든 필드가 비어있는지 
+    const isAllEmpty = !newCareer.title.trim() && 
+                       !newCareer.organizer.trim() && 
+                       !newCareer.period.trim() && 
+                       !newCareer.participation.trim() && 
+                       !newCareer.role.trim() && 
+                       !newCareer.intro.trim();
+
+    if (isAllEmpty) {
+      alert("입력된 내용이 없습니다. 내용을 작성한 후 등록해주세요.");
       return;
     }
 
-    const start = getStartDateFromPeriod(newCareer.period);
-    const end = getEndDateFromPeriod(newCareer.period);
-
-    const startYear = parseInt(start.split("-")[0]);
-    const endYear = end ? parseInt(end.split("-")[0]) : startYear;
-    if (startYear < 1900 || startYear > 2100 || endYear < 1900 || endYear > 2100) {
-      alert("연도를 정확히 입력해주세요. (예: 2024)");
-      return;
-    }
-    if (end && new Date(start) > new Date(end)) {
-      alert("시작일이 종료일보다 늦을 수 없습니다.");
-      return;
+    if (!newCareer.title || newCareer.title.trim() === "") {
+      alert("활동명은 필수 입력 항목입니다. 등록을 위해 활동명을 입력해주세요!");
+      return; 
     }
 
+    let start = "";
+    let end = "";
+
+    if (newCareer.period && newCareer.period.trim() !== "") {
+      if (!validatePeriod(newCareer.period)) {
+        alert("날짜 형식이 올바르지 않습니다.\n예: 2024.01.01 - 2024.12.31");
+        return;
+      }
+      start = getStartDateFromPeriod(newCareer.period);
+      end = getEndDateFromPeriod(newCareer.period);
+
+      const startYear = parseInt(start.split("-")[0]);
+      if (startYear < 1900 || startYear > 2100) {
+        alert("연도를 정확히 입력해주세요. (예: 2024)");
+        return;
+      }
+
+      if (end) {
+        const endYear = parseInt(end.split("-")[0]);
+        if (endYear < 1900 || endYear > 2100) {
+          alert("종료 연도를 정확히 입력해주세요.");
+          return;
+        }
+        if (new Date(start) > new Date(end)) {
+          alert("시작일이 종료일보다 늦을 수 없습니다.");
+          return;
+        }
+      }
+    }
     try {
       let id = experienceIdRef.current;
 
@@ -500,6 +521,8 @@ const CareerAddPage = (): JSX.Element => {
         }
       }
 
+      await queryClient.invalidateQueries({ queryKey: ["myExperiences"] });
+      await queryClient.invalidateQueries({ queryKey: ["myProfile"] });
       navigate("/profile");
     } catch (error) {
       console.error("등록 중 오류:", error);

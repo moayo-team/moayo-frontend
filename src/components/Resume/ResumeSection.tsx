@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import CarrerCard from "./CareerCard";
 import CarrerDetailModal from "./CareerDetailModal";
 import type { Career } from "../../types/career";
@@ -28,21 +28,35 @@ const ResumeSection = ({
   setSortOrder,
   documents,
   isReadOnly = false,
-  isMyProfile = true 
+  isMyProfile = true
 }: ResumeSectionProps) => {
   const [selectedCarrer, setSelectedCareer] = useState<any | null>(null);
   const navigate = useNavigate();
 
   // 타인이 볼 때는 visible이 true인 것만, 내가 볼 때는 전부 다 보여줌
-  const filteredCarrers = carrers.filter(career => isReadOnly ? career.visible : true);
-  const hasData = filteredCarrers.length > 0;
+  const filteredCarrers = useMemo(() => {
+    return carrers.filter(career => isReadOnly ? career.visible : true);
+  }, [carrers, isReadOnly]); const hasData = filteredCarrers.length > 0;
 
-  //정렬 로직
-  const sortedCarrers = [...carrers].sort((a, b) => {
-    const dateA = new Date(a.startDate).getTime();
-    const dateB = new Date(b.startDate).getTime();
-    return sortOrder === 'latest' ? dateB - dateA : dateA - dateB;
-  });
+  //정렬 로직(날짜 없으면 뒤로)
+  const sortedCarrers = useMemo(() => {
+    return [...filteredCarrers].sort((a, b) => {
+      const hasA = a.startDate && a.startDate.trim() !== "";
+      const hasB = b.startDate && b.startDate.trim() !== "";
+
+      if (!hasA && !hasB) return 0; 
+      if (!hasA) return 1;          
+      if (!hasB) return -1;         
+
+      const dateA = new Date(a.startDate).getTime();
+      const dateB = new Date(b.startDate).getTime();
+
+      if (isNaN(dateA)) return 1;
+      if (isNaN(dateB)) return -1;
+
+      return sortOrder === 'latest' ? dateB - dateA : dateA - dateB;
+    });
+  }, [filteredCarrers, sortOrder]);
 
 
 

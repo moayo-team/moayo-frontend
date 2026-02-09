@@ -18,17 +18,20 @@ export const formatPeriod = (value: string) => {
 };
 
 /** 기간 유효성 검사 */
-export const validatePeriod = (period: string) => { 
+export const validatePeriod = (period: string) => {
     // ^(19|20)\d{2}: 19XX 또는 20XX로 시작하는 연도
     // \.\d{2}\.\d{2}: .월.일 형식
-    const regex = /^(19|20)\d{2}\.\d{2}\.\d{2}\s-\s(19|20)\d{2}\.\d{2}\.\d{2}$/;
+    const regex = /^(19|20)\d{2}\.\d{2}\.\d{2}(\s-\s(19|20)\d{2}\.\d{2}\.\d{2})?$/;
 
     if (!regex.test(period)) return false;
 
-    // 시작일이 종료일보다 늦은지 확인
-    const [start, end] = period.split(" - ").map(d => new Date(d.replace(/\./g, "-")));
-    if (start > end) return false;
-
+    const dates = period.split(" - ");
+    if (dates.length === 2 && dates[1].trim() !== "") {
+        const start = new Date(dates[0].replace(/\./g, "-"));
+        const end = new Date(dates[1].replace(/\./g, "-"));
+        if (start > end) return false;
+    }
+    
     return true;
 };
 

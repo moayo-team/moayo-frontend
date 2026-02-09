@@ -87,27 +87,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const urlAccessToken = searchParams.get("accessToken");
+  // useEffect(() => {
+  //   const searchParams = new URLSearchParams(window.location.search);
+  //   const urlAccessToken = searchParams.get("accessToken");
 
-    if (!urlAccessToken) return;
+  //   if (!urlAccessToken) return;
 
-    localStorage.setItem("accessToken", urlAccessToken);
-    window.history.replaceState({}, document.title, window.location.pathname);
+  //   localStorage.setItem("accessToken", urlAccessToken);
+  //   window.history.replaceState({}, document.title, window.location.pathname);
 
-    (async () => {
-      try {
-        await refreshUser();
-        localStorage.setItem("loginSuccessModal", "1");
-      } catch {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
-        setUser(null);
-        setIsLoggedIn(false);
-      }
-    })();
-  }, [refreshUser]);
+  //   (async () => {
+  //     try {
+  //       await refreshUser();
+  //       localStorage.setItem("loginSuccessModal", "1");
+  //     } catch {
+  //       localStorage.removeItem("accessToken");
+  //       localStorage.removeItem("user");
+  //       setUser(null);
+  //       setIsLoggedIn(false);
+  //     }
+  //   })();
+  // }, [refreshUser]);
 
   useEffect(() => {
     let isMounted = true;
