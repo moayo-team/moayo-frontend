@@ -1,7 +1,7 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { apiClient } from '../api/client';
-import type { GetProfileResult } from '../types/profile';
-import { useQueryClient } from '@tanstack/react-query';
+import React, { createContext, useState, useEffect, useCallback } from "react";
+import { apiClient } from "../api/client";
+import type { GetProfileResult } from "../types/profile";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AuthContextType {
   user: GetProfileResult | null;
@@ -16,175 +16,132 @@ interface AuthContextType {
 }
 
 export const logoutApi = async () => {
-  return await apiClient.post('/api/v1/auth/logout');
+  return await apiClient.post("/api/v1/auth/logout");
 };
 
-/**
- * 토큰 재발급 API
- * 명세서: POST /api/v1/auth/token/refresh
- */
 export const refreshTokenApi = async () => {
-  const { data } = await apiClient.post('/api/v1/auth/token/refresh');
+  const { data } = await apiClient.post("/api/v1/auth/token/refresh");
   return data;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const queryClient = useQueryClient();
 
   const [user, setUser] = useState<GetProfileResult | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authReady, setAuthReady] = useState(false);
 
-  const normalizeUser = (rawUser: any) => {
-    const name =
-      rawUser?.name ??
-      rawUser?.nickname ??
-      rawUser?.userName ??
-      rawUser?.username ??
-      rawUser?.user_name ??
-      rawUser?.authorName ??
-      rawUser?.authorNickname ??
-      rawUser?.displayName;
-    const avatar =
-      rawUser?.avatar ??
-      rawUser?.profilePictureUrl ??
-      rawUser?.profileImage ??
-      rawUser?.imageUrl ??
-      rawUser?.picture;
-    return { ...rawUser, name, avatar };
-  };
+  const normalizeMerged = (usersMe: any, profilesMe: any): GetProfileResult => {
+    const u = usersMe?.result ?? usersMe;
+    const p = profilesMe?.result ?? profilesMe;
 
-  const normalizeProfileResult = (payload: any): GetProfileResult => {
-    if (payload?.user) {
-      return {
-        user: normalizeUser(payload.user),
-        profile: payload.profile ?? null,
-        interestTags: payload.interestTags ?? [],
-        indexItems: payload.indexItems ?? [],
-        documents: payload.documents ?? [],
-      } as GetProfileResult;
-    }
+    const profileInfo = p?.profile;
+    const userInfo = p?.user ?? u;
 
     return {
-      user: normalizeUser(payload),
-      profile: null,
-      interestTags: [],
-      indexItems: [],
-      documents: [],
+      user: {
+        id: userInfo?.id ?? profileInfo?.userId ?? "",
+        name: userInfo?.name ?? "",
+        email: userInfo?.email ?? "",
+        phoneNumber: userInfo?.phoneNumber ?? null,
+      },
+      profile: {
+        id: profileInfo?.id ?? 0,
+        imageUrl: profileInfo?.imageUrl ?? null,
+        university: profileInfo?.university ?? null,
+        major: profileInfo?.major ?? null,
+        bio: profileInfo?.bio ?? null,
+      },
+      interestTags: profileInfo?.interestTags ?? [],
+      indexItems: profileInfo?.indexItems ?? [],
+      documents: profileInfo?.documents ?? [],
     } as GetProfileResult;
   };
 
   const refreshUser = useCallback(async () => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) return;
+    const token = localStorage.getItem("accessToken");
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
     try {
-      const { data } = await apiClient.get('/api/v1/profiles/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const payload: any = data?.result ?? data;
-      const freshUser = normalizeProfileResult(payload);
+      const [usersRes, profilesRes] = await Promise.all([
+        apiClient.get("/api/v1/users/me", headers ? { headers } : undefined),
+        apiClient.get("/api/v1/profiles/me", headers ? { headers } : undefined),
+      ]);
 
-      localStorage.setItem('user', JSON.stringify(freshUser));
-      setUser(freshUser);
+      const merged = normalizeMerged(usersRes.data, profilesRes.data);
+
+      localStorage.setItem("user", JSON.stringify(merged));
+      setUser(merged);
       setIsLoggedIn(true);
-      localStorage.removeItem('loginSuccessModal');
-      console.log('🔄 사용자 정보 수동 갱신 완료');
+      localStorage.removeItem("loginSuccessModal");
     } catch (error) {
-      console.error('❌ 사용자 정보 갱신 실패:', error);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
       setUser(null);
       setIsLoggedIn(false);
+      throw error;
     }
   }, []);
 
   useEffect(() => {
-    // 1. URL에서 토큰 확인 (백엔드 리다이렉트 대비)
     const searchParams = new URLSearchParams(window.location.search);
-    const urlAccessToken = searchParams.get('accessToken');
+    const urlAccessToken = searchParams.get("accessToken");
 
-    if (urlAccessToken) {
-      localStorage.setItem('accessToken', urlAccessToken);
-      window.history.replaceState({}, document.title, window.location.pathname);
+    if (!urlAccessToken) return;
 
-      (async () => {
-        try {
-          const { data } = await apiClient.get('/api/v1/profiles/me', {
-            headers: { Authorization: `Bearer ${urlAccessToken}` }
-          });
+    localStorage.setItem("accessToken", urlAccessToken);
+    window.history.replaceState({}, document.title, window.location.pathname);
 
-          const payload: any = data?.result ?? data;
-          const normalizedUser = normalizeProfileResult(payload);
-
-          localStorage.setItem('user', JSON.stringify(normalizedUser));
-          setUser(normalizedUser);
-          setIsLoggedIn(true);
-          localStorage.setItem('loginSuccessModal', '1');
-          console.log('✅ 로그인 성공 (AuthProvider 처리)');
-        } catch (err: any) {
-          console.error('❌ 프로필 로드 실패:', err);
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('user');
-          setUser(null);
-          setIsLoggedIn(false);
-        }
-      })();
-
-      return;
-    }
-
-  }, []);
+    (async () => {
+      try {
+        await refreshUser();
+        localStorage.setItem("loginSuccessModal", "1");
+      } catch {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+        setUser(null);
+        setIsLoggedIn(false);
+      }
+    })();
+  }, [refreshUser]);
 
   useEffect(() => {
     let isMounted = true;
+
     const initAuth = async () => {
-      // 2. 기존 로직 (새로고침 시 로컬 스토리지에서 복구)
-      const savedUser = localStorage.getItem('user');
-      const token = localStorage.getItem('accessToken');
+      const savedUser = localStorage.getItem("user");
+      const token = localStorage.getItem("accessToken");
 
-      if (savedUser && token) {
+      if (savedUser) {
         try {
-          const parsed = JSON.parse(savedUser);
-          const normalized = normalizeProfileResult(parsed);
-          setUser(normalized);
-          localStorage.setItem('user', JSON.stringify(normalized));
-          setIsLoggedIn(true);
-
-          if (!normalized.user?.name) {
-            await refreshUser();
-          }
-          return;
-        } catch (error) {
-          console.error('Failed to parse saved user:', error);
-          localStorage.removeItem('user');
-          localStorage.removeItem('accessToken');
-          setUser(null);
-          setIsLoggedIn(false);
+          const parsed = JSON.parse(savedUser) as GetProfileResult;
+          setUser(parsed);
+          setIsLoggedIn(Boolean(token));
+        } catch {
+          localStorage.removeItem("user");
         }
       }
 
       if (token) {
-        await refreshUser();
-        return;
+        try {
+          await refreshUser();
+          return;
+        } catch {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("user");
+          setUser(null);
+          setIsLoggedIn(false);
+        }
       }
 
-      // 3. 서버가 HttpOnly 쿠키로 세션을 관리하는 경우
       try {
-        const { data } = await apiClient.get('/api/v1/profiles/me');
-        const payload: any = data?.result ?? data;
-        const normalizedUser = normalizeProfileResult(payload);
-
-        localStorage.setItem('user', JSON.stringify(normalizedUser));
-        setUser(normalizedUser);
-        setIsLoggedIn(true);
-        localStorage.removeItem('loginSuccessModal');
-        console.log('✅ 서버 세션으로부터 사용자 정보 복구 완료 (cookie-based auth)');
-      } catch (err) {
-        // 실패하면 무시
+        await refreshUser();
+      } catch {
+        // ignore
       }
     };
 
@@ -198,60 +155,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [refreshUser]);
 
   const login = useCallback(() => {
-    // 백엔드의 구글 인증 시작점으로 리다이렉트
-    // use centralized helper to ensure /api/v1 is included consistently
-    // 변경된 엔드포인트에 맞춰 리다이렉트
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/oauth/google`;
   }, []);
 
-  const completeLogin = useCallback(async (token: string) => {
-    try {
-      console.log("🔄 로그인 처리 시작...");
-
-      localStorage.setItem('accessToken', token);
-
+  const completeLogin = useCallback(
+    async (token: string) => {
+      localStorage.setItem("accessToken", token);
       window.history.replaceState({}, document.title, window.location.pathname);
 
-      const { data } = await apiClient.get('/api/v1/profiles/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const payload: any = data?.result ?? data;
-      const userData = normalizeProfileResult(payload);
-
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-      setIsLoggedIn(true);
-      localStorage.setItem('loginSuccessModal', '1');
-
-      console.log('✅ 로그인 성공!');
-    } catch (error) {
-      console.error('❌ 로그인 처리 실패:', error);
-
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
-      setUser(null);
-      setIsLoggedIn(false);
-      throw error;
-    }
-  }, [setUser, setIsLoggedIn]);
+      await refreshUser();
+      localStorage.setItem("loginSuccessModal", "1");
+    },
+    [refreshUser]
+  );
 
   const logout = useCallback(async () => {
     try {
       await logoutApi();
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch {
+      // ignore
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
-      localStorage.removeItem('loginSuccessModal');
-      sessionStorage.removeItem('loginSuccessModalShown');
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("loginSuccessModal");
+      sessionStorage.removeItem("loginSuccessModalShown");
       setUser(null);
       setIsLoggedIn(false);
       queryClient.clear();
     }
-  }, []);
+  }, [queryClient]);
+
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn, authReady, setUser, setIsLoggedIn, login, logout, refreshUser, completeLogin }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoggedIn,
+        authReady,
+        setUser,
+        setIsLoggedIn,
+        login,
+        logout,
+        refreshUser,
+        completeLogin,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

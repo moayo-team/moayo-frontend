@@ -153,6 +153,11 @@ export type DeleteLinkReponse = BaseResponse<null>;
 //특정 사용자의 공개 이력 조회 응답
 export type PublicExperienceListResponse = BaseResponse<ExperienceSummary[]>;
 
+//ai 초안 작성글
+export type DraftRequest = {
+  prompt: string;
+}
+
 //공개 이력 링크 조회 응답
 export interface PublicExperienceLink {
   linkId: number;

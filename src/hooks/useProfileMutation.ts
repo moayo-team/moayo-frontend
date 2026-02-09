@@ -189,9 +189,10 @@ export const useProfileSave = () => {
         },
 
         onSuccess: async () => {
+            await refreshUser();
             await queryClient.invalidateQueries({ queryKey: ["myProfile"] });
             await queryClient.refetchQueries({ queryKey: ["myProfile"] })
-            await refreshUser();
+            
             alert("성공적으로 저장되었습니다!");
         },
 
