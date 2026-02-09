@@ -213,38 +213,55 @@ export default function MessagePage() {
 	}
 
 	return (
-		<div className="bg-white">
-			<main className="w-full flex justify-center">
-				<div
-					className="origin-top-left"
-					style={{ transform: `scale(${scale})` }}
-				>
-					<h1 className="text-[28px] font-bold leading-[36px] tracking-normal mb-[24px]">
-						쪽지함 목록
-					</h1>
-					<div className="flex flex-row gap-6">
-						<aside className="w-[403px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden p-[31px_24px]">
-							<ThreadList
-								threads={roomSummaries}
-								selectedRoomId={selectedRoomId}
-								onSelectRoom={handleSelectRoom}
-							/>
-						</aside>
+    <div className="bg-white">
+      <main className="w-full">
+        <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 py-6">
+          <h1 className="text-[22px] sm:text-[26px] xl:text-[28px] font-bold leading-[1.3] mb-4 sm:mb-6">
+            쪽지함 목록
+          </h1>
+          <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+            <section
+              className="
+                order-1 md:order-2
+                w-full
+                rounded-[10px] border border-[#ADA395] bg-white overflow-hidden
+                min-h-[520px] sm:min-h-[620px]
+                md:flex-1
+                xl:w-[904px] xl:flex-none xl:h-[620px]
+              "
+            >
+              <ChatPanel
+                thread={selectedRoom as any}
+                messages={messages}
+                draft={input}
+                onDraftChange={setInput}
+                onSend={send}
+                currentUserId={myId}
+                connected={connected && !sending}
+              />
+            </section>
 
-						<section className="w-[904px] h-[620px] rounded-[10px] border border-[#ADA395] bg-white overflow-hidden">
-							<ChatPanel
-								thread={selectedRoom as any}
-								messages={messages}
-								draft={input}
-								onDraftChange={setInput}
-								onSend={send}
-								currentUserId={myId}
-								connected={connected && !sending}
-							/>
-						</section>
-					</div>
-				</div>
-			</main>
-		</div>
-	);
+            <aside
+              className="
+                order-2 md:order-1
+                w-full
+                rounded-[10px] border border-[#ADA395] bg-white overflow-hidden
+                p-4 sm:p-6 xl:p-[31px_24px]
+                min-h-[220px]
+                md:w-[360px] md:flex-none
+                lg:w-[403px]
+                xl:h-[620px]
+              "
+            >
+              <ThreadList
+                threads={roomSummaries}
+                selectedRoomId={selectedRoomId}
+                onSelectRoom={handleSelectRoom}
+              />
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }

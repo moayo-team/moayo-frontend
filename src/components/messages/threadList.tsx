@@ -9,7 +9,7 @@ type Props = {
 
 export default function ThreadList({ threads, selectedRoomId, onSelectRoom }: Props) {
   return (
-    <div className="h-full min-h-0 space-y-[10px]">
+    <div className="h-full min-h-0 overflow-y-auto overflow-x-hidden space-y-[10px] hide-scrollbar pr-1">
       {threads.map((t) => (
         <ThreadListItem
           key={t.roomId}
