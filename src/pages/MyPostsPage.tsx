@@ -223,7 +223,6 @@ export const MyPostsPage = (): JSX.Element => {
   return (
     <div className="relative w-full min-h-screen bg-white pb-20">
       <NavigationBar />
-      
       <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Sidebar - Left Column */}
