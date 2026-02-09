@@ -23,21 +23,30 @@ export const useProfileData = () => {
     const res = experienceQuery.data?.result;
 
     if (!Array.isArray(res)) return [];
-    return res.map((exp: ExperienceSummary) => ({
-      id: exp.experienceId,
-      title: exp.title,
-      organizer: exp.organization,
-      role: exp.role,
-      startDate: exp.startDate,
-      endDate: exp.endDate,
-      period: `${exp.startDate.replace(/-/g, ".")} - ${exp.endDate.replace(/-/g, ".")}`,
-      participation: exp.activity,
-      intro: exp.summary || "",
-      visible: exp.visible,
-      isPublic: exp.visible,
-      fileName: [],
-      link: [],
-    }));
+    return res.map((exp: ExperienceSummary) => {
+      const safeStart = exp.startDate?.replace(/-/g, ".") || "";
+      const safeEnd = exp.endDate?.replace(/-/g, ".") || "";
+
+      const period = safeStart
+        ? `${safeStart} - ${safeEnd}`
+        : (safeEnd ? `- ${safeEnd}` : "");
+
+      return {
+        id: exp.experienceId,
+        title: exp.title,
+        organizer: exp.organization,
+        role: exp.role,
+        startDate: exp.startDate,
+        endDate: exp.endDate,
+        period: period,
+        participation: exp.activity,
+        intro: exp.summary || "",
+        visible: exp.visible,
+        isPublic: exp.visible,
+        fileName: [],
+        link: [],
+      };
+    });
   }, [experienceQuery.data?.result]);
 
   const isProfileRealError =
@@ -115,7 +124,7 @@ export const usePublicExperiences = (targetUserId: number | null) => {
       role: exp.role,
       startDate: exp.startDate,
       endDate: exp.endDate,
-      period: `${exp.startDate.replace(/-/g, ".")} - ${exp.endDate.replace(/-/g, ".")}`,
+      period: `${exp.startDate?.replace(/-/g, ".")} - ${exp.endDate?.replace(/-/g, ".")}`,
       participation: exp.activity,
       intro: exp.summary || "",
       visible: exp.visible,
@@ -135,7 +144,7 @@ export const usePublicExperiences = (targetUserId: number | null) => {
 };
 
 export const usePublicExperienceDetail = (
-  targetUserId: number | null, 
+  targetUserId: number | null,
   experienceId: number | null
 ) => {
   const { experiences, isLoading, isError } = usePublicExperiences(targetUserId);
