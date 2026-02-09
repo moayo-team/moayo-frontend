@@ -35,7 +35,7 @@ export default function ThreadListItem({ thread, active, onClick }: Props) {
       type="button"
       onClick={onClick}
       className={[
-        "w-full h-[93px] text-left rounded-[10px] transition-colors",
+        "w-full min-w-0 h-[93px] text-left rounded-[10px] transition-colors",
         "px-[14px] py-[12px]",
         active ? "bg-[#EFEEEB]" : "bg-[#FBFAF9] hover:bg-[#F3F2F0]",
         "shadow-sm",
@@ -46,7 +46,7 @@ export default function ThreadListItem({ thread, active, onClick }: Props) {
           src={resolvedAvatar}
           alt={displayName}
           className={[
-            "h-9 w-9 rounded-full flex-shrink-0",
+            "h-10 w-10 rounded-full shrink-0",
             isDefaultAvatar ? "object-contain p-1" : "object-cover",
           ].join(" ")}
           onError={(e) => {
@@ -58,7 +58,7 @@ export default function ThreadListItem({ thread, active, onClick }: Props) {
           <div className="flex items-baseline gap-2 min-w-0">
             <span
               className={[
-                "text-[16px] font-semibold leading-[140%] truncate",
+                "text-[16px] font-semibold leading-[140%] truncate min-w-0",
                 textColor,
               ].join(" ")}
             >
