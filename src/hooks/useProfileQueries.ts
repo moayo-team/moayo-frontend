@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getOtherProfile, getProfile, getUserProfileById } from "../api/profile/profile";
 import axios from "axios";
-import { getExperienceDetail, getExperienceFiles, getExperienceLinks, getMyExperiences, getPublicExperienceFiles, getPublicExperienceLinks, getPublicExperiences } from "../api/profile/experiences";
+import { getExperienceDetail, getExperienceFiles, getExperienceLinks, getMyExperiences, getPublicExperienceDetail, getPublicExperienceFiles, getPublicExperienceLinks, getPublicExperiences } from "../api/profile/experiences";
 import type { Career, ExperienceSummary } from "../types/career";
 import { useMemo } from "react";
 
@@ -36,8 +36,8 @@ export const useProfileData = () => {
         title: exp.title,
         organizer: exp.organization,
         role: exp.role,
-        startDate: exp.startDate,
-        endDate: exp.endDate,
+        startDate: exp.startDate ?? "",
+        endDate: exp.endDate ?? "",
         period: period,
         participation: exp.activity,
         intro: exp.summary || "",
@@ -112,33 +112,32 @@ export const usePublicExperiences = (targetUserId: number | null) => {
   });
 
   // 데이터 가공 
-  const mappedPublicExperiences = useMemo(() => {
+  const mappedPublicExperiences = useMemo((): Career[] => {
   const res = publicExpQuery.data?.result;
   if (!Array.isArray(res)) return [];
 
-  return res.map((exp: ExperienceSummary) => {
-    // 1. null 체크를 포함한 안전한 변환 (상단 훅에서 쓰신 로직과 동일하게!)
+  return res.map((exp: ExperienceSummary): Career => {
     const safeStart = exp.startDate?.replace(/-/g, ".") || "";
     const safeEnd = exp.endDate?.replace(/-/g, ".") || "";
 
-    // 2. 기간 문자열 생성
+
     const period = safeStart && safeEnd 
       ? `${safeStart} - ${safeEnd}` 
-      : (safeStart || safeEnd || "");
+      : (safeStart || safeEnd || "기간 정보 없음");
 
     return {
       id: exp.experienceId,
-      title: exp.title,
-      organizer: exp.organization,
-      role: exp.role,
-      startDate: exp.startDate,
-      endDate: exp.endDate,
-      period: period, // 안전하게 계산된 period 사용
-      participation: exp.activity,
+      title: exp.title || "제목 없음",
+      organizer: exp.organization || "기관 없음",
+      role: exp.role || "-",
+      startDate: exp.startDate ?? "",
+      endDate: exp.endDate ?? "",
+      period: period,  
+      participation: exp.activity || "-",
       intro: exp.summary || "",
       visible: exp.visible,
       isPublic: exp.visible,
-      files: [],
+      fileName: [],
       link: [],
     };
   });
@@ -148,45 +147,38 @@ export const usePublicExperiences = (targetUserId: number | null) => {
     experiences: mappedPublicExperiences,
     isLoading: publicExpQuery.isLoading,
     isError: publicExpQuery.isError,
+    rawResponse: publicExpQuery.data,
     refetch: publicExpQuery.refetch,
   };
 };
 
-export const usePublicExperienceDetail = (
-  targetUserId: number | null,
-  experienceId: number | null
-) => {
-  const { experiences, isLoading, isError } = usePublicExperiences(targetUserId);
-
-  // 목록에서 해당 ID의 이력 찾기
-  const detail = useMemo(() => {
-    if (!experienceId) return null;
-    return experiences.find(exp => exp.id === experienceId) || null;
-  }, [experiences, experienceId]);
-
-  return {
-    data: detail ? { result: detail } : null,
-    isLoading,
-    isError,
-  };
+//공개 이력 상세 조회
+export const usePublicExperienceDetailQuery = (experienceId: number | null) => {
+  return useQuery({
+    queryKey: ["publicExperienceDetail", experienceId],
+    queryFn: () => getPublicExperienceDetail(experienceId!),
+    enabled: !!experienceId, 
+    staleTime: 1000 * 60 * 5, 
+  });
 };
 
-// 공개 이력 파일 조회 훅
-export const usePublicExperienceFiles = (experienceId: number | null, enabled: boolean) => {
+// 공개 이력 파일 조회 
+export const usePublicExperienceFiles = (experienceId: number | null, isReady: boolean = true) => {
   return useQuery({
     queryKey: ["publicExperienceFiles", experienceId],
     queryFn: () => getPublicExperienceFiles(experienceId!),
-    enabled: !!experienceId && !enabled,
+    enabled: !!experienceId && isReady,
     select: (data) => data.result,
   });
 };
 
-// 공개 이력 링크 조회 훅
+// 공개 이력 링크 조회 
 export const usePublicExperienceLinks = (experienceId: number | null, isReady: boolean = true) => {
   return useQuery({
     queryKey: ["publicExperienceLinks", experienceId],
     queryFn: () => getPublicExperienceLinks(experienceId!),
-    enabled: !!experienceId && !isReady,
+    enabled: !!experienceId && isReady,
+    select: (data) => data.result,
   });
 };
 

@@ -1,4 +1,4 @@
-import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse, type CreateExperienceLinkRequset, type GetExperienceLinksResponse, type ExperienceLink, type GetExperienceFilesResponse, type UpdateExperienceLinkRequest, type UpdateExperienceLinkResponse, type PublicExperienceListResponse, type GetPublicExperienceLinksResponse, type GetPublicExperienceFilesResponse, } from "../../types/career";
+import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse, type CreateExperienceLinkRequset, type GetExperienceLinksResponse, type ExperienceLink, type GetExperienceFilesResponse, type UpdateExperienceLinkRequest, type UpdateExperienceLinkResponse, type PublicExperienceListResponse, type GetPublicExperienceLinksResponse, type GetPublicExperienceFilesResponse, type GetPublicExperienceDetailsResponse, type ExperienceSummary, } from "../../types/career";
 import { apiClient } from "../client";
 
 /** 내 이력서 목록 조회 */
@@ -155,14 +155,21 @@ export const deleteExperienceLink = async (
     return data;
 };
 
-//특정 사용자 공개 이력 조회
-export const getPublicExperiences = async (targetUserId: number): Promise<PublicExperienceListResponse> => {
+//특정 사용자 공개 이력 목록 조회
+export const getPublicExperiences = async (userId: number): Promise<PublicExperienceListResponse> => {
     const response = await apiClient.get<PublicExperienceListResponse>(
-        `/api/v1/experiences/public/${targetUserId}`
+        `/api/v1/users/${userId}/experiences`
     );
     return response.data;
 };
 
+// 공개 이력서 상세 조회
+export const getPublicExperienceDetail = async (experienceId: number): Promise<BaseResponse<ExperienceSummary>> => {
+    const response = await apiClient.get<GetPublicExperienceDetailsResponse>(
+        `/api/v1/experiences/public/${experienceId}`
+    );
+    return response.data;
+};
 // 공개 이력 링크 조회
 export const getPublicExperienceLinks = async (experienceId: number): Promise<GetPublicExperienceLinksResponse> => {
     const { data } = await apiClient.get<GetPublicExperienceLinksResponse>(

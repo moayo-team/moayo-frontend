@@ -33,10 +33,11 @@ const ProfilePage = () => {
 
   // 데이터 조회 훅(내ID 용)
   const {
-    user, profile, tags, indexItems, isLoading, isError, documents,
-    experiences,
+    user, profile, tags, indexItems, isLoading: isMyLoading, isError: isMyError, documents,
+    experiences: myExps,
   } = useProfileData();
 
+  
   // 내 프로필인지 타인 프로필인지 판단
   const isMyProfile = useMemo(() => {
     if (!urlUserId && !stateUserId) return true;
@@ -81,7 +82,7 @@ const ProfilePage = () => {
 
   const displayTags = isMyProfile ? tags : (otherProfile?.interestTags ?? []);
   const displayIndexItems = isMyProfile ? indexItems : (otherProfile?.indexItems ?? []);
-  const displayExperiences = isMyProfile ? experiences : publicExps;
+  const displayExperiences = isMyProfile ? myExps : publicExps;
   const displayDocuments = useMemo(() => {
     if (isMyProfile) return documents; // 내 프로필이면 내 파일함
     return otherProfile?.documents ?? []; // 남의 프로필이면 그 사람이 보낸 파일 목록
@@ -239,11 +240,11 @@ const ProfilePage = () => {
   };
 
 
-  const isDataLoading = isLoading || (!isMyProfile && isOtherLoading);
+  const isDataLoading = isMyLoading || (!isMyProfile && isOtherLoading);
   if (isDataLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
   //  렌더링
-  const resolvedIsLoading = isLoading || isOtherLoading || isPublicExpLoading;
-  const resolvedIsError = isError || isOtherError;
+  const resolvedIsLoading = isMyLoading || isOtherLoading || isPublicExpLoading;
+  const resolvedIsError = isMyError || isOtherError;
 
   if (resolvedIsLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
   if (resolvedIsError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;

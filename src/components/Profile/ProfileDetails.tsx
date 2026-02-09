@@ -569,6 +569,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                         currentProfileImage={data.imageUrl}
                         documents={data.documents}
                         experienceIds={experienceIds}
+                        isMyProfile={!isReadOnly}
                     />
 
                     {/* 커스텀 추가 정보 리스트 */}
