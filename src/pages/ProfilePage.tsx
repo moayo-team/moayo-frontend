@@ -27,7 +27,8 @@ const ProfilePage = () => {
 
   const isInitialized = useRef(false);
 
-  const { userId: urlUserId } = useParams(); // URL에서 전달된 ID
+  const { userId: urlUserId } = useParams(); // URL에서 전달된 ID(첫 로그인 구분)
+  const stateUserId = (location.state as { userId?: string | number } | null)?.userId;
   const { user: me } = useProfileData();
 
   // 데이터 조회 훅(내ID 용)
@@ -38,14 +39,22 @@ const ProfilePage = () => {
 
   // 내 프로필인지 타인 프로필인지 판단
   const isMyProfile = useMemo(() => {
-    if (!urlUserId) return true;
-    return String(user?.id) === String(urlUserId);
-  }, [urlUserId, user?.id]);
+    if (!urlUserId && !stateUserId) return true;
 
+    const targetId = String(urlUserId || stateUserId);
+    return String(me?.id) === targetId;
+  }, [urlUserId, stateUserId, me?.id]);
+
+
+  // 타인 프로필을 조회할 ID 확정
+  const targetUserId = useMemo(() => {
+    if (isMyProfile) return null;
+    return Number(urlUserId || stateUserId);
+  }, [isMyProfile, urlUserId, stateUserId]);
 
   //타인용
-  const { data: otherProfile, isLoading: isOtherLoading, isError: isOtherError } = getOtherUserProfile(isMyProfile ? null : Number(urlUserId));
-  const { experiences: publicExps, isLoading: isPublicExpLoading } = usePublicExperiences(isMyProfile ? null : Number(urlUserId));
+  const { data: otherProfile, isLoading: isOtherLoading, isError: isOtherError } = getOtherUserProfile(targetUserId);
+  const { experiences: publicExps, isLoading: isPublicExpLoading } = usePublicExperiences(targetUserId);
 
   const displayUser = useMemo(() => {
     if (isMyProfile) return user;

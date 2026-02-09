@@ -37,6 +37,33 @@ export const PostDetailPage = (): JSX.Element => {
     setLikes(isLiked ? likes - 1 : likes + 1);
   };
 
+  const postDetails = [
+    { label: "모집인원", value: `${post?.recruitCount?? ""}` },
+    { label: "모집포지션", value: post?.positions??[] },
+    { label: "마감일", value: (post as any)?.dday ?? (post ? formatDateRange(post.createdAt, post.deadline).split(' - ')[1]: "") },
+  ];
+
+  const authorId =
+    (post as any)?.userId ??
+    (post as any)?.authorId ??
+    post?.createdByUserId ??
+    (post as any)?.author?.id ??
+    undefined;
+
+  const isOwner = Boolean(
+    isLoggedIn &&
+    user &&
+    post &&
+    (
+      String(authorId ?? '') === String(user.user?.id ?? '')
+    )
+  );
+
+  const numericAuthorId = Number(authorId);
+  const { data: authorProfile } = useOtherUserProfile(
+    Number.isFinite(numericAuthorId) ? numericAuthorId : undefined
+  );
+
   if (isPending) {
     return (
       <div className="relative w-full min-h-screen bg-white">
@@ -61,31 +88,7 @@ export const PostDetailPage = (): JSX.Element => {
     );
   }
 
-  const postDetails = [
-    { label: "모집인원", value: `${post.recruitCount}` },
-    { label: "모집포지션", value: post.positions },
-    { label: "마감일", value: (post as any).dday ?? formatDateRange(post.createdAt, post.deadline).split(' - ')[1] },
-  ];
 
-  const authorId =
-    (post as any).userId ??
-    (post as any).authorId ??
-    post.createdByUserId ??
-    (post as any).author?.id ??
-    undefined;
-
-  const isOwner = Boolean(
-    isLoggedIn &&
-    user &&
-    (
-      String(authorId ?? '') === String(user.user?.id ?? '')
-    )
-  );
-
-  const numericAuthorId = Number(authorId);
-  const { data: authorProfile } = useOtherUserProfile(
-    Number.isFinite(numericAuthorId) ? numericAuthorId : undefined
-  );
 
   const handleGoToProfile = () => {
     if (!authorId) {
@@ -167,12 +170,7 @@ export const PostDetailPage = (): JSX.Element => {
               <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-gray-scale30 rounded-[10px] flex flex-col">
                 <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
                   <img
-                    className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-[10px]
-                    ${(isOwner ? user?.profile?.imageUrl : authorProfile?.imageUrl)
-                        ? "object-cover"
-                        : "object-contain p-1"
-                      }
-                    `}
+                    className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-contain rounded-[10px]"
                     alt="Profile"
                     src={getFullImageUrl(user?.profile?.imageUrl)}
                     onError={(e) => {
@@ -216,11 +214,7 @@ export const PostDetailPage = (): JSX.Element => {
               <div className="flex w-full items-start justify-center gap-[100px] px-5 py-2.5 bg-gray-scale30 rounded-[5px] shadow-[0px_0px_4px_#0000004c] mb-6">
                 <div className="flex items-center gap-[15px] relative flex-1 self-stretch grow">
                   <img
-                    className={`w-[62px] h-[63px] relative rounded-[10px] overflow-hidden
-                    ${(isOwner ? user?.profile?.imageUrl : authorProfile?.imageUrl)
-                        ? "object-cover"
-                        : "object-contain p-2"
-                      }`}
+                    className="w-[62px] h-[63px] relative rounded-[10px] overflow-hidden object-contain"
                     alt="작성자 프로필 이미지"
                     src={getFullImageUrl(
                       isOwner
@@ -321,8 +315,8 @@ export const PostDetailPage = (): JSX.Element => {
                 <button
                   onClick={handleLikeToggle}
                   className={`flex w-[83px] h-[33px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${isLiked
-                      ? 'bg-primaryprimary-50 border-2 border-primaryprimary-500'
-                      : 'bg-gray-scalegray-scale-50 border-2 border-transparent'
+                    ? 'bg-primaryprimary-50 border-2 border-primaryprimary-500'
+                    : 'bg-gray-scalegray-scale-50 border-2 border-transparent'
                     } ${isLoggedIn
                       ? 'hover:bg-primaryprimary-100 cursor-pointer'
                       : 'cursor-not-allowed opacity-60'
@@ -351,8 +345,8 @@ export const PostDetailPage = (): JSX.Element => {
                   <button
                     onClick={handleSendMessage}
                     className={`flex w-[83px] items-center justify-center gap-[5px] px-2 py-[5px] relative ${isLoggedIn
-                        ? 'bg-gray-scalegray-scale-50 hover:bg-gray-scalegray-scale-100 cursor-pointer'
-                        : 'bg-gray-scalegray-scale-50 cursor-not-allowed opacity-60'
+                      ? 'bg-gray-scalegray-scale-50 hover:bg-gray-scalegray-scale-100 cursor-pointer'
+                      : 'bg-gray-scalegray-scale-50 cursor-not-allowed opacity-60'
                       } rounded-[5px] transition-colors`}
                     disabled={!isLoggedIn}
                   >
