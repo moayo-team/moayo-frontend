@@ -266,6 +266,7 @@ const ProfilePage = () => {
       <ResumeSection
         carrers={allCareers}
         isReadOnly={!isMyProfile}
+        isMyProfile={isMyProfile}
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}
         onSave={handleSaveCareer}

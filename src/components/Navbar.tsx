@@ -26,7 +26,7 @@ export const NavigationBar = (): JSX.Element => {
     { id: 4, label: "쪽지", path: "/message" },
   ];
 
-   // 이미지 URL 처리 함수 
+  // 이미지 URL 처리 함수 
   const getProfileImageUrl = (imageUrl?: string | null) => {
     if (!imageUrl) return defultProfile;
     if (imageUrl.startsWith('blob:')) return imageUrl;
@@ -80,7 +80,12 @@ export const NavigationBar = (): JSX.Element => {
               <div className=" sm:flex items-center gap-2 cursor-pointer"
                 onClick={() => navigate('/profile')}>
                 <img
-                  className="w-8 h-8 rounded-full object-cover"
+                  className={`w-8 h-8 rounded-[10px]
+                    ${user.profile?.imageUrl
+                        ? "object-cover"
+                        : "object-contain p-1"
+                      }
+                   `}
                   alt={user.user?.name || '사용자'}
                   src={user.profile?.imageUrl
                     ? `${import.meta.env.VITE_API_BASE_URL}${user.profile.imageUrl}`
