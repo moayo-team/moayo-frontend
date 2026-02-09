@@ -4,6 +4,7 @@ export interface Career {
   role: string;
   title: string;
   startDate: string;
+  endDate: string;
   organizer: string;
   participation: string;
   intro: string;
@@ -28,8 +29,8 @@ export interface ExperienceSummary {
   experienceId: number;
   organization: string;
   title: string;
-  startDate: string; 
-  endDate: string;   
+  startDate: string | null; 
+  endDate: string | null;   
   activity: string;
   role: string;
   visible: boolean;
@@ -150,7 +151,7 @@ export interface DeleteLinkRequest {
 //링크 삭제 응답
 export type DeleteLinkReponse = BaseResponse<null>;
 
-//특정 사용자의 공개 이력 조회 응답
+//특정 사용자의 공개 이력 목록 조회 응답
 export type PublicExperienceListResponse = BaseResponse<ExperienceSummary[]>;
 
 //ai 초안 작성글
@@ -174,3 +175,6 @@ export interface PublicExperienceFile {
 }
 
 export type GetPublicExperienceFilesResponse = BaseResponse<PublicExperienceFile[]>;
+
+//공개 이력 상세 조회 응답
+export type GetPublicExperienceDetailsResponse = BaseResponse<ExperienceSummary>;

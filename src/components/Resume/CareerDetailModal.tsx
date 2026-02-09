@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PublicToggle from "./PublicToggle";
 import { useUploadManager, type LinkItem } from "../../hooks/useUploadManager";
 import { FileText, X } from "lucide-react";
 import type { AttachedFile, Career, UpdateExperienceRequest } from "../../types/career";
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod } from "../../utils/format";
-import { useExperienceDetail, useExperienceFiles, useExperienceLinks, usePublicExperienceDetail, usePublicExperienceFiles, usePublicExperienceLinks, usePublicExperiences } from "../../hooks/useProfileQueries";
+import { useExperienceDetail, useExperienceFiles, useExperienceLinks, usePublicExperienceDetailQuery, usePublicExperienceFiles, usePublicExperienceLinks, usePublicExperiences } from "../../hooks/useProfileQueries";
 import { useExperienceDelete, useExperienceFileAttach, useExperienceLinkDelete, useExperienceUpdate } from "../../hooks/useProfileMutation";
 import { deleteProfileDocument, uploadProfileDocument } from "../../api/profile/profile";
 import { useQueryClient } from "@tanstack/react-query";
-import { addExperienceLink, deleteExperienceFile, getPublicExperiences, updateExperienceLink } from "../../api/profile/experiences";
+import { addExperienceLink, deleteExperienceFile, getPublicExperiences, postExperienceFile, updateExperienceLink } from "../../api/profile/experiences";
 import type { ProfileDocument } from "../../types/profile";
 
 interface CarrerDetailModalProps {
@@ -18,11 +18,12 @@ interface CarrerDetailModalProps {
     onSave?: (updatedData: any) => void; // 저장 콜백
     documents?: ProfileDocument[];
     isReadOnly?: boolean;
-    isMyProfile?: boolean; 
+    isMyProfile?: boolean;
 }
 const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, documents, isReadOnly = false, isMyProfile = true }: CarrerDetailModalProps) => {
     const queryClient = useQueryClient();
 
+    //내 프로필용 상세 조회
     const { data: myDetailRes, isLoading: myDetailLoading } = useExperienceDetail(
         isMyProfile ? initialData?.id : null
     );
@@ -33,7 +34,11 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
         isMyProfile ? initialData?.id : null
     );
 
-    //  타인 공개 파일/링크 조회 
+
+    //  타인 프로필용 공개 상세 조회
+    const { data: publicDetailRes, isLoading: publicDetailLoading } = usePublicExperienceDetailQuery(
+        !isMyProfile ? initialData?.id : null
+    );
     const publicFilesQuery = usePublicExperienceFiles(
         !isMyProfile ? initialData?.id : null,
         !isMyProfile
@@ -44,20 +49,29 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     );
 
     //  조건부로 데이터 선택
-    const filesRes = isMyProfile ? myFilesRes : publicFilesQuery.data;
-    const linksRes = isMyProfile ? myLinksRes : publicLinksQuery.data?.result;
+    const filesRes = useMemo(() => {
+        if (isMyProfile) return myFilesRes;
+
+        return publicFilesQuery.data?.map((f: any) => ({
+            fileId: f.fileId,
+            fileName: f.fileName
+        })) || [];
+    }, [isMyProfile, myFilesRes, publicFilesQuery.data]);
+
+    const linksRes = useMemo(() => {
+        if (isMyProfile) return myLinksRes;
+
+        return publicLinksQuery.data?.map((l: any) => ({
+            linkId: l.linkId,
+            url: l.url
+        })) || [];
+    }, [isMyProfile, myLinksRes, publicLinksQuery.data]);
 
     //  상세 정보 (타인 이력은 initialData 사용)
-    const serverData = isMyProfile ? myDetailRes?.result : {
-        title: initialData?.title || "",
-        organization: initialData?.organizer || "",
-        startDate: initialData?.startDate || "",
-        endDate: initialData?.endDate || "",
-        activity: initialData?.participation || "",
-        role: initialData?.role || "",
-        summary: initialData?.intro || "",
-        visible: initialData?.visible ?? true
-    };
+    const serverData = useMemo(() => {
+        if (isMyProfile) return myDetailRes?.result;
+        return publicDetailRes?.result;
+    }, [isMyProfile, myDetailRes, publicDetailRes]);
 
     //수정용
     const { mutate: deleteExp } = useExperienceDelete();
@@ -91,25 +105,26 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
     {/**외부에서 받은 데이터(텍스트) 로컬 state에 동기화 */ }
     useEffect(() => {
-        if (serverData) {
-            const safeStart = serverData.startDate?.replace(/-/g, ".") || "";
-            const safeEnd = serverData.endDate?.replace(/-/g, ".") || "";
+        const currentData = serverData || initialData;
+        if (currentData) {
+            const safeStart = currentData.startDate?.replace(/-/g, ".") || "";
+            const safeEnd = currentData.endDate?.replace(/-/g, ".") || "";
 
-            const period = safeStart 
-                ? `${safeStart} - ${safeEnd}` 
+            const period = safeStart
+                ? `${safeStart} - ${safeEnd}`
                 : (safeEnd ? `- ${safeEnd}` : "");
 
             setFormData({
-                title: serverData.title || "",
-                organizer: serverData.organization || "",
+                title: currentData.title || currentData.organization || "",
+                organizer: currentData.organization || currentData.organizer || "",
                 period: period,
-                participation: serverData.activity || "",
-                role: serverData.role || "",
-                intro: serverData.summary || "",
+                participation: currentData.activity || currentData.participation || "",
+                role: currentData.role || "",
+                intro: currentData.summary || currentData.intro || "",
             });
-            setIsPublic(serverData.visible);
+            setIsPublic(currentData.visible ?? true);
         }
-    }, [serverData]);
+    }, [serverData, initialData]);
 
     // 서버 데이터 동기화 (파일 목록)
     useEffect(() => {
@@ -134,7 +149,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                 return [...mappedFiles, ...newFilesOnly];
             });
         }
-    }, [filesRes, filesToDelete, documents, setSelectedFiles]);
+    }, [filesRes, filesToDelete, documents, setSelectedFiles, isMyProfile]);
 
     // 서버 데이터 동기화(링크)
     useEffect(() => {
@@ -144,6 +159,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             setLinks(activeLinks);
         }
     }, [linksRes, linksToDelete, setLinks]);
+
 
     const handleFileClick = (file: AttachedFile) => {
         if (isEditMode) return;
@@ -160,9 +176,10 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             URL.revokeObjectURL(url);
             return;
         }
+        const targetFileId = file.id || (file as any).fileId;
 
         // 서버 파일 - documents에서 URL 찾기
-        if (file.id && documents) {
+        if (targetFileId && documents) {
             const matchedDoc = documents.find(doc => doc.id === file.id);
             if (matchedDoc?.fileUrl) {
                 const fullUrl = matchedDoc.fileUrl.startsWith('/')
@@ -267,17 +284,15 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                     newFilesToUpload.map(f => uploadProfileDocument(f.fileObj!))
                 );
 
-                const attachPromises = uploadResults
-                    .filter(res => res.isSuccess)
-                    .map((res, idx) =>
-                        attachFile({
-                            experienceId: initialData.id,
-                            fileData: {
-                                fileId: res.result.id,
-                                fileName: newFilesToUpload[idx].name
-                            }
-                        })
-                    );
+                const attachPromises = uploadResults.map((res, idx) => {
+                    if (res.isSuccess) {
+                        return postExperienceFile(initialData.id, {
+                            fileId: res.result.id, // 업로드 API에서 받은 id
+                            fileName: newFilesToUpload[idx].name // 원본 파일 이름
+                        });
+                    }
+                    return Promise.resolve();
+                });
                 await Promise.all(attachPromises);
             }
 
@@ -318,7 +333,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                 queryClient.invalidateQueries({ queryKey: ["experienceLinks", initialData.id] })
             ]);
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 150));
             alert("모든 변경사항이 저장되었습니다.");
 
             setIsEditMode(false);
@@ -550,7 +565,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                             <span className="text-[#25221D] 16px] sm:text-[18px] font-pretendard font-medium leading-[130%]">
                                 파일 첨부
                             </span>
-                            <div className="flex flex-col gap-[8px]">
+                            <div className="flex flex-col gap-[8px] min-h-[60px]">
                                 {selectedFiles.map((file, index) => (
                                     <div
                                         key={index}
@@ -705,7 +720,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                         </div>
                     )}
                     {isReadOnly && (
-                        <div className="flex justify-end mt-8">
+                        <div className="flex justify-end mt-8 mb-10 mr-10">
                             <button onClick={onClose} className="px-8 py-3 bg-[#EFEEEB] text-[#5F5749] rounded-[10px] font-medium">
                                 닫기
                             </button>

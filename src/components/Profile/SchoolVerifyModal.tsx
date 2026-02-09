@@ -1,11 +1,13 @@
 import { X, FileText, Loader2 } from "lucide-react";
 import { useUploadManager } from "../../hooks/useUploadManager";
 import { deleteProfileDocument, getProfileDocuments, uploadProfileDocument } from "../../api/profile/profile";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ProfileDocument } from "../../types/profile";
 import { getExperienceFiles } from "../../api/profile/experiences";
 import { apiClient } from "../../api/client";
 import axios from "axios";
+import { useExperienceFiles } from "../../hooks/useProfileQueries";
+import { useQueries } from "@tanstack/react-query";
 
 interface ModalProps {
     isOpen: boolean;
@@ -15,9 +17,10 @@ interface ModalProps {
     currentProfileImage?: string;
     experienceIds: number[];
     documents?: ProfileDocument[];
+    isMyProfile?: boolean;
 }
 
-const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProfileImage, experienceIds, documents = [] }: ModalProps) => {
+const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProfileImage, experienceIds, documents = [], isMyProfile = true }: ModalProps) => {
     const {
         selectedFiles,
         handleFileUpload,
@@ -26,6 +29,25 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
         setSelectedFiles
     } = useUploadManager({ maxFiles: 3 });
 
+    const experienceFilesQueries = useQueries({
+        queries: experienceIds.map(id => ({
+            queryKey: ["experienceFiles", id],
+            queryFn: () => getExperienceFiles(id),
+            enabled: isOpen && isMyProfile && !!id, 
+        }))
+    });
+
+    const experienceFileIds = useMemo(() => {
+        const set = new Set<number>();
+        experienceFilesQueries.forEach(q => {
+            if (q.data?.result) {
+                q.data.result.forEach((file: any) => {
+                if (file.fileId) set.add(Number(file.fileId));
+            });
+        }
+        });
+        return set;
+    }, [experienceFilesQueries]);
     const [isUploading, setIsUploading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [uploadedDocuments, setUploadedDocuments] = useState<ProfileDocument[]>([]);
@@ -48,47 +70,33 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
     const fetchAndFilterDocuments = async () => {
         if (!isOpen) return;
 
-        // [핵심] 수정 모드가 아닐 때는 (타인 프로필 조회 시) 서버 요청 없이 받은 데이터 바로 사용
-        if (!isEditing) {
-            console.log("👤 타인 프로필 서류 표시 중:", documents);
-            // 프사 제외 필터링만 적용
-            const filtered = documents.filter(doc => doc.fileUrl !== currentProfileImage);
-            setUploadedDocuments(filtered);
-            return;
-        }
+        let allDocs: ProfileDocument[] = [];
 
-        // [내 프로필 수정 모드] 일 때만 서버에서 최신 목록 가져옴
-        try {
-            setIsLoading(true);
-            const response = await getProfileDocuments();
-
-            if (response.isSuccess) {
-                // 이력서에 첨부된 파일들은 학력 서류 목록에서 제외하기 위해 ID 수집
-                const expFilesResults = await Promise.all(
-                    experienceIds.map(id => getExperienceFiles(id))
-                );
-
-                const expFileIds = new Set(
-                    expFilesResults.flatMap(res => {
-                        const files = Array.isArray(res) ? res : (res.result || []);
-                        return files.map((f: any) => f.fileId);
-                    })
-                );
-
-                // 필터링: 프로필 사진 제외 + 이력서 첨부 파일 제외 = 순수 학력 증빙 서류
-                const onlyVerifyDocs = response.result.filter((doc: ProfileDocument) => {
-                    const isNotProfileImg = doc.fileUrl !== currentProfileImage;
-                    const isNotExpFile = !expFileIds.has(doc.id);
-                    return isNotProfileImg && isNotExpFile;
-                });
-
-                setUploadedDocuments(onlyVerifyDocs);
+        if (!isMyProfile) {
+            allDocs = documents;
+        } else {
+            try {
+                setIsLoading(true);
+                const response = await getProfileDocuments();
+                if (response.isSuccess) {
+                    allDocs = response.result;
+                }
+            } catch (error) {
+                console.error("서류 조회 실패:", error);
+            } finally {
+                setIsLoading(false);
             }
-        } catch (error) {
-            console.error("서류 조회 실패:", error);
-        } finally {
-            setIsLoading(false);
         }
+
+        const filtered = allDocs.filter(doc => {
+            const isNotProfileImg = String(doc.fileUrl) !== String(currentProfileImage);
+            const isNotExpFile = !experienceFileIds.has(Number(doc.id));
+            
+            return isNotProfileImg && isNotExpFile;
+        });
+
+        console.log("✅ 최종 필터링된 서류 목록:", filtered);
+        setUploadedDocuments(filtered);
     };
 
     // 모달이 열릴 때마다 실행
@@ -96,7 +104,7 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
         if (isOpen) {
             fetchAndFilterDocuments();
         }
-    }, [isOpen, isEditing, documents]);
+    }, [isOpen, isMyProfile, documents]);
 
     // 서버 파일 삭제
     const handleDeleteServerFile = async (documentId: number) => {
@@ -270,6 +278,22 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                             {isEditing && (uploadedDocuments.length + selectedFiles.length) < 3 && (
                                 <div
                                     onClick={() => fileInputRef.current?.click()}
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.dataTransfer.dropEffect = "copy";
+                                    }}
+                                    onDragLeave={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                    }}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                            handleFileSelection(e.dataTransfer.files);
+                                        }
+                                    }}
                                     className="flex items-center justify-center w-full h-[70px] sm:h-[80px] gap-[10px] sm:gap-[12px]
                                     bg-[#EFEEEB] rounded-[15px] cursor-pointer border border-[#ADA395]"
                                 >
