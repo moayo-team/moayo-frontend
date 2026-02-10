@@ -112,16 +112,12 @@ export default function HomePage(): JSX.Element {
       const roomId = res.data?.result?.roomId;
 
       if (!roomId) {
-        console.error("[CHAT CREATE] no roomId. data=", res.data);
         alert("쪽지방 생성에 실패했습니다.");
         return;
       }
 
       navigate("/message", { state: { roomId } });
     } catch (e: any) {
-      console.error("[CHAT CREATE] status=", e?.response?.status);
-      console.error("[CHAT CREATE] data=", e?.response?.data);
-      console.error("[CHAT CREATE] payload=", payload);
       alert("쪽지방 생성에 실패했습니다.");
     }
   };

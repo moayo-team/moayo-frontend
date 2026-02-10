@@ -18,12 +18,17 @@ export default function ChatHeader({ thread }: Props) {
     ? `User #${thread.opponentUserId}`
     : "-";
 
-  const rawUrl = OtherProfileResult?.imageUrl ?? thread?.opponentImageUrl ?? null;
+  const email = OtherProfileResult?.email ?? "-";
+
+  const rawUrl =
+    OtherProfileResult?.imageUrl ?? thread?.opponentImageUrl ?? null;
 
   const avatarUrl = (() => {
     const url = rawUrl;
     if (!url || url === "default_url") return profilePhoto;
-    return url.startsWith("http") ? url : `${import.meta.env.VITE_API_BASE_URL}${url}`;
+    return url.startsWith("http")
+      ? url
+      : `${import.meta.env.VITE_API_BASE_URL}${url}`;
   })();
 
   const isDefaultAvatar = avatarUrl === profilePhoto;
@@ -31,27 +36,27 @@ export default function ChatHeader({ thread }: Props) {
   return (
     <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        {/* 아바타 */}
         <div className="h-10 w-10 rounded-full overflow-hidden flex items-center justify-center">
           <img
             src={avatarUrl}
             alt={displayName}
             className={[
               "h-full w-full",
-              isDefaultAvatar ? "object-contain p-2" : "object-cover"
+              isDefaultAvatar ? "object-contain p-2" : "object-cover",
             ].join(" ")}
             referrerPolicy="no-referrer"
             onError={(e) => {
               e.currentTarget.src = profilePhoto;
-              // onError 이후에도 contain 적용되도록 강제
               e.currentTarget.className = "h-full w-full object-contain p-2";
             }}
           />
         </div>
 
         <div>
-          <div className="text-sm font-semibold text-gray-900">{displayName}</div>
-          <div className="text-xs text-gray-500">{thread ? `roomId: ${thread.roomId}` : ""}</div>
+          <div className="text-sm font-semibold text-gray-900">
+            {displayName}
+          </div>
+          <div className="text-xs text-gray-500">{email}</div>
         </div>
       </div>
 

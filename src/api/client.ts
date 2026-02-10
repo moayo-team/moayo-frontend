@@ -17,14 +17,14 @@ const refreshClient = axios.create({
 });
 
 const requestTokenRefresh = async () => {
-  console.debug('[auth] token refresh 요청');
+  //console.debug('[auth] token refresh 요청');
   const res = await refreshClient.post('/api/v1/auth/token/refresh');
   const payload: any = res.data?.result ?? res.data;
   const newToken =
     payload?.accessToken ??
     payload?.token ??
     res.headers?.authorization?.replace(/^Bearer\s+/i, '');
-  console.debug('[auth] token refresh 응답', { hasToken: Boolean(newToken) });
+//  console.debug('[auth] token refresh 응답', { hasToken: Boolean(newToken) });
   if (newToken) {
     localStorage.setItem('accessToken', newToken);
   }
@@ -78,9 +78,6 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => {
     if (response.config.url?.includes("/api/v1/home")) {
-      console.log("[HOME][INTERCEPT] status=", response.status);
-      console.log("[HOME][INTERCEPT] data=", response.data);
-      console.log("[HOME][INTERCEPT] auth sent=", response.config.headers?.Authorization);
     }
     // 200 OK지만 isSuccess: false일 경우
     if (response.data && response.data.isSuccess === false) {
