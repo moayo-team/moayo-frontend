@@ -289,7 +289,7 @@ const CareerAddPage = (): JSX.Element => {
     }
 
     const newFiles = fileArray.map((file) => ({
-      fileId: Math.floor(Math.random() * 1000000000),
+      fileId: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString()),
       name: file.name,
       fileObj: file,
       type: "file" as const

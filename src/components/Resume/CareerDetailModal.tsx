@@ -447,7 +447,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
         //  UI에만 추가
         const newUploadedFiles = fileArray.map(file => ({
-            id: Math.floor(Math.random() * 1000000), // 백엔드에 보낼 임시 ID 생성
+            id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString()), // 백엔드에 보낼 임시 ID 생성
             name: file.name,
             fileObj: file,
             type: 'file'
