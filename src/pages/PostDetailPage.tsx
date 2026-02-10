@@ -38,9 +38,9 @@ export const PostDetailPage = (): JSX.Element => {
   };
 
   const postDetails = [
-    { label: "모집인원", value: `${post?.recruitCount?? ""}` },
-    { label: "모집포지션", value: post?.positions??[] },
-    { label: "마감일", value: (post as any)?.dday ?? (post ? formatDateRange(post.createdAt, post.deadline).split(' - ')[1]: "") },
+    { label: "모집인원", value: `${post?.recruitCount ?? ""}` },
+    { label: "모집포지션", value: post?.positions ?? [] },
+    { label: "마감일", value: (post as any)?.dday ?? (post ? formatDateRange(post.createdAt, post.deadline).split(' - ')[1] : "") },
   ];
 
   const authorId =
@@ -170,7 +170,9 @@ export const PostDetailPage = (): JSX.Element => {
               <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-gray-scale30 rounded-[10px] flex flex-col">
                 <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
                   <img
-                    className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-contain rounded-[10px]"
+                    className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] rounded-[10px] // 👈 여기서 둥근 정도 조절
+                      ${getFullImageUrl(user?.profile?.imageUrl) === profile_photo ? "object-contain " : "object-cover"}
+                    `}
                     alt="Profile"
                     src={getFullImageUrl(user?.profile?.imageUrl)}
                     onError={(e) => {
@@ -214,8 +216,11 @@ export const PostDetailPage = (): JSX.Element => {
               <div className="flex w-full items-start justify-center gap-[100px] px-5 py-2.5 bg-gray-scale30 rounded-[5px] shadow-[0px_0px_4px_#0000004c] mb-6">
                 <div className="flex items-center gap-[15px] relative flex-1 self-stretch grow">
                   <img
-                    className="w-[62px] h-[63px] relative rounded-[10px] overflow-hidden object-contain"
-                    alt="작성자 프로필 이미지"
+                    className={`w-[62px] h-[62px] relative rounded-[10px] overflow-hidden 
+                      ${getFullImageUrl(isOwner ? user?.profile?.imageUrl : (authorProfile?.imageUrl || (post as any).profileImageUrl)) === profile_photo
+                                          ? "object-contain"
+                                          : "object-cover"}
+                    `} alt="작성자 프로필 이미지"
                     src={getFullImageUrl(
                       isOwner
                         ? user?.profile?.imageUrl

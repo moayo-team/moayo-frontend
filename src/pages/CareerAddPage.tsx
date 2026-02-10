@@ -281,6 +281,7 @@ const CareerAddPage = (): JSX.Element => {
     }
 
     const newFiles = fileArray.map((file) => ({
+      fileId: Math.floor(Math.random() * 1000000000),
       name: file.name,
       fileObj: file,
       type: "file" as const
@@ -397,12 +398,12 @@ const CareerAddPage = (): JSX.Element => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
 
     //모든 필드가 비어있는지 
-    const isAllEmpty = !newCareer.title.trim() && 
-                       !newCareer.organizer.trim() && 
-                       !newCareer.period.trim() && 
-                       !newCareer.participation.trim() && 
-                       !newCareer.role.trim() && 
-                       !newCareer.intro.trim();
+    const isAllEmpty = !newCareer.title.trim() &&
+      !newCareer.organizer.trim() &&
+      !newCareer.period.trim() &&
+      !newCareer.participation.trim() &&
+      !newCareer.role.trim() &&
+      !newCareer.intro.trim();
 
     if (isAllEmpty) {
       alert("입력된 내용이 없습니다. 내용을 작성한 후 등록해주세요.");
@@ -411,7 +412,7 @@ const CareerAddPage = (): JSX.Element => {
 
     if (!newCareer.title || newCareer.title.trim() === "") {
       alert("활동명은 필수 입력 항목입니다. 등록을 위해 활동명을 입력해주세요!");
-      return; 
+      return;
     }
 
     let start = "";
@@ -470,34 +471,54 @@ const CareerAddPage = (): JSX.Element => {
       });
 
       // 파일 업로드 + experience 연결
+      // if (selectedFiles.length > 0) {
+      //   try {
+      //     const uploadResults: UploadDocumentResponse[] = await Promise.all(
+      //       selectedFiles.map((file) => {
+      //         if (file.fileObj) return uploadProfileDocument(file.fileObj);
+      //         return Promise.resolve({ isSuccess: false, result: null } as any);
+      //       })
+      //     );
+
+      //     const attachPromises: Promise<any>[] = [];
+      //     uploadResults.forEach((res, idx) => {
+      //       if (res.isSuccess && res.result) {
+      //         attachPromises.push(
+      //           postExperienceFile(id!, {
+      //             fileId: res.result.id,
+      //             fileName: selectedFiles[idx].name
+      //           })
+      //         );
+      //       }
+      //     });
+
+      //     await Promise.all(attachPromises);
+      //   } catch (error) {
+      //     console.error("❌ 파일 업로드 중 오류:", error);
+      //     alert("이력은 저장되었으나 일부 파일 업로드에 실패했습니다.");
+      //   }
+      // }
       if (selectedFiles.length > 0) {
         try {
-          const uploadResults: UploadDocumentResponse[] = await Promise.all(
+          console.log("🛰️ 임시 ID를 이용한 파일 연결 시작...", selectedFiles);
+
+          await Promise.all(
             selectedFiles.map((file) => {
-              if (file.fileObj) return uploadProfileDocument(file.fileObj);
-              return Promise.resolve({ isSuccess: false, result: null } as any);
+              // useUploadManager 혹은 handleMultipleFileUpload에서 생성된 
+              // 랜덤 숫자인 file.id를 그대로 사용합니다.
+              const targetId = Number((file as any).fileId);
+              return postExperienceFile(id!, {
+                fileId: targetId,
+                fileName: file.name
+              });
             })
           );
-
-          const attachPromises: Promise<any>[] = [];
-          uploadResults.forEach((res, idx) => {
-            if (res.isSuccess && res.result) {
-              attachPromises.push(
-                postExperienceFile(id!, {
-                  fileId: res.result.id,
-                  fileName: selectedFiles[idx].name
-                })
-              );
-            }
-          });
-
-          await Promise.all(attachPromises);
+          console.log("✅ 임시 ID 기반 파일 연결 완료");
         } catch (error) {
-          console.error("❌ 파일 업로드 중 오류:", error);
-          alert("이력은 저장되었으나 일부 파일 업로드에 실패했습니다.");
+          console.error("❌ 파일 연결 중 오류:", error);
+          alert("이력 정보는 저장되었으나, 파일 연결에 실패했습니다.");
         }
       }
-
       // 링크 연결
       if (links.length > 0) {
         try {
