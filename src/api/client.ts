@@ -1,85 +1,87 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, type AxiosRequestHeaders } from "axios";
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const apiClient = axios.create({
-  // base URL은 호스트만 사용하고 각 요청에서 /api/v1을 포함합니다
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   withCredentials: true,
   timeout: 5000,
 });
 
 const refreshClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: BASE_URL,
   withCredentials: true,
   timeout: 5000,
 });
 
-const requestTokenRefresh = async () => {
-  //console.debug('[auth] token refresh 요청');
-  const res = await refreshClient.post('/api/v1/auth/token/refresh');
-  const payload: any = res.data?.result ?? res.data;
-  const newToken =
-    payload?.accessToken ??
-    payload?.token ??
-    res.headers?.authorization?.replace(/^Bearer\s+/i, '');
-//  console.debug('[auth] token refresh 응답', { hasToken: Boolean(newToken) });
-  if (newToken) {
-    localStorage.setItem('accessToken', newToken);
+const TOKEN_KEY = "accessToken";
+const USER_KEY = "user";
+
+const normalizeToken = (raw: unknown): string | null => {
+  if (raw == null) return null;
+  let t = String(raw);
+
+  // JSON.stringify로 저장된 경우 대비
+  try {
+    if (t.startsWith('"') && t.endsWith('"')) t = JSON.parse(t);
+  } catch {}
+
+  t = String(t).replace(/^Bearer\s+/i, "").trim();
+  return t.length > 0 ? t : null;
+};
+
+const setAuthHeader = (headers: any, token?: string | null) => {
+  if (!headers) return;
+  const t = normalizeToken(token);
+  if (!t) {
+    delete headers.Authorization;
+    return;
   }
+  headers.Authorization = `Bearer ${t}`;
+};
+
+const requestTokenRefresh = async (): Promise<string | null> => {
+  const res = await refreshClient.post("/api/v1/auth/token/refresh");
+
+  const payload: any = res.data?.result ?? res.data ?? {};
+  const tokenFromBody = payload?.accessToken ?? payload?.token ?? payload?.access_token;
+
+  const tokenFromHeader =
+    res.headers?.authorization?.replace(/^Bearer\s+/i, "") ??
+    res.headers?.Authorization?.replace(/^Bearer\s+/i, "");
+
+  const newToken = normalizeToken(tokenFromBody ?? tokenFromHeader);
+
+  if (newToken) {
+    localStorage.setItem(TOKEN_KEY, newToken);
+  }
+
   return newToken;
 };
 
-// 요청 인터셉터: 모든 요청에 저장된 액세스 토큰 삽입
-{/*apiClient.interceptors.request.use(
+apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken'); 
-    if (token && config.headers) {
-      // 따옴표 제거 로직 포함
-      const cleanToken = token.startsWith('"') ? JSON.parse(token) : token;
-      (config.headers as any).Authorization = `Bearer ${cleanToken}`;
+    const raw = localStorage.getItem(TOKEN_KEY);
+
+    config.headers = (config.headers ?? {}) as AxiosRequestHeaders;
+
+    const token = normalizeToken(raw);
+    if (!token) {
+      delete (config.headers as any).Authorization;
+      return config;
     }
+
+    (config.headers as any).Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => Promise.reject(error)
-);*/}
+);
 
-apiClient.interceptors.request.use((config) => {
-  const raw = localStorage.getItem("accessToken");
-
-  // headers 객체 보장
-  config.headers = config.headers ?? {};
-
-  if (!raw) {
-    // ✅ 토큰 없으면 Authorization 키 자체를 제거
-    delete (config.headers as any).Authorization;
-    return config;
-  }
-
-  let token = raw;
-  try { token = JSON.parse(raw); } catch {}
-
-  // ✅ Bearer 중복 제거
-  token = String(token).replace(/^Bearer\s+/i, "").trim();
-
-  if (token) {
-    (config.headers as any).Authorization = `Bearer ${token}`;
-  } else {
-    delete (config.headers as any).Authorization;
-  }
-
-  return config;
-});
-
-
-
-// 응답 인터셉터: BaseResponse의 isSuccess 체크 및 401 처리
 apiClient.interceptors.response.use(
   (response) => {
-    if (response.config.url?.includes("/api/v1/home")) {
-    }
-    // 200 OK지만 isSuccess: false일 경우
     if (response.data && response.data.isSuccess === false) {
       const customError = new AxiosError(
         response.data.message || "서버 내부 오류",
@@ -95,52 +97,37 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config as any;
 
-    if (error.response?.status === 401 && !originalRequest?._retry) {
+    if (!originalRequest) return Promise.reject(error);
+
+    const status = error.response?.status;
+    const url = String(originalRequest.url ?? "");
+
+    const isRefreshCall = url.includes("/api/v1/auth/token/refresh");
+
+    if (status === 401 && !originalRequest._retry && !isRefreshCall) {
       originalRequest._retry = true;
+
       try {
         const newToken = await requestTokenRefresh();
-        if (originalRequest?.headers) {
-          if (newToken) {
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          } else {
-            delete originalRequest.headers.Authorization;
-            localStorage.removeItem('accessToken');
-          }
+
+        originalRequest.headers = originalRequest.headers ?? {};
+        setAuthHeader(originalRequest.headers, newToken);
+
+        // refresh 실패면 토큰 정리
+        if (!newToken) {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          return Promise.reject(error);
         }
+
         return apiClient(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
         return Promise.reject(refreshError);
       }
     }
 
-    if (error.response?.status === 401 && !originalRequest?._retry) {
-      originalRequest._retry = true;
-      try {
-        const newToken = await requestTokenRefresh();
-        originalRequest.headers = originalRequest.headers ?? {};
-        setAuthHeader(originalRequest.headers, newToken);
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
-        return Promise.reject(refreshError);
-      }
-    }
-    console.error('API Error:', error);
     return Promise.reject(error);
   }
 );
-
-const setAuthHeader = (headers: any, token?: string | null) => {
-  if (!headers) return;
-  if (!token) {
-    delete headers.Authorization;
-    return;
-  }
-  const t = String(token).replace(/^Bearer\s+/i, "").trim();
-  if (t) headers.Authorization = `Bearer ${t}`;
-  else delete headers.Authorization;
-};
-
