@@ -236,26 +236,25 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
 
         const maxSize = 10 * 1024 * 1024; // 10MB
 
-        //let finalFile = file;
+        let finalFile = file;
         // 1MB 초과 시 자동 압축
         if (file.size > maxSize) {
             console.log("⚠️ 이미지 크기 초과, 압축 시작:", (file.size / 1024).toFixed(2) + 'KB');
 
             try {
-                //finalFile = await compressImage(file, 1);
-                await compressImage(file, 1);
+                finalFile = await compressImage(file, 1);
                 //alert(`이미지가 1MB를 초과하여 자동으로 압축되었습니다.\n원본: ${(file.size / 1024).toFixed(0)}KB → 압축: ${(finalFile.size / 1024).toFixed(0)}KB`);
             } catch (error: any) {
                 //alert(`이미지 압축 실패: ${error.message}\n1MB 이하의 이미지를 선택해주세요.`);
                 return;
             }
         }
-        const previewUrl = URL.createObjectURL(file);
+        const previewUrl = URL.createObjectURL(finalFile);
 
         // 미리보기 주소 저장
         onDataChange("profileImage", previewUrl);
         //onDataChange("profileFile", finalFile);
-        onDataChange("profileFile", file);
+        onDataChange("profileFile", finalFile);
 
         console.log("📸 프로필 사진 변경:", {
             name: file.name,
