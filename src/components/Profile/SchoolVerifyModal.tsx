@@ -4,9 +4,9 @@ import { deleteProfileDocument, getProfileDocuments, uploadProfileDocument } fro
 import { useEffect, useMemo, useState } from "react";
 import type { ProfileDocument } from "../../types/profile";
 import { getExperienceFiles } from "../../api/profile/experiences";
-import { apiClient } from "../../api/client";
+//import { apiClient } from "../../api/client";
 import axios from "axios";
-import { useExperienceFiles } from "../../hooks/useProfileQueries";
+//import { useExperienceFiles } from "../../hooks/useProfileQueries";
 import { useQueries } from "@tanstack/react-query";
 
 interface ModalProps {

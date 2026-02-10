@@ -51,7 +51,7 @@ const CareerAddPage = (): JSX.Element => {
   const [isToastVisible, setIsToastVisible] = useState(false);
 
   // ✅ 서버 세션 experienceId
-  const [experienceId, setExperienceId] = useState<number | null>(null);
+  //const [experienceId, setExperienceId] = useState<number | null>(null);
   const experienceIdRef = useRef<number | null>(null);
 
   // ✅ autosave debounce
@@ -123,7 +123,7 @@ const CareerAddPage = (): JSX.Element => {
         if (!Number.isFinite(id)) throw new Error("experienceId가 올바르지 않습니다.");
 
         if (cancelled) return;
-        setExperienceId(id);
+        //setExperienceId(id);
         experienceIdRef.current = id;
 
         // 세션 생성되었으니 autosave 활성화
@@ -291,7 +291,7 @@ const CareerAddPage = (): JSX.Element => {
   };
 
   const handleBoxClick = () => fileInputRef.current?.click();
-
+{/*
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     if (selectedFiles.length + e.target.files.length > 3) {
@@ -300,6 +300,7 @@ const CareerAddPage = (): JSX.Element => {
     }
     handleFileUpload(e.target.files);
   };
+   */}
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -347,7 +348,7 @@ const CareerAddPage = (): JSX.Element => {
         if (!created?.isSuccess) throw new Error(created?.message ?? "experience 생성 실패");
         id = Number(created.result);
         if (!Number.isFinite(id)) throw new Error("experienceId가 올바르지 않습니다.");
-        setExperienceId(id);
+        //setExperienceId(id);
         experienceIdRef.current = id;
         autosaveEnabledRef.current = true;
       }
@@ -451,7 +452,7 @@ const CareerAddPage = (): JSX.Element => {
         if (!created?.isSuccess) throw new Error(created?.message ?? "experience 생성 실패");
         id = Number(created.result);
         if (!Number.isFinite(id)) throw new Error("experienceId가 올바르지 않습니다.");
-        setExperienceId(id);
+        //setExperienceId(id);
         experienceIdRef.current = id;
         autosaveEnabledRef.current = true;
       }

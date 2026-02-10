@@ -20,8 +20,8 @@ export default function HomePage(): JSX.Element {
 
   const [isAIInputOpen, setIsAIInputOpen] = useState(false);
   const [aiText, setAiText] = useState("");
-  const [isAnalysing, setIsAnalysing] = useState(false);
-  const [isToastVisible, setIsToastVisible] = useState(false);
+  const [isAnalysing, _setIsAnalysing] = useState(false);
+  const [isToastVisible, _setIsToastVisible] = useState(false);
 
   const homeLoading = useHomeStore((s) => s.loading);
   const homeError = useHomeStore((s) => s.error);

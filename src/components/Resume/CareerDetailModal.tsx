@@ -2,13 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import PublicToggle from "./PublicToggle";
 import { useUploadManager, type LinkItem } from "../../hooks/useUploadManager";
 import { FileText, X } from "lucide-react";
-import type { AttachedFile, Career, UpdateExperienceRequest } from "../../types/career";
+//import type { AttachedFile, Career, UpdateExperienceRequest } from "../../types/career";
+import type { AttachedFile, UpdateExperienceRequest } from "../../types/career";
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod } from "../../utils/format";
-import { useExperienceDetail, useExperienceFiles, useExperienceLinks, usePublicExperienceDetailQuery, usePublicExperienceFiles, usePublicExperienceLinks, usePublicExperiences } from "../../hooks/useProfileQueries";
+//import { useExperienceDetail, useExperienceFiles, useExperienceLinks, usePublicExperienceDetailQuery, usePublicExperienceFiles, usePublicExperienceLinks, usePublicExperiences } from "../../hooks/useProfileQueries";
+import { useExperienceDetail, useExperienceFiles, useExperienceLinks, usePublicExperienceDetailQuery, usePublicExperienceFiles, usePublicExperienceLinks, } from "../../hooks/useProfileQueries";
 import { useExperienceDelete, useExperienceFileAttach, useExperienceLinkDelete, useExperienceUpdate } from "../../hooks/useProfileMutation";
 import { deleteProfileDocument, uploadProfileDocument } from "../../api/profile/profile";
 import { useQueryClient } from "@tanstack/react-query";
-import { addExperienceLink, deleteExperienceFile, getPublicExperiences, postExperienceFile, updateExperienceLink } from "../../api/profile/experiences";
+//import { addExperienceLink, deleteExperienceFile, getPublicExperiences, postExperienceFile, updateExperienceLink } from "../../api/profile/experiences";
+import { addExperienceLink, deleteExperienceFile, postExperienceFile, updateExperienceLink } from "../../api/profile/experiences";
 import type { ProfileDocument } from "../../types/profile";
 
 interface CarrerDetailModalProps {
