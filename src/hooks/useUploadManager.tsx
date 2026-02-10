@@ -68,6 +68,23 @@ export const useUploadManager = (options: UploadOptions = {}) => {
     }
   }, [selectedFiles, maxFiles, maxFileSizeMB, allowedTypes]);
 
+//   //이력 파일 업로드
+const handleCareerFileUpload = useCallback((incomingFiles: FileList | null) => {
+  if (!incomingFiles) return;
+  const newFiles = Array.from(incomingFiles);
+
+  if (selectedFiles.length + newFiles.length > maxFiles) return;
+
+  const mappedFiles: AttachedFile[] = newFiles.map(file => ({
+    // 1부터 1,000,000 사이의 랜덤 정수 생성
+    id: Math.floor(Math.random() * 1000000), 
+    name: file.name,
+    fileObj: file,
+    type: 'file'
+  }));
+
+  setSelectedFiles((prev) => [...prev, ...mappedFiles]);
+}, [selectedFiles, maxFiles]);
   //파일 삭제 로직
   const removeFile = (index: number) => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
@@ -145,6 +162,6 @@ export const useUploadManager = (options: UploadOptions = {}) => {
   return {
     selectedFiles, setSelectedFiles, handleFileUpload, removeFile,
     links, setLinks, linkInput, setLinkInput, addLink, removeLink,
-    isTextValid, fileInputRef, handleFileDownload, isInputValidByType
+    isTextValid, fileInputRef, handleFileDownload, isInputValidByType, handleCareerFileUpload
   };
 };

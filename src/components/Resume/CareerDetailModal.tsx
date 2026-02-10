@@ -50,12 +50,13 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
     //  조건부로 데이터 선택
     const filesRes = useMemo(() => {
-        if (isMyProfile) return myFilesRes;
+        // API 응답의 result가 배열인지 확인 (BaseResponse 구조 반영)
+        const rawData = isMyProfile ? myFilesRes : publicFilesQuery.data;
 
-        return publicFilesQuery.data?.map((f: any) => ({
-            fileId: f.fileId,
-            fileName: f.fileName
-        })) || [];
+        // 응답 객체에서 result 배열 추출
+        const resultList = Array.isArray(rawData) ? rawData : (rawData as any)?.result;
+
+        return Array.isArray(resultList) ? resultList : [];
     }, [isMyProfile, myFilesRes, publicFilesQuery.data]);
 
     const linksRes = useMemo(() => {
@@ -98,7 +99,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     const {
         selectedFiles, setSelectedFiles, handleFileUpload, removeFile,
         links, setLinks, linkInput, setLinkInput, addLink, removeLink,
-        fileInputRef, handleFileDownload
+        fileInputRef, handleFileDownload, handleCareerFileUpload
     } = useUploadManager({
         maxFiles: 3,
     });
@@ -128,7 +129,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
     // 서버 데이터 동기화 (파일 목록)
     useEffect(() => {
-        if (Array.isArray(filesRes)) {
+        if (filesRes.length > 0) {
             console.log("📥 서버에서 받은 파일 목록:", filesRes);
 
             const mappedFiles: AttachedFile[] = filesRes
@@ -149,7 +150,11 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                 return [...mappedFiles, ...newFilesOnly];
             });
         }
-    }, [filesRes, filesToDelete, documents, setSelectedFiles, isMyProfile]);
+        else if (filesRes.length === 0 && !isMyProfile) {
+            // 타인 프로필인데 데이터가 없으면 비워줌
+            setSelectedFiles([]);
+        }
+    }, [filesRes, filesToDelete, documents, isMyProfile]);
 
     // 서버 데이터 동기화(링크)
     useEffect(() => {
@@ -161,36 +166,72 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     }, [linksRes, linksToDelete, setLinks]);
 
 
+    // const handleFileClick = (file: AttachedFile) => {
+    //     if (isEditMode) return;
+
+    //     // 새로 업로드한 파일 (File 객체)
+    //     if (isMyProfile && !isReadOnly && file.fileObj) {
+    //         const url = URL.createObjectURL(file.fileObj);
+    //         const link = document.createElement("a");
+    //         link.href = url;
+    //         link.download = file.name;
+    //         document.body.appendChild(link);
+    //         link.click();
+    //         document.body.removeChild(link);
+    //         URL.revokeObjectURL(url);
+    //         return;
+    //     }
+    //     const targetFileId = file.id || (file as any).fileId;
+
+    //     // 서버 파일 - documents에서 URL 찾기
+    //     if (targetFileId && documents) {
+    //         const matchedDoc = documents.find(doc => doc.id === file.id);
+    //         if (matchedDoc?.fileUrl) {
+    //             const fullUrl = matchedDoc.fileUrl.startsWith('/')
+    //                 ? `${import.meta.env.VITE_API_BASE_URL}${matchedDoc.fileUrl}`
+    //                 : matchedDoc.fileUrl;
+    //             window.open(fullUrl, '_blank', 'noopener,noreferrer');
+    //             return;
+    //         }
+    //     }
+
+    //     alert("파일 다운로드 경로를 찾을 수 없습니다.");
+    // };
+
     const handleFileClick = (file: AttachedFile) => {
         if (isEditMode) return;
 
-        // 새로 업로드한 파일 (File 객체)
-        if (isMyProfile && !isReadOnly && file.fileObj) {
-            const url = URL.createObjectURL(file.fileObj);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = file.name;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            return;
-        }
-        const targetFileId = file.id || (file as any).fileId;
+        // 1. 방금 선택한 새 파일(아직 서버에 안 올라감) 처리
+        if (file.fileObj) {
+        const url = URL.createObjectURL(file.fileObj);
+        window.open(url, '_blank');
+        return;
+    }
 
-        // 서버 파일 - documents에서 URL 찾기
-        if (targetFileId && documents) {
-            const matchedDoc = documents.find(doc => doc.id === file.id);
-            if (matchedDoc?.fileUrl) {
-                const fullUrl = matchedDoc.fileUrl.startsWith('/')
-                    ? `${import.meta.env.VITE_API_BASE_URL}${matchedDoc.fileUrl}`
-                    : matchedDoc.fileUrl;
-                window.open(fullUrl, '_blank', 'noopener,noreferrer');
-                return;
+        // 2. 서버에 저장된 파일 처리
+        const targetFileId = (file as any).fileId || file.id;
+
+        if (targetFileId) {
+            try {
+                // [중요] 백엔드에 파일 다운로드/조회 API가 있는지 확인이 필요합니다.
+                // 예: GET /api/v1/files/download/{fileId}
+                // 만약 API를 모른다면 서연님께 "파일 다운로드용 API 주소가 뭐예요?"라고 물어봐야 합니다.
+
+                console.log(`📡 ID ${targetFileId}번 파일 데이터를 요청합니다...`);
+
+                // 임시로 브라우저가 직접 서버 API를 호출하게 시도 (가장 일반적인 방식)
+                const downloadUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v1/files/${targetFileId}`;
+                window.open(downloadUrl, '_blank');
+
+            } catch (error) {
+                console.error("파일 열기 실패:", error);
+                alert("파일을 불러오는 중 오류가 발생했습니다.");
             }
         }
 
-        alert("파일 다운로드 경로를 찾을 수 없습니다.");
+        // 3. 매칭 실패 시
+        console.error("❌ 파일 매칭 실패. targetFileId:", targetFileId, "documents:", documents);
+        alert("파일 다운로드 경로를 찾을 수 없습니다. (서버에 등록되지 않은 임시 ID일 수 있습니다)");
     };
 
     // 커서 튕김 방지 로직이 포함된 핸들러
@@ -240,7 +281,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
         try {
             setIsSaving(true);
-
+            console.log("🚀 [저장 시작] 현재 selectedFiles 상태:", selectedFiles);
             // 링크 삭제 
             if (linksToDelete.length > 0) {
                 await Promise.all(
@@ -251,22 +292,42 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                 setLinksToDelete([]);
             }
 
+            // if (filesToDelete.length > 0) {
+            //     const uniqueIdsToDelete = Array.from(new Set(filesToDelete));
+
+            //     console.log("🗑️ 삭제 시도 ID 목록:", uniqueIdsToDelete);
+
+            //     await Promise.all(
+            //         uniqueIdsToDelete.map(async (fileId) => {
+            //             try {
+            //                 // 이력과 파일 연결 끊기
+            //                 await deleteExperienceFile(initialData.id, fileId);
+
+            //                 //  원본 파일 삭제
+            //                 await deleteProfileDocument(fileId);
+            //             } catch (error: any) {
+            //                 if (error.response?.status === 404) {
+            //                     console.warn(`⚠️ 파일 ${fileId}이 이미 없습니다.`);
+            //                     return;
+            //                 }
+            //                 throw error;
+            //             }
+            //         })
+            //     );
+            //     setFilesToDelete([]);
+            // }
+
             if (filesToDelete.length > 0) {
                 const uniqueIdsToDelete = Array.from(new Set(filesToDelete));
-
-                console.log("🗑️ 삭제 시도 ID 목록:", uniqueIdsToDelete);
+                console.log("🗑️ 이력 연결 해제 시도 ID 목록:", uniqueIdsToDelete);
 
                 await Promise.all(
                     uniqueIdsToDelete.map(async (fileId) => {
                         try {
-                            // 이력과 파일 연결 끊기
                             await deleteExperienceFile(initialData.id, fileId);
-
-                            //  원본 파일 삭제
-                            await deleteProfileDocument(fileId);
                         } catch (error: any) {
                             if (error.response?.status === 404) {
-                                console.warn(`⚠️ 파일 ${fileId}이 이미 없습니다.`);
+                                console.warn(`⚠️ 파일 ${fileId} 연결이 이미 해제되어 있습니다.`);
                                 return;
                             }
                             throw error;
@@ -277,25 +338,53 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             }
 
             //신규 파일 업로드
-            const newFilesToUpload = selectedFiles.filter(file => file.fileObj && !file.id);
+            // const newFilesToUpload = selectedFiles.filter(file => file.fileObj && !file.id);
 
-            if (newFilesToUpload.length > 0) {
-                const uploadResults = await Promise.all(
-                    newFilesToUpload.map(f => uploadProfileDocument(f.fileObj!))
-                );
+            // if (newFilesToUpload.length > 0) {
+            //     const uploadResults = await Promise.all(
+            //         newFilesToUpload.map(f => uploadProfileDocument(f.fileObj!))
+            //     );
 
-                const attachPromises = uploadResults.map((res, idx) => {
-                    if (res.isSuccess) {
-                        return postExperienceFile(initialData.id, {
-                            fileId: res.result.id, // 업로드 API에서 받은 id
-                            fileName: newFilesToUpload[idx].name // 원본 파일 이름
+            //     const attachPromises = uploadResults.map((res, idx) => {
+            //         if (res.isSuccess) {
+            //             return postExperienceFile(initialData.id, {
+            //                 fileId: res.result.id, // 업로드 API에서 받은 id
+            //                 fileName: newFilesToUpload[idx].name // 원본 파일 이름
+            //             });
+            //         }
+            //         return Promise.resolve();
+            //     });
+            //     await Promise.all(attachPromises);
+            // }
+            const serverFileList = Array.isArray(filesRes)
+                ? filesRes
+                : (filesRes as any)?.result || [];
+            console.log("📋 현재 서버에 등록된 파일 목록:", serverFileList);
+            const newFilesToAttach = selectedFiles.filter(file => {
+                // 이미 서버에 등록된 파일(id가 존재)인지 체크
+                const isAlreadyOnServer = serverFileList.some((f: any) => f.fileId === file.id);
+                // 새로 추가된 파일(!file.id가 아니거나 로컬 생성된 id)이면서 서버에 없는 것만 필터링
+                return !isAlreadyOnServer && file.id;
+            });
+            console.log("📤 서버로 보낼 신규 첨부 파일:", newFilesToAttach);
+            if (newFilesToAttach.length > 0) {
+                console.log("🛰️ attachFile API 호출 시작...");
+                const attachResults = await Promise.all(
+                    newFilesToAttach.map(async (f) => {
+                        console.log(`📡 파일 연결 요청 전송: ${f.name} (ID: ${f.id})`);
+                        return attachFile({
+                            experienceId: initialData.id,
+                            fileData: {
+                                fileId: Number(f.id),
+                                fileName: f.name
+                            }
                         });
-                    }
-                    return Promise.resolve();
-                });
-                await Promise.all(attachPromises);
+                    })
+                );
+                console.log("✅ attachFile API 호출 완료 결과:", attachResults);
+            } else {
+                console.log("ℹ️ 새로 첨부할 파일이 없습니다. (이미 서버에 있거나 ID가 없음)");
             }
-
             //이력 생성/수정
             await Promise.all(links.map(async (link: LinkItem) => {
                 const linkData = { title: "이력 첨부 링크", url: link.url };
@@ -358,11 +447,12 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
         //  UI에만 추가
         const newUploadedFiles = fileArray.map(file => ({
+            id: Math.floor(Math.random() * 1000000), // 백엔드에 보낼 임시 ID 생성
             name: file.name,
             fileObj: file,
             type: 'file'
         }));
-
+        console.log("🆕 새로 추가된 파일(랜덤ID 포함):", newUploadedFiles);
         setSelectedFiles(prev => [...prev, ...newUploadedFiles]);
     };
 
@@ -408,14 +498,15 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             await Promise.all([
                 ...allLinkIds.map(linkId => deleteLink({ experienceId: initialData.id, linkId })
                 ),
-                ...allFileIds.map(async (fileId) => {
-                    try {
-                        await deleteExperienceFile(initialData.id, fileId);
-                        await deleteProfileDocument(fileId);
-                    } catch (error: any) {
-                        if (error.response?.status !== 404) throw error;
-                    }
-                })
+                // ...allFileIds.map(async (fileId) => {
+                //     try {
+                //         await deleteExperienceFile(initialData.id, fileId);
+                //         await deleteProfileDocument(fileId);
+                //     } catch (error: any) {
+                //         if (error.response?.status !== 404) throw error;
+                //     }
+                // })
+                ...allFileIds.map(fileId => deleteExperienceFile(initialData.id, fileId)) // 연결만 해제
             ]);
 
             // 이력 삭제 API 실행

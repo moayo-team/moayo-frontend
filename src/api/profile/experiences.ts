@@ -84,11 +84,16 @@ export const postExperienceFile = async (
     experienceId: number,
     fileData: AttachmentFileRequest
 ): Promise<AttachmentFileResponse> => {
-    const { data } = await apiClient.post<AttachmentFileResponse>(
-        `/api/v1/experiences/${experienceId}/attachments/files`,
-        fileData
-    );
-    return data;
+    try {
+        const { data } = await apiClient.post<AttachmentFileResponse>(
+            `/api/v1/experiences/${experienceId}/attachments/files`,
+            fileData
+        );
+        return data;
+    } catch (error) {
+        console.error("이력 파일 첨부 실패:", error);
+        throw error;
+    }
 };
 
 //이력 파일 조회
