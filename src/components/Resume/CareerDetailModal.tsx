@@ -8,10 +8,10 @@ import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod } from "../.
 //import { useExperienceDetail, useExperienceFiles, useExperienceLinks, usePublicExperienceDetailQuery, usePublicExperienceFiles, usePublicExperienceLinks, usePublicExperiences } from "../../hooks/useProfileQueries";
 import { useExperienceDetail, useExperienceFiles, useExperienceLinks, usePublicExperienceDetailQuery, usePublicExperienceFiles, usePublicExperienceLinks, } from "../../hooks/useProfileQueries";
 import { useExperienceDelete, useExperienceFileAttach, useExperienceLinkDelete, useExperienceUpdate } from "../../hooks/useProfileMutation";
-import { deleteProfileDocument, uploadProfileDocument } from "../../api/profile/profile";
+//import { deleteProfileDocument, uploadProfileDocument } from "../../api/profile/profile";
 import { useQueryClient } from "@tanstack/react-query";
 //import { addExperienceLink, deleteExperienceFile, getPublicExperiences, postExperienceFile, updateExperienceLink } from "../../api/profile/experiences";
-import { addExperienceLink, deleteExperienceFile, postExperienceFile, updateExperienceLink } from "../../api/profile/experiences";
+import { addExperienceLink, deleteExperienceFile, updateExperienceLink } from "../../api/profile/experiences";
 import type { ProfileDocument } from "../../types/profile";
 
 interface CarrerDetailModalProps {
@@ -39,7 +39,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
 
     //  타인 프로필용 공개 상세 조회
-    const { data: publicDetailRes, isLoading: publicDetailLoading } = usePublicExperienceDetailQuery(
+    const { data: publicDetailRes, isLoading: _publicDetailLoading } = usePublicExperienceDetailQuery(
         !isMyProfile ? initialData?.id : null
     );
     const publicFilesQuery = usePublicExperienceFiles(
@@ -102,7 +102,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     const {
         selectedFiles, setSelectedFiles, handleFileUpload, removeFile,
         links, setLinks, linkInput, setLinkInput, addLink, removeLink,
-        fileInputRef, handleFileDownload, handleCareerFileUpload
+        fileInputRef, //handleFileDownload, handleCareerFileUpload
     } = useUploadManager({
         maxFiles: 3,
     });

@@ -8,9 +8,9 @@ import { DUMMY_PROFILE } from "../data/profileData";
 import { useUploadManager, type LinkItem } from "../hooks/useUploadManager";
 
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
-import { uploadProfileDocument } from "../api/profile/profile";
+//import { uploadProfileDocument } from "../api/profile/profile";
 import { addExperienceLink, postExperienceFile } from "../api/profile/experiences";
-import type { UploadDocumentResponse } from "../types/profile";
+//import type { UploadDocumentResponse } from "../types/profile";
 
 import { createExperienceSession, createAIDraft, patchExperience } from "../api/profile/session";
 import { useQueryClient } from "@tanstack/react-query";
