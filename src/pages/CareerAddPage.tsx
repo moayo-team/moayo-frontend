@@ -3,8 +3,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CircleCheck, FileText, Mic, X } from "lucide-react";
 
-import { getDisplayName } from "../utils/name";
-import { DUMMY_PROFILE } from "../data/profileData";
 import { useUploadManager, type LinkItem } from "../hooks/useUploadManager";
 
 import {
@@ -14,10 +12,12 @@ import {
   validatePeriod
 } from "../utils/format";
 
-//import { addExperienceLink, postExperienceFile } from "../api/profile/experiences";
-import { addExperienceLink } from "../api/profile/experiences";
+import { addExperienceLink, postExperienceFile } from "../api/profile/experiences";
 import { createAIDraft } from "../api/profile/session";
 import { useQueryClient } from "@tanstack/react-query";
+import { useFileUpload } from "../hooks/useProfileMutation";
+import type { AttachedFile } from "../types/career";
+import { useProfileData } from "../hooks/useProfileQueries";
 
 import { apiClient } from "../api/client";
 
@@ -43,13 +43,14 @@ const CareerAddPage = (): JSX.Element => {
   const location = useLocation();
   const queryClient = useQueryClient();
 
+  const { mutateAsync: uploadFile } = useFileUpload();
+
   const initialPrompt = (location.state as any)?.prompt as string | undefined;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const {
     selectedFiles,
-    handleFileUpload,
     removeFile,
     setSelectedFiles,
     links,
@@ -59,6 +60,9 @@ const CareerAddPage = (): JSX.Element => {
     removeLink,
     fileInputRef
   } = useUploadManager({ maxFiles: 3 });
+
+  const { user } = useProfileData();
+  const userName = user?.name || "사용자";
 
   const [isAIInputOpen, setIsAIInputOpen] = useState(false);
   const [aiText, setAiText] = useState("");
@@ -109,7 +113,10 @@ const CareerAddPage = (): JSX.Element => {
     requestAnimationFrame(() => {
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
-        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+        textareaRef.current.style.height = `${Math.min(
+          textareaRef.current.scrollHeight,
+          120
+        )}px`;
       }
     });
 
@@ -191,7 +198,41 @@ const CareerAddPage = (): JSX.Element => {
     setAiText(e.target.value);
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      textareaRef.current.style.height = `${Math.min(
+        textareaRef.current.scrollHeight,
+        120
+      )}px`;
+    }
+  };
+
+  const handleMultipleFileUpload = async (files: FileList) => {
+    const fileArray = Array.from(files);
+
+    if (selectedFiles.length + fileArray.length > 3) {
+      alert("파일은 최대 3개까지 첨부 가능합니다.");
+      return;
+    }
+
+    try {
+      const uploadedFiles: AttachedFile[] = [];
+
+      for (const file of fileArray) {
+        const res = await uploadFile(file);
+
+        uploadedFiles.push({
+          id: res.result.fileId,
+          name: file.name,
+          fileObj: file,
+          type: "file"
+        });
+      }
+
+      setSelectedFiles((prev: any) => [...prev, ...uploadedFiles]);
+    } catch (error: any) {
+      console.error("❌ 파일 업로드 실패:", error);
+      const errorMsg =
+        error.response?.data?.message || error.message || "알 수 없는 오류";
+      alert(`파일 업로드 실패:\n${errorMsg}`);
     }
   };
 
@@ -199,22 +240,8 @@ const CareerAddPage = (): JSX.Element => {
     const files = e.target.files;
     if (!files) return;
 
-    const fileArray = Array.from(files);
+    handleMultipleFileUpload(files);
 
-    if (selectedFiles.length + fileArray.length > 3) {
-      alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    const newFiles = fileArray.map((file) => ({
-      fileId: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString()),
-      name: file.name,
-      fileObj: file,
-      type: "file" as const
-    }));
-
-    setSelectedFiles((prev) => [...prev, ...newFiles]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -231,20 +258,14 @@ const CareerAddPage = (): JSX.Element => {
       alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
       return;
     }
-
-    const newFiles = Array.from(files).map((file) => ({
-      name: file.name,
-      fileObj: file,
-      type: "file" as const
-    }));
-
-    setSelectedFiles((prev) => [...prev, ...newFiles]);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.dataTransfer.files) handleFileUpload(e.dataTransfer.files);
+    if (e.dataTransfer.files) {
+      handleMultipleFileUpload(e.dataTransfer.files);
+    }
   };
 
   const handleAIDraft = async () => {
@@ -375,7 +396,19 @@ const CareerAddPage = (): JSX.Element => {
       }
 
       if (selectedFiles.length > 0) {
-        console.warn("[CareerAddPage] files exist but upload API is not wired. Skip attaching files.");
+        try {
+          await Promise.all(
+            (selectedFiles as any[]).map((file) =>
+              postExperienceFile(createdId, {
+                fileId: Number(file.id),
+                fileName: file.name
+              })
+            )
+          );
+        } catch (error) {
+          console.error("❌ 파일 연결 중 오류:", error);
+          alert("이력 정보는 저장되었으나, 파일 연결에 실패했습니다.");
+        }
       }
 
       if (links.length > 0) {
@@ -439,7 +472,7 @@ const CareerAddPage = (): JSX.Element => {
                   {!isAIInputOpen ? (
                     <div className="flex items-center justify-between w-full">
                       <span className="flex-1 font-pretendard text-[#1BA07A] text-[14px] sm:text-[16px] font-medium leading-[130%]">
-                        {getDisplayName(DUMMY_PROFILE.name)}님이 했던 경험을 자유롭게 서술해주세요. 모아요 AI가 정리해드려요!
+                        {userName}님이 했던 경험을 자유롭게 서술해주세요. 모아요 AI가 정리해드려요!
                       </span>
                       <Mic size={20} className="text-[#1BA07A] shrink-0" />
                     </div>
@@ -449,7 +482,7 @@ const CareerAddPage = (): JSX.Element => {
                         ref={textareaRef}
                         className="flex-1 max-h-[120px] outline-none resize-none bg-transparent
                           font-pretendard text-[15px] sm:text-[16px] font-medium text-[#1BA07A]"
-                        placeholder={`${getDisplayName(DUMMY_PROFILE.name)}님이 했던 경험을 자유롭게 서술해주세요.`}
+                        placeholder={`${userName}님이 했던 경험을 자유롭게 서술해주세요.`}
                         autoFocus
                         value={aiText}
                         onChange={handleTextareaChange}
@@ -535,7 +568,7 @@ const CareerAddPage = (): JSX.Element => {
             </span>
 
             <div className="flex flex-col gap-[8px]">
-              {selectedFiles.map((file, index) => (
+              {selectedFiles.map((file: any, index: number) => (
                 <div
                   key={index}
                   className="flex items-center justify-between w-full h-[50px] px-[16px]
@@ -544,7 +577,11 @@ const CareerAddPage = (): JSX.Element => {
                   <span className="text-[14px] font-medium truncate font-pretendard text-[#25221D] leading-[140%] max-w-[80%]">
                     {file.name}
                   </span>
-                  <button onClick={() => removeFile(index)} className="text-[#7C7160] hover:text-[#1BA07A]" type="button">
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="text-[#7C7160] hover:text-[#1BA07A]"
+                    type="button"
+                  >
                     <X size={24} />
                   </button>
                 </div>
@@ -590,8 +627,11 @@ const CareerAddPage = (): JSX.Element => {
 
             {links.length > 0 && (
               <div className="flex flex-col gap-[8px]">
-                {links.map((link, index) => (
-                  <div key={index} className="flex items-center justify-between w-full h-[50px] px-[16px] bg-[#E9FCF7] rounded-[10px]">
+                {links.map((link: LinkItem, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between w-full h-[50px] px-[16px] bg-[#E9FCF7] rounded-[10px]"
+                  >
                     <a
                       href={link.url}
                       target="_blank"
