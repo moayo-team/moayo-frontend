@@ -19,7 +19,7 @@ export async function createExperienceSession(): Promise<BaseResponse<number>> {
 
 export async function createAIDraft(body: DraftRequest) {
   const res = await apiClient.post<BaseResponse<any>>(
-    ` /api/v1/experiences/ai/summary`,
+    `/api/v1/experiences/ai/summary`,
     body
   );
   return res.data;
