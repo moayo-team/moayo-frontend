@@ -15,7 +15,7 @@ import { useAuth } from "./useAuth";
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import type { AttachmentFileRequest, CreateExperienceLinkRequset, CreateExperienceRequest, UpdateExperienceLinkRequest, UpdateExperienceRequest } from "../types/career";
-import { addExperienceLink, createExperience, deleteExperience, deleteExperienceFile, deleteExperienceLink, patchExperienceVisibility, postExperienceFile, updateExperienceDetail, updateExperienceLink } from "../api/profile/experiences";
+import { addExperienceLink, createExperience, deleteExperience, deleteExperienceFile, deleteExperienceLink, patchExperienceVisibility, postExperienceFile, updateExperienceDetail, updateExperienceLink, uploadFile } from "../api/profile/experiences";
 
 const waitForProfileToExist = async () => {
     for (let i = 0; i < 5; i++) {
@@ -293,6 +293,21 @@ export const useExperienceUpdate = () => {
     });
 };
 
+// 이력 파일 업로드
+export const useFileUpload = () => {
+    return useMutation({
+        mutationFn: (file: File) => uploadFile(file),
+        
+        onSuccess: (data) => {
+            console.log("✅ 서버 파일 업로드 성공. 발급된 ID:", data.result.fileId);
+        },
+        onError: (error: any) => {
+            const msg = error.response?.data?.message || "파일 업로드 중 오류가 발생했습니다.";
+            console.error("❌ 파일 업로드 실패:", msg);
+            alert(`파일 업로드 실패: ${msg}`);
+        },
+    });
+};
 // 이력 파일 생성
 export const useExperienceFileAttach = () => {
     const queryClient = useQueryClient();
