@@ -134,8 +134,6 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     // 서버 데이터 동기화 (파일 목록)
     useEffect(() => {
         if (!isEditMode && !isSaving && filesRes.length > 0) {
-            console.log("📥 서버에서 받은 파일 목록:", filesRes);
-
             const mappedFiles: AttachedFile[] = filesRes
                 .map((f: any) => {
                 const matchedDoc = documents?.find(doc => doc.id === f.fileId);
@@ -156,8 +154,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
     // 서버 데이터 동기화(링크)
     useEffect(() => {
-        if (!isEditMode && isSaving && Array.isArray(linksRes)) {
-            console.log("🔗 서버에서 받은 링크 목록:", linksRes);
+        if (!isEditMode && !isSaving && Array.isArray(linksRes)) {
             setLinks(linksRes);
         }
     }, [linksRes, isEditMode, setLinks, isSaving]);
@@ -177,7 +174,6 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
         if (targetFileId) {
             try {
-                console.log(`📡 ID ${targetFileId}번 파일 다운로드 요청 중...`);
 
                 // API 호출하여 Blob 데이터 수신
                 const blob = await downloadFileApi(Number(targetFileId));
@@ -192,7 +188,6 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                 setTimeout(() => URL.revokeObjectURL(fileUrl), 100);
 
             } catch (error) {
-                console.error("파일 다운로드 에러:", error);
                 alert("파일을 불러오는 데 실패했습니다.");
             }
 
@@ -245,7 +240,6 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
         try {
             setIsSaving(true);
-            console.log("🚀 [저장 시작] 현재 selectedFiles 상태:", selectedFiles);
             // 링크 삭제 
             if (linksToDelete.length > 0) {
                 await Promise.all(
@@ -283,7 +277,6 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
             if (filesToDelete.length > 0) {
                 const uniqueIdsToDelete = Array.from(new Set(filesToDelete));
-                console.log("🗑️ 이력 연결 해제 시도 ID 목록:", uniqueIdsToDelete);
 
                 await Promise.all(
                     uniqueIdsToDelete.map(async (fileId) => {
@@ -291,7 +284,6 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                             await deleteExperienceFile(initialData.id, fileId);
                         } catch (error: any) {
                             if (error.response?.status === 404) {
-                                console.warn(`⚠️ 파일 ${fileId} 연결이 이미 해제되어 있습니다.`);
                                 return;
                             }
                             throw error;
@@ -309,14 +301,9 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                     typeof file.id === "number" &&
                     !serverFileList.some((f: any) => Number(f.fileId) === Number(file.id))
                 );
-            }); console.log("📤 attachFile 대상:", newFilesToAttach.map(f => ({
-                id: f.id,
-                name: f.name,
-                hasFileObj: !!f.fileObj
-            })));
+            }); 
 
             if (newFilesToAttach.length > 0) {
-                console.log("🛰️ 확보된 진짜 ID들로 이력 연결 시작...");
                 await Promise.all(
                     newFilesToAttach.map(f =>
                         attachFile({
@@ -383,7 +370,6 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
     // 파일 업로드 핸들러 
     const handleMultipleFileUpload = async (files: FileList) => {
-        console.log("🔥 내가 수정한 함수가 실행됨!"); // 👈 이 줄을 추가
         const fileArray = Array.from(files);
 
         if (selectedFiles.length + fileArray.length > 3) {
@@ -392,18 +378,15 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
         }
 
         try {
-            console.log("📤 파일 업로드 시작:", fileArray.map(f => f.name));
 
             // ✅ 각 파일을 순차적으로 업로드
             const uploadedFiles: AttachedFile[] = [];
 
             for (const file of fileArray) {
-                console.log(`🔄 업로드 중: ${file.name}`);
 
                 // ✅ mutateAsync를 제대로 await
                 const res = await uploadFile(file);
 
-                console.log(`✅ 업로드 완료: ${file.name}, ID: ${res.result.fileId}`);
 
                 uploadedFiles.push({
                     id: res.result.fileId,
@@ -413,11 +396,9 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                 });
             }
 
-            console.log("✅ 모든 파일 업로드 완료:", uploadedFiles);
             setSelectedFiles(prev => [...prev, ...uploadedFiles]);
 
         } catch (error: any) {
-            console.error("❌ 파일 업로드 실패:", error);
             const errorMsg = error.response?.data?.message || error.message || "알 수 없는 오류";
             alert(`파일 업로드 실패:\n${errorMsg}`);
         }
@@ -479,13 +460,11 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             // 이력 삭제 API 실행
             deleteExp(initialData.id, {
                 onSuccess: () => {
-                    console.log("✅ 이력 및 원본 파일 삭제 완료");
                     if (onDelete) onDelete(initialData.id);
                     onClose();
                 }
             });
         } catch (err) {
-            console.error("삭제 중 오류:", err);
         }
     };
 

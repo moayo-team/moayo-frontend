@@ -45,7 +45,6 @@ export const useProfileSave = () => {
             profileFile?: File | null;
         }) => {
             if (isRunning.current) {
-                console.warn("⚠️ 이미 실행 중입니다. 중단.");
                 return;
             }
             isRunning.current = true;
@@ -57,21 +56,12 @@ export const useProfileSave = () => {
 
                 let finalImageUrl = profileData.imageUrl;
 
-                // 새로 선택된 사진이 있을 경우
+                // 새로 선택된 사진이r 있을 경우
                 if (profileFile) {
-                    console.log("📸 프로필 이미지 업로드 시작:", {
-                        name: profileFile.name,
-                        type: profileFile.type,
-                        size: profileFile.size
-                    });
                     if (profileData.imageId) {
                         try {
                             await deleteProfileDocument(Number(profileData.imageId));
-                            console.log("✅ 기존 이미지 삭제 성공");
                         } catch (e: any) {
-                            if (e?.response?.status !== 404) {
-                                console.warn("⚠️ 삭제 실패 (계속 진행):", e.message);
-                            }
                         }
                     }
 
@@ -80,24 +70,14 @@ export const useProfileSave = () => {
                         const uploadRes = await uploadProfileDocument(profileFile);
                         if (uploadRes.isSuccess && uploadRes.result?.fileUrl) {
                             finalImageUrl = uploadRes.result.fileUrl;
-                            console.log("✅ 이미지 업로드 성공:", finalImageUrl);
                         } else {
                             throw new Error(uploadRes.message || "업로드 응답 오류");
                         }
                     } catch (e: any) {
-                        console.error("❌ 이미지 업로드 실패:", {
-                            message: e.message,
-                            code: e.code,
-                            status: e.response?.status,
-                            data: e.response?.data
-                        });
 
                         // 사용자에게 구체적인 에러 메시지 제공
                         const errorMsg = e.response?.data?.message || e.message || "알 수 없는 오류";
                         alert(`프로필 이미지 업로드 실패:\n${errorMsg}\n\n기존 이미지를 유지하고 다른 정보를 저장합니다.`);
-
-                        // 기존 이미지 URL 유지
-                        console.warn("⚠️ 기존 이미지 유지:", finalImageUrl);
                     }
                 }
 
@@ -108,9 +88,9 @@ export const useProfileSave = () => {
                     name: profileData.name,
                     phoneNumber: rawPhone.replace(/-/g, ""),
                     imageUrl: finalImageUrl,
-                    university: getValueOrUndefined("school")?? "",
-                    major: getValueOrUndefined("major")?? "",
-                    email: getValueOrUndefined("email")|| "",
+                    university: getValueOrUndefined("school") ?? "",
+                    major: getValueOrUndefined("major") ?? "",
+                    email: getValueOrUndefined("email") || "",
                     bio: profileData.introduction,
                 };
 
@@ -147,8 +127,8 @@ export const useProfileSave = () => {
                     );
                     idsToDelete.forEach((id) => {
                         promises.push(
-                            deleteIndexItem(id).catch(err => console.error(`${id} 삭제 실패`, err))
-                        );
+                            deleteIndexItem(id).catch(() => {
+                            }));
                     });
 
                     currentItems.forEach((item: any) => {
@@ -167,11 +147,9 @@ export const useProfileSave = () => {
                             linkUrl: item.type === "link" ? (item.url || item.value) : null
                         };
 
-                        console.log("📎 진짜 전송할 파일 객체:", fileToSend);
                         if (typeof item.id === "number") {
                             promises.push(updateIndexItem(item.id, detailData, fileToSend));
                         } else {
-                            console.log("✅ createIndexItem 호출 - ID:", item.id);
 
                             promises.push(createIndexItem(detailData, fileToSend));
                         }
@@ -180,7 +158,6 @@ export const useProfileSave = () => {
 
                 await Promise.all(promises);
             } catch (error) {
-                console.error("프로필 저장 중 오류:", error);
                 throw error;
 
             } finally {
@@ -192,7 +169,7 @@ export const useProfileSave = () => {
             await refreshUser();
             await queryClient.invalidateQueries({ queryKey: ["myProfile"] });
             await queryClient.refetchQueries({ queryKey: ["myProfile"] })
-            
+
             alert("성공적으로 저장되었습니다!");
         },
 
@@ -257,7 +234,6 @@ export const useExperienceVisibility = () => {
             // 프로필 데이터 무효화
             queryClient.invalidateQueries({ queryKey: ["myProfile"] });
 
-            console.log(`✅ 이력 ${variables.experienceId} 공개 상태 변경 성공: ${variables.visible}`);
         },
         onError: (error: any) => {
             const msg = error.response?.data?.message || "공개 상태 변경 중 오류가 발생했습니다.";
@@ -297,13 +273,11 @@ export const useExperienceUpdate = () => {
 export const useFileUpload = () => {
     return useMutation({
         mutationFn: (file: File) => uploadFile(file),
-        
-        onSuccess: (data) => {
-            console.log("✅ 서버 파일 업로드 성공. 발급된 ID:", data.result.fileId);
+
+        onSuccess: (_data) => {
         },
         onError: (error: any) => {
             const msg = error.response?.data?.message || "파일 업로드 중 오류가 발생했습니다.";
-            console.error("❌ 파일 업로드 실패:", msg);
             alert(`파일 업로드 실패: ${msg}`);
         },
     });
@@ -324,7 +298,6 @@ export const useExperienceFileAttach = () => {
         onSuccess: (_, variables) => {
             // 상세 정보 쿼리 무효화하여 새로운 첨부파일 목록 반영
             queryClient.invalidateQueries({ queryKey: ["experienceDetail", variables.experienceId] });
-            console.log("✅ 파일 첨부 연결 성공");
         },
         onError: (error: any) => {
             alert(error.response?.data?.message || "파일 연결 중 오류가 발생했습니다.");
@@ -345,7 +318,6 @@ export const useExperienceFileDelete = () => {
             queryClient.invalidateQueries({ queryKey: ["experienceDetail", variables.experienceId] });
             queryClient.invalidateQueries({ queryKey: ["experienceFiles", variables.experienceId] });
 
-            console.log(`✅ 이력 ${variables.experienceId}에서 파일 ${variables.fileId} 연결 해제 성공`);
         },
         onError: (error: any) => {
             const msg = error.response?.data?.message || "파일 삭제 중 오류가 발생했습니다.";
@@ -389,7 +361,6 @@ export const useExperienceLinkDelete = () => {
         onSuccess: (_, variables) => {
             // 해당 이력의 링크 목록 쿼리 무효화
             queryClient.invalidateQueries({ queryKey: ["experienceLinks", variables.experienceId] });
-            console.log(`✅ 링크 ${variables.linkId} 삭제 성공`);
         },
         onError: (error: any) => {
             const msg = error.response?.data?.message || "링크 삭제 중 오류가 발생했습니다.";

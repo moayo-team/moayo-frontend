@@ -216,7 +216,7 @@ const ProfilePage = () => {
             setIsEditing(false);
           },
           onError: (error) => {
-            console.error("💥 저장 실패:", error);
+            alert("프로필 저장에 실패했습니다. 다시 시도해 주세요.");
           }
 
         }

@@ -82,7 +82,7 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                     allDocs = response.result;
                 }
             } catch (error) {
-                console.error("서류 조회 실패:", error);
+                alert("서류 목록을 불러오지 못했습니다.");
             } finally {
                 setIsLoading(false);
             }
@@ -95,7 +95,6 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
             return isNotProfileImg && isNotExpFile;
         });
 
-        console.log("✅ 최종 필터링된 서류 목록:", filtered);
         setUploadedDocuments(filtered);
     };
 
