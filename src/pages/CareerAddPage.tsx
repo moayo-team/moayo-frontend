@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CircleCheck, FileText, Mic, X } from "lucide-react";
 
-import { getDisplayName } from "../utils/name";
 import { useUploadManager, type LinkItem } from "../hooks/useUploadManager";
 
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
