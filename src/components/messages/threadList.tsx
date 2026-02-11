@@ -1,23 +1,33 @@
 import ThreadListItem from "./messageCard";
-import type { ChatParticipants } from "../../types/message";
+import type { ChatRoomSummary } from "../../types/message";
 
 type Props = {
-  threads: ChatParticipants[];
-  selectedThreadId: string;
-  onSelectThread: (id: string) => void;
+  threads: ChatRoomSummary[];
+  selectedRoomId: number | null;
+  onSelectRoom: (roomId: number) => void;
 };
 
-export default function ThreadList({ threads, selectedThreadId, onSelectThread }: Props) {
+export default function ThreadList({ threads, selectedRoomId, onSelectRoom }: Props) {
   return (
-    <div className="h-full min-h-0 space-y-[10px]">
-      {threads.map((t) => (
-        <ThreadListItem
-          key={t.id}
-          thread={t}
-          active={t.id === selectedThreadId}
-          onClick={() => onSelectThread(t.id)}
-        />
-      ))}
+    <div
+      className="
+        h-full min-h-0 w-full
+        overflow-y-auto overflow-x-hidden
+        [scrollbar-width:none]
+        [-ms-overflow-style:none]
+        [&::-webkit-scrollbar]:hidden
+      "
+    >
+      <div className="w-full space-y-[10px] px-2">
+        {threads.map((t) => (
+          <ThreadListItem
+            key={t.roomId}
+            thread={t}
+            active={t.roomId === selectedRoomId}
+            onClick={() => onSelectRoom(t.roomId)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

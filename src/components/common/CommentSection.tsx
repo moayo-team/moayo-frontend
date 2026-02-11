@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { useComments, useAddComment, useDeleteComment } from '../../hooks/useComments';
+import { useEffect, useMemo, useState } from 'react';
 import type { Comment } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import defaultAvatar from '../../assets/profile_photo.svg';
 
 interface CommentSectionProps {
   postId: string;
@@ -31,7 +31,7 @@ const CommentItem = ({ comment, onReply, onEdit, onDelete, isDeleting, isReply =
     }).replace(/\./g, '.').replace(/ /g, '');
   };
 
-  const isMyComment = user && comment.author.name === user.name;
+  const isMyComment = user && comment.author.name === user.user?.name;
 
   const handleSaveEdit = () => {
     if (editContent.trim() && editContent !== comment.content) {
@@ -71,7 +71,7 @@ const CommentItem = ({ comment, onReply, onEdit, onDelete, isDeleting, isReply =
           <img
             className="relative w-[35px] h-[35.36px] object-cover rounded-full"
             alt={`${comment.author.name} avatar`}
-            src={comment.author.avatar}
+            src={comment.author.avatar || defaultAvatar}
           />
           <div className="relative w-fit font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-black text-[length:var(--body-b2-200-font-size)] tracking-[var(--body-b2-200-letter-spacing)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap [font-style:var(--body-b2-200-font-style)]">
             {comment.author.name}
@@ -172,13 +172,46 @@ const CommentItem = ({ comment, onReply, onEdit, onDelete, isDeleting, isReply =
 };
 
 export const CommentSection = ({ postId }: CommentSectionProps) => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const [commentText, setCommentText] = useState('');
   const [replyingTo, setReplyingTo] = useState<{ id: string; author: string } | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
 
-  const { data: comments = [], isPending, error } = useComments(postId);
-  const addCommentMutation = useAddComment();
-  const deleteCommentMutation = useDeleteComment();
+  const initialComments = useMemo<Comment[]>(
+    () => [
+      {
+        id: `c-${postId}-1`,
+        postId,
+        author: { name: '모아요', avatar: defaultAvatar },
+        content: '이 게시글 너무 흥미롭네요! 같이 하고 싶어요.',
+        createdAt: new Date(),
+        parentId: null,
+        replies: [
+          {
+            id: `c-${postId}-1-1`,
+            postId,
+            author: { name: '작성자', avatar: defaultAvatar },
+            content: '관심 가져주셔서 감사합니다! 쪽지로 알려주세요.',
+            createdAt: new Date(),
+            parentId: `c-${postId}-1`,
+          },
+        ],
+      },
+      {
+        id: `c-${postId}-2`,
+        postId,
+        author: { name: '익명', avatar: defaultAvatar },
+        content: '좋은 프로젝트네요.',
+        createdAt: new Date(),
+        parentId: null,
+      },
+    ],
+    [postId]
+  );
+
+  useEffect(() => {
+    setComments(initialComments);
+  }, [initialComments]);
 
   const handleCommentSubmit = async () => {
     if (!isLoggedIn) {
@@ -186,17 +219,25 @@ export const CommentSection = ({ postId }: CommentSectionProps) => {
       return;
     }
     if (commentText.trim()) {
-      try {
-        await addCommentMutation.mutateAsync({
-          postId,
-          content: commentText.trim(),
-          parentId: replyingTo?.id,
-        });
-        setCommentText('');
-        setReplyingTo(null);
-      } catch (error) {
-        console.error('Failed to add comment:', error);
-      }
+      const newComment: Comment = {
+        id: `c-${postId}-${Date.now()}`,
+        postId,
+        author: { name: user?.user?.name || '나', avatar: defaultAvatar },
+        content: commentText.trim(),
+        createdAt: new Date(),
+        parentId: replyingTo?.id ?? null,
+      };
+
+      setComments((prev) => {
+        if (!replyingTo) return [newComment, ...prev];
+        return prev.map((c) =>
+          c.id === replyingTo.id
+            ? { ...c, replies: [...(c.replies || []), newComment] }
+            : c
+        );
+      });
+      setCommentText('');
+      setReplyingTo(null);
     }
   };
 
@@ -220,35 +261,30 @@ export const CommentSection = ({ postId }: CommentSectionProps) => {
   };
 
   const handleEditComment = async (commentId: string, content: string) => {
-    // TODO: Implement edit comment API
-    console.log('Edit comment:', commentId, content);
-    alert('댓글 수정 기능은 준비 중입니다.');
+    setComments((prev) =>
+      prev.map((c) => {
+        if (c.id === commentId) return { ...c, content };
+        if (c.replies) {
+          return {
+            ...c,
+            replies: c.replies.map((r) => (r.id === commentId ? { ...r, content } : r)),
+          };
+        }
+        return c;
+      })
+    );
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    try {
-      await deleteCommentMutation.mutateAsync(commentId);
-    } catch (error) {
-      console.error('Failed to delete comment:', error);
-      alert('댓글 삭제에 실패했습니다.');
-    }
+    setComments((prev) =>
+      prev
+        .filter((c) => c.id !== commentId)
+        .map((c) => ({
+          ...c,
+          replies: c.replies?.filter((r) => r.id !== commentId),
+        }))
+    );
   };
-
-  if (isPending) {
-    return (
-      <div className="flex justify-center py-4">
-        <div className="text-gray-scalegray-scale-500">댓글을 불러오는 중...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center py-4">
-        <div className="text-red-600">댓글을 불러오는데 실패했습니다.</div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full">
@@ -261,7 +297,7 @@ export const CommentSection = ({ postId }: CommentSectionProps) => {
               onReply={handleReply}
               onEdit={handleEditComment}
               onDelete={handleDeleteComment}
-              isDeleting={deleteCommentMutation.isPending}
+              isDeleting={false}
             />
 
             {/* Replies */}
@@ -274,7 +310,7 @@ export const CommentSection = ({ postId }: CommentSectionProps) => {
                     onReply={handleReply}
                     onEdit={handleEditComment}
                     onDelete={handleDeleteComment}
-                    isDeleting={deleteCommentMutation.isPending}
+                    isDeleting={false}
                     isReply={false}
                   />
                 ))}
@@ -320,7 +356,7 @@ export const CommentSection = ({ postId }: CommentSectionProps) => {
           />
           <button
             onClick={handleCommentSubmit}
-            disabled={addCommentMutation.isPending || !isLoggedIn}
+            disabled={!isLoggedIn}
             className={`flex h-14 items-center justify-center gap-2.5 px-6 py-2.5 relative ${
               isLoggedIn 
                 ? 'bg-primaryprimary-50 hover:bg-primaryprimary-100 cursor-pointer' 
@@ -328,7 +364,7 @@ export const CommentSection = ({ postId }: CommentSectionProps) => {
             } rounded-[5px] border border-solid border-[#23cd9d] transition-colors disabled:opacity-50`}
           >
             <span className="w-fit font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-primaryprimary-600 text-[length:var(--body-b1-100-font-size)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap relative tracking-[var(--body-b1-100-letter-spacing)] [font-style:var(--body-b1-100-font-style)]">
-            {addCommentMutation.isPending ? '등록 중...' : '등록'}
+            등록
             </span>
           </button>
         </div>

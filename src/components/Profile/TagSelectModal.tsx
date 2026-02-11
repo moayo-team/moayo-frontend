@@ -1,23 +1,40 @@
 import { X } from "lucide-react";
-import { useEffect, useState, type KeyboardEvent } from "react";
+//import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useState, } from "react";
+import type { InterestTag } from "../../types/profile";
+import { getAllInterestTag } from "../../api/profile/profile";
 
 interface TagModalProps {
     isOpen: boolean;
-    currentTags: any[];
+    currentTags: InterestTag[];
     onClose: () => void;
     onComplete: (tags: any[]) => void;
 }
 
-const DEFAULT_TAG_LIST = [
-    { id: 1, title: "기획" }, { id: 2, title: "마케팅" }, { id: 3, title: "디자인" },
-    { id: 4, title: "개발" }, { id: 5, title: "창업" }, { id: 6, title: "예체능" },
-    { id: 7, title: "문학" }
-];
-
 const TagSelectModal = ({ isOpen, currentTags, onClose, onComplete }: TagModalProps) => {
     const [tempTags, setTempTags] = useState<any[]>(currentTags);
-    const [isCustomInput, setIsCustomInput] = useState(false); // 자유 입력 모드 상태
-    const [customValue, setCustomValue] = useState(""); // 자유 입력 값
+
+    const [availableTags, setAvailableTags] = useState<InterestTag[]>([]);
+
+    //  전체 태그 목록
+    useEffect(() => {
+        const fetchTags = async () => {
+            try {
+                const response = await getAllInterestTag();
+                if (response.isSuccess) {
+                    const sortedTags = [...response.result].sort(
+                        (a, b) => a.id - b.id
+                    );
+
+                    setAvailableTags(sortedTags);
+                }
+            } catch (error) {
+                console.error("태그 목록 불러오기 실패:", error);
+            }
+        };
+
+        fetchTags();
+    }, []);
 
     //모달 열릴때마다 변경된 태그 목록 동기화
     useEffect(() => {
@@ -25,11 +42,11 @@ const TagSelectModal = ({ isOpen, currentTags, onClose, onComplete }: TagModalPr
             setTempTags(currentTags);
         }
     }, [isOpen, currentTags]);
-    
+
     if (!isOpen) return null;
 
     // 태그 토글 
-    const toggleTag = (tag: any) => {
+    const toggleTag = (tag: InterestTag) => {
         if (tempTags.find(t => t.id === tag.id)) {
             setTempTags(tempTags.filter(t => t.id !== tag.id));
         } else {
@@ -37,37 +54,11 @@ const TagSelectModal = ({ isOpen, currentTags, onClose, onComplete }: TagModalPr
         }
     };
 
-    // 커스텀 태그 추가 로직
-    const handleAddCustomTag = () => {
-        const trimmedValue = customValue.trim();
-        if (trimmedValue) {
-            // 중복 체크 후 추가 
-            if (!tempTags.some(t => t.title === trimmedValue)) {
-                const newTag = { id: Date.now(), title: trimmedValue };
-                setTempTags([...tempTags, newTag]);
-            }
-            setCustomValue("");
-            setIsCustomInput(false);
-        }
-    };
 
-    //입력창 포커스 해제 시 태그를 추가하지 않고 입력 모드만 종료
-    const handleBlur = () => {
-        setIsCustomInput(false);
-        setCustomValue("");
-
-    };
-
-    // 엔터키 입력 처리
-    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            handleAddCustomTag();
-        }
-    };
 
     return (
-        <div 
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4" 
+        <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
             onClick={onClose}
         >
             <div
@@ -87,19 +78,19 @@ const TagSelectModal = ({ isOpen, currentTags, onClose, onComplete }: TagModalPr
                             </p>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-[8px] sm:gap-[10px] items-center self-stretch">
                                 {tempTags.length > 0 && (
-                                    tempTags.map(tag => (
+                                    tempTags.map((tag, index) => (
                                         <div
                                             key={tag.id}
                                             className="flex justify-center items-center gap-[4px] px-[8px] h-[40px] sm:h-[44px]
                                             bg-[#E9FCF7] text-[#978B78] border border-[#26E1AC] rounded-[10px]">
                                             <span className="flex-1 text-center font-pretendard font-normal text-[13px] sm:text-[15px] truncate leading-[150%]">
-                                                {tag.title}
+                                                {tag.name}
                                             </span>
                                             <X
                                                 size={24}
                                                 color="#C2BBB0"
                                                 className="cursor-pointer"
-                                                onClick={() => setTempTags(tempTags.filter(t => t.id !== tag.id))} />
+                                                onClick={() => setTempTags(tempTags.filter((_, i) => i !== index))} />
                                         </div>
                                     ))
                                 )}
@@ -112,7 +103,7 @@ const TagSelectModal = ({ isOpen, currentTags, onClose, onComplete }: TagModalPr
                             기본 태그 목록
                         </p>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-[8px] sm:gap-[10px] self-stretch w-full">
-                            {DEFAULT_TAG_LIST.map(tag => {
+                            {availableTags.map(tag => {
                                 const isSelected = tempTags.some(t => t.id === tag.id);
                                 return (
                                     <button
@@ -122,36 +113,10 @@ const TagSelectModal = ({ isOpen, currentTags, onClose, onComplete }: TagModalPr
                                         rounded-[10px] border font-pretendard text-[13px] sm:text-[15px] transition-all
                                         ${isSelected ? "bg-[#EFEEEB] text-[#ADA395] border-[#EFEEEB]" : "bg-[#EFEEEB] text-[#25221D] border-[#978B78]"}`}
                                     >
-                                        {tag.title}
+                                        {tag.name}
                                     </button>
                                 );
                             })}
-
-                            {/*  자유 입력 버튼 및 입력창 */}
-                            <div className="relative">
-                                {!isCustomInput ? (
-                                    <button
-                                        onClick={() => setIsCustomInput(true)}
-                                        className="flex w-full h-[40px] sm:h-[44px] items-center justify-center 
-                                        font-pretendard leading-[150%] font-normal text-[13px] sm:text-[15px]
-                                        rounded-[10px] bg-[#EFEEEB] text-[#25221D] border border-[#978B78]"
-                                    >
-                                        기타(자유입력)
-                                    </button>
-                                ) : (
-                                    <input
-                                        autoFocus
-                                        value={customValue}
-                                        onChange={(e) => setCustomValue(e.target.value)}
-                                        onKeyDown={handleKeyDown}
-                                        onBlur={handleBlur}
-                                        placeholder="입력..."
-                                        className="w-full h-[40px] sm:h-[44px] px-[10px] items-center outline-none
-                                        font-pretendard text-center leading-[150%] font-normal text-[13px] sm:text-[15px]
-                                        rounded-[10px] bg-[#EFEEEB] text-[#25221D] border-[#978B78]"
-                                    />
-                                )}
-                            </div>
                         </div>
                     </div>
 

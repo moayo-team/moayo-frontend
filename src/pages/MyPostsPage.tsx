@@ -5,12 +5,12 @@ import { useAuth } from '../hooks/useAuth';
 import { usePosts, useDeletePost } from '../hooks/usePosts';
 import { Badge } from '../components/common/Badge';
 import { DeleteConfirmationModal } from '../components/common/DeleteConfirmationModal';
-import { formatDateRange } from '../utils/dateUtils';
+// formatDateRange is not used here because we prefer server-provided dday; keep utils for other pages
 import type { JSX } from 'react';
 import leftarr from '../assets/leftarr.svg';
 import rightarr from '../assets/rightarr.svg';
-import vertical_line from '../assets/vertical_line.svg';
 import menu from '../assets/menu.svg';
+import profile_photo from '../assets/default_profile.svg'
 
 interface PostCardProps {
   post: {
@@ -26,6 +26,7 @@ interface PostCardProps {
       avatar: string;
     };
   };
+  authorNameFallback?: string;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
   isDeleting: boolean;
@@ -33,21 +34,21 @@ interface PostCardProps {
 
 const stripHtml = (html: string | undefined | null) => {
   if (!html) return "";
-  
+
   // 1. <br> 태그를 줄바꿈 문자(\n)로 변환
   let formatted = html.replace(/<br\s*\/?>/gi, '\n');
-  
+
   // 2. </p>와 </div> 태그 뒤에도 줄바꿈 추가 (단락 구분)
   formatted = formatted.replace(/<\/p>/gi, '\n').replace(/<\/div>/gi, '\n');
-  
+
   // 3. 나머지 HTML 태그 제거
   const doc = new DOMParser().parseFromString(formatted, "text/html");
   return (doc.body.textContent || "").trim();
 };
 
-const PostCard = ({ post, onDelete, onEdit, isDeleting }: PostCardProps): JSX.Element => {
+const PostCard = ({ post, authorNameFallback, onDelete, onEdit, isDeleting }: PostCardProps): JSX.Element => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const dateRange = formatDateRange(post.createdAt, post.deadline);
+  const serverDDay = (post as any).dday as string | undefined;
 
   const handleDeleteClick = () => {
     setShowDeleteModal(true);
@@ -59,7 +60,7 @@ const PostCard = ({ post, onDelete, onEdit, isDeleting }: PostCardProps): JSX.El
   };
 
   return (
-    <article className="flex flex-col w-full min-h-[220px] p-6 relative bg-white rounded-[10px] border border-solid border-gray-scalegray-scale-100 shadow-sm hover:shadow-md transition-all">
+    <article className="w-full max-w-[500px] flex flex-col min-h-[276px] items-center justify-center gap-2.5 p-4 sm:p-5 lg:p-6 relative bg-gray-scalewhite rounded-[10px] border border-solid border-gray-scalegray-scale-300 hover:shadow-lg transition-shadow">
       <div className="flex flex-col w-full min-h-[212px] items-center justify-between relative">
         <div className="flex flex-col items-start gap-[21px] relative self-stretch w-full flex-[0_0_auto]">
           <header className="flex flex-col items-start gap-[3px] relative self-stretch w-full flex-[0_0_auto]">
@@ -67,27 +68,16 @@ const PostCard = ({ post, onDelete, onEdit, isDeleting }: PostCardProps): JSX.El
               <h2 className="relative flex-1 mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[length:var(--heading-h2-100-font-size)] tracking-[var(--heading-h2-100-letter-spacing)] leading-[var(--heading-h2-100-line-height)] [font-style:var(--heading-h2-100-font-style)] truncate min-w-0">
                 {post.title}
               </h2>
-              <Badge deadline={post.deadline} />
+              <Badge dday={serverDDay} deadline={post.deadline} />
             </div>
-            <div className="inline-flex items-center gap-4 relative flex-[0_0_auto] flex-wrap">
-              <p className="relative w-fit mt-[-1.00px] [font-family:'Pretendard-Medium',Helvetica] font-normal text-gray-scalegray-scale-400 text-lg tracking-[0] leading-[18px]">
-                <span className="font-[number:var(--body-b1-100-font-weight)] leading-[var(--body-b1-100-line-height)] underline font-body-b1-100 [font-style:var(--body-b1-100-font-style)] tracking-[var(--body-b1-100-letter-spacing)] text-[length:var(--body-b1-100-font-size)]">
-                  {post.author?.name || '익명'}
-                </span>
-              </p>
-              <img
-                className="relative w-px h-[19.5px] hidden sm:block"
-                alt=""
-                src={vertical_line}
-                aria-hidden="true"
-              />
-              <time className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)]">
-                {dateRange}
-              </time>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 relative flex-[0_0_auto]">
+              <span className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)] text-sm sm:text-base">
+                {post.author?.name || authorNameFallback || '익명'}
+              </span>
             </div>
           </header>
           <p className="whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
-              {stripHtml(post.description)}
+            {stripHtml(post.description)}
           </p>
         </div>
         <div className="flex items-center justify-end gap-2.5 relative self-stretch w-full flex-[0_0_auto] mt-4">
@@ -133,8 +123,8 @@ export const MyPostsPage = (): JSX.Element => {
   const pageSize = 10;
 
   // Fetch only posts created by current user
-  const { data, isPending, error } = usePosts({ 
-    page: currentPage, 
+  const { data, isPending, error } = usePosts({
+    page: currentPage,
     pageSize,
     createdByCurrentUser: true
   });
@@ -202,7 +192,7 @@ export const MyPostsPage = (): JSX.Element => {
     const totalPages = data?.totalPages || 1;
     const pages = [];
     const maxPagesToShow = 5;
-    
+
     if (totalPages <= maxPagesToShow) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -222,7 +212,7 @@ export const MyPostsPage = (): JSX.Element => {
         }
       }
     }
-    
+
     return pages;
   };
 
@@ -230,10 +220,17 @@ export const MyPostsPage = (): JSX.Element => {
   const posts = data?.posts || [];
   const totalPages = data?.totalPages || 1;
 
+  const getFullImageUrl = (url?: string | null) => {
+    if (!url || url === 'default_url') return profile_photo;
+    if (url.startsWith('blob:') || url.startsWith('http')) return url;
+
+    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
+    const cleanPath = url.startsWith('/') ? url : `/${url}`;
+    return `${baseUrl}${cleanPath}`;
+  };
   return (
     <div className="relative w-full min-h-screen bg-white pb-20">
       <NavigationBar />
-      
       <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Sidebar - Left Column */}
@@ -242,23 +239,33 @@ export const MyPostsPage = (): JSX.Element => {
               <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-gray-scale30 rounded-[10px] flex flex-col">
                 <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
                   <img
-                    className="w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative object-cover rounded-full"
-                    alt={`${user?.name || '사용자'} profile`}
-                    src={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=E9FCEF&color=26E1AC&size=152'}
+                    className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative rounded-[10px] border border-gray-100 transition-all
+                      ${user?.profile?.imageUrl && user.profile.imageUrl !== 'default_url'
+                                          ? "object-cover"   
+                                          : "object-contain"
+                                        }
+                    `}
+                    alt={`Profile picture of ${user?.user?.name || '사용자'}`}
+                    src={getFullImageUrl(user?.profile?.imageUrl)}
+                    onError={(e) => {
+                      e.currentTarget.src = profile_photo;
+                    }}
                   />
-                  <div className="flex flex-col w-full items-center gap-0.5 relative flex-[0_0_auto]">
-                    <h2 className="relative self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
-                      {user?.name || '사용자'}
+                  <div className="flex flex-col w-full items-center gap-0.5">
+                    <h2 className="relative mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
+                      {user?.user?.name || '사용자'}
                     </h2>
-                    <div className="flex items-center justify-center gap-[11px] relative self-stretch w-full flex-[0_0_auto]">
-                      <p className="relative w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap [font-style:var(--body-b2-300-font-style)]">
-                        디자이너
-                      </p>
-                    </div>
+                    {user?.profile?.major && (
+                      <div className="flex items-center justify-center gap-[11px]">
+                        <p className="relative w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap [font-style:var(--body-b2-300-font-style)]">
+                          {user.profile.major}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => navigate('/board')}
                 className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-gray-scale30 rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                 type="button"
@@ -280,7 +287,7 @@ export const MyPostsPage = (): JSX.Element => {
           {/* Main Content - Right Column */}
           <main className="flex-1 order-1 lg:order-2">
             {/* Header */}
-            <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <h1 className="relative w-fit font-heading-h1-200 font-[number:var(--heading-h1-200-font-weight)] text-black text-2xl sm:text-[length:var(--heading-h1-200-font-size)] tracking-[var(--heading-h1-200-letter-spacing)] leading-[var(--heading-h1-200-line-height)] whitespace-nowrap [font-style:var(--heading-h1-200-font-style)]">
                 내가 쓴 게시글
               </h1>
@@ -335,12 +342,13 @@ export const MyPostsPage = (): JSX.Element => {
             {/* Posts List */}
             {!isPending && !error && posts.length > 0 && (
               <>
-                <section className="w-full mb-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-[19px]">
+                <section className="w-full max-w-[1023px] mx-auto pt-6 mb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 sm:gap-x-5 lg:gap-x-[19px] gap-y-[40px]">
                     {posts.map((post) => (
                       <PostCard
                         key={post.id}
                         post={post}
+                        authorNameFallback={user?.user?.name}
                         onDelete={handleDelete}
                         onEdit={handleEdit}
                         isDeleting={deletePostMutation.isPending}
@@ -373,38 +381,31 @@ export const MyPostsPage = (): JSX.Element => {
                     {paginationPages.map((page) => (
                       <button
                         key={page}
-                        className={`${
-                          currentPage === page
+                        className={`${currentPage === page
                             ? "inline-flex flex-col items-center gap-2.5 px-2 py-px relative flex-[0_0_auto] rounded-sm overflow-hidden border border-solid border-[#26e1ac]"
                             : "flex-col items-center gap-2.5 px-2 py-px inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors"
-                        }`}
+                          }`}
                         onClick={() => handlePageChange(page)}
                         aria-label={`Page ${page}`}
                         aria-current={currentPage === page ? "page" : undefined}
                         type="button"
                       >
                         <div
-                          className={`relative ${
-                            currentPage === page ? "w-2" : "w-fit"
-                          } mt-[-1.00px] ${
-                            currentPage === page
+                          className={`relative ${currentPage === page ? "w-2" : "w-fit"
+                            } mt-[-1.00px] ${currentPage === page
                               ? "font-body-medium font-[number:var(--body-medium-font-weight)] text-primaryprimary-500 text-[length:var(--body-medium-font-size)]"
                               : "font-body-regular font-[number:var(--body-regular-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-regular-font-size)]"
-                          } text-center tracking-[${
-                            currentPage === page
+                            } text-center tracking-[${currentPage === page
                               ? "var(--body-medium-letter-spacing)"
                               : "var(--body-regular-letter-spacing)"
-                          }] leading-[${
-                            currentPage === page
+                            }] leading-[${currentPage === page
                               ? "var(--body-medium-line-height)"
                               : "var(--body-regular-line-height)"
-                          }] ${
-                            currentPage === page ? "" : "whitespace-nowrap"
-                          } [font-style:${
-                            currentPage === page
+                            }] ${currentPage === page ? "" : "whitespace-nowrap"
+                            } [font-style:${currentPage === page
                               ? "var(--body-medium-font-style)"
                               : "var(--body-regular-font-style)"
-                          }]`}
+                            }]`}
                         >
                           {page}
                         </div>

@@ -2,9 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import loginillustration from "../../assets/login-ill.svg";
 
-// [중요] Figma에서 가져온 SVG 경로 데이터를 여기에 넣거나, 
-// 이 컴포넌트들을 실제 이미지(png/svg 파일)로 교체하는 것을 추천합니다.
-
 // -------------------------------------------------------------------------
 // 1. 로그인 카드 컴포넌트
 // -------------------------------------------------------------------------

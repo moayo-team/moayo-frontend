@@ -7,7 +7,7 @@ interface CarrerCardProps {
 }
 
 const CarrerCard = ({ data, onDoubleClick }: CarrerCardProps) => {
-  const { title, period, organizer, participation, role, isPublic } = data;
+  const { title, period, organizer, participation, role, visible } = data;
 
   return (
     <>
@@ -19,10 +19,10 @@ const CarrerCard = ({ data, onDoubleClick }: CarrerCardProps) => {
         <div className="flex flex-col gap-[16px] w-full">
           <div className="flex justify-between items-start w-full">
             <span className="text-right font-pretendard text-[13px] md:text-[14px] font-medium leading-[150%] tracking-[-0.01em] text-[#ADA395] truncate">
-              {organizer}
+              {organizer || "주최 없음"}
             </span>
             <div className="text-[#ADA395]">
-              {isPublic ? (
+              {visible ? (
                 <Eye size={20} strokeWidth={2} />
               ) : (
                 <EyeOff size={20} strokeWidth={2} />
@@ -31,10 +31,10 @@ const CarrerCard = ({ data, onDoubleClick }: CarrerCardProps) => {
           </div>
           <div className="flex flex-col gap-[6px]">
             <div className="flex-1 self-stretch text-[20px] md:text-[22px] font-pretendard text-[#25221D] font-bold leading-[130%] line-clamp-2">
-              {title}
+              {title || "활동명 없음"}
             </div>
             <div className="flex-1 self-stretch text-[20px] md:text-[22px] font-pretendard font-normal leading-[150%] text-[#423C33]">
-              {period}
+              {period || "기간 없음"}
             </div>
           </div>
         </div>
@@ -47,7 +47,7 @@ const CarrerCard = ({ data, onDoubleClick }: CarrerCardProps) => {
               참여 형태
             </span>
             <span className="self-stretch font-pretendard text-[15px] md:text-[16px] text-[#25221D] font-normal leading-[150%]">
-              {participation}
+              {participation || "-"}
             </span>
           </div>
           <div className="flex flex-col gap-[6px] items-start w-full">
@@ -57,7 +57,7 @@ const CarrerCard = ({ data, onDoubleClick }: CarrerCardProps) => {
               역할
             </span>
             <span className="self-stretch font-pretendard text-[15px] md:text-[16px] text-[#25221D] font-normal leading-[150%]">
-              {role}
+              {role || "-"}
             </span>
           </div>
         </div>

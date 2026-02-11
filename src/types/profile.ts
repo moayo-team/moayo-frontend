@@ -1,34 +1,5 @@
-//  공통 
-export type ExtraInfoType = "link" | "file" | "text";
-
-//  추가 정보 
-export interface ExtraInfo {
-  id: number;
-  type: ExtraInfoType;
-  title: string;
-  value: string;      // link URL / 파일 URL / 텍스트 내용
-}
-
-//  태그 
-export interface Tag {
-  id: number;
-  name: string;
-  selected: boolean;
-}
-
-//  프로필 
-export interface Profile {
-  name: string;
-  birthDate?: string;      // yyyy-mm-dd
-  email?: string;
-  university?: string;
-  major?: string;
-  profileImage?: string;
-  introduction?: string;
-  tags: Tag[];
-  extraInfos: ExtraInfo[];
-}
-
+//API
+export type IndexItemType = "link" | "file" | "text";
 
 /************************************* */
 /** 서버 공통 응답 구조 타입*/
@@ -36,54 +7,162 @@ export interface BaseResponse<T> {
   isSuccess: boolean;
   code: string;
   message: string;
+  timestamp: string;
   result: T;
 }
 
-/**프로필 생성 */
-
-//프로필 생성 요청
+/**프로필 관리 */
+//프로필 생성 
 export interface CreateProfileRequest {
+  name: string;        
+  phoneNumber?: string;
+  university: string;
+  major: string;
+  bio: string;
   imageUrl?: string;
-  bio?:string;
-  university?:string;
-  major?:string;
 }
-
-// 프로필 생성 응답 
 export interface ProfileCreateResult {
-  id: number; 
-}
-
-// 최종 응답 타입
-export type ProfileCreateResponse = BaseResponse<ProfileCreateResult>;
-
-
-/**프로필 조회 */
-//프로필 조회 응담
-export interface ProfileResult{
-  id: number | null;
-  userId: number;
-  imageUrl: string | null;
-  bio: string | null;
-  university: string | null;
-  major: string | null;
-}
-
-export type ProfileResponse =  BaseResponse<ProfileResult>;
-
-
-/**프로필 수정 */
-//프로필 수정 요청
-export interface UpdateProfileRequest {
-  imageUrl?: string;
-  bio?: string;
-  university?: string;
-  major?: string;
-}
-
-//프로필 수정 응답
-export interface UpdateProfileResult {
   id: number;
 }
 
-export type UpdateProfileResponse = BaseResponse<UpdateProfileResult>;
+export type ProfileCreateResponse = BaseResponse<ProfileCreateResult>;
+
+
+//프로필 조회 
+export interface UserInfo {
+  id: number | string;
+  name: string;
+  email: string;
+  phoneNumber: string | null;
+}
+
+export interface ProfileDetail {
+  id: number;
+  imageUrl: string | null;
+  university: string | null;
+  major: string | null;
+  bio: string | null;
+}
+
+export interface InterestTag {
+  id: number;
+  name: string;
+}
+
+export interface IndexItem {
+  id: number;
+  indexKey: string;   
+  indexValue: string; 
+  itemType: IndexItemType;
+  linkUrl: string | null;
+}
+
+export interface ProfileDocument {
+  id: number;
+  fileUrl: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+}
+
+export interface GetProfileResult{
+  user: UserInfo;
+  profile: ProfileDetail | null;
+  interestTags: InterestTag[];
+  indexItems: IndexItem[];
+  documents: ProfileDocument[];
+}
+
+export type ProfileResponse =  BaseResponse<GetProfileResult>;
+
+
+//프로필 수정 
+export interface UpdateProfileRequest {
+  name: string;
+  email: string;
+  phoneNumber?: string | null;
+
+  imageUrl?: string | null;
+  university: string | null;
+  major: string | null;
+  bio: string | null;
+}
+
+//프로필 수정 
+export type UpdateProfileResponse = BaseResponse<null>;
+
+/**관심 태그 관리*/
+//내 관심 태그 조회
+export type InterestTagListResponse = BaseResponse<InterestTag[]>
+
+
+//전체 관심 태그 목록 조회
+export type AllInterestTagListResponse = BaseResponse<InterestTag[]>
+
+
+//내 관심 태그 수정
+export interface UpdateInterestTagsRequest {
+  tagIds: number[];
+}
+
+export type UpdateInterestTagsResponse = BaseResponse<null>;
+
+
+/**추가 항목 관리*/
+//추가 항목 조회
+export interface getIndexItemDetail {
+  id: number;
+  indexKey: string;
+  indexValue: string;
+  itemType: IndexItemType;
+  linkUrl: string | null;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileType?: string | null;
+  fileSize?: number | null;
+}
+export type IndexItemListResponse = BaseResponse<getIndexItemDetail[]>
+
+//추가 항목 수정/생성
+export interface IndexItemDetailData {
+  indexKey: string;
+  indexValue: string;
+  itemType: IndexItemType;
+  linkUrl: string | undefined;
+  fileUrl?: string | undefined;  
+  fileType?: string | undefined;  
+  fileName?: string | undefined;  
+  fileSize?: number | undefined; 
+  fileObj?: File | null;
+}
+
+// 생성 API  
+export type CreateIndexItemResponse = BaseResponse<null>;
+
+// 삭제 API  
+export type DeleteIndexItemResponse = BaseResponse<null>;
+
+/**첨부 파일  */
+// 첨부 파일 업로드 
+export type UploadDocumentResponse = BaseResponse<ProfileDocument>;
+// 첨부 파일 삭제
+export type DeleteDocumentResponse = BaseResponse<null>;
+//첨부 파일 조회
+export type documentListResponse = BaseResponse<ProfileDocument[]>;
+
+//타인 프로필 조회 응답
+export interface OtherProfileResult {
+	userId: number;
+	name: string;
+	email: string;
+	phoneNumber: string | null;
+	imageUrl: string;
+	university: string;
+	major: string;
+	bio: string;
+	interestTags: InterestTag[];
+	indexItems: IndexItem[];
+  documents : ProfileDocument[];
+}
+
+export type OtherProfileResponse = BaseResponse<OtherProfileResult>;

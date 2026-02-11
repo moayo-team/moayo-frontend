@@ -1,32 +1,62 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import CarrerCard from "./CareerCard";
 import CarrerDetailModal from "./CareerDetailModal";
 import type { Career } from "../../types/career";
 import { useNavigate } from "react-router-dom";
 import { ArrowRightLeft } from "lucide-react";
 import MascotIcon from "../../assets/white.svg"
-import { DUMMY_PROFILE } from "../../data/profileData";
 import { getDisplayName } from "../../utils/name";
+import type { ProfileDocument } from "../../types/profile";
 
 interface ResumeSectionProps {
   carrers: Career[];
   sortOrder: 'latest' | 'oldest';
+  userName?: string;
   onSave: (updatedData: Career) => void;
   onDelete: (id: string | number) => void;
   setSortOrder: (order: 'latest' | 'oldest') => void;
+  documents?: ProfileDocument[];
+  isReadOnly?: boolean;
+  isMyProfile?: boolean;
 }
 
-const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder }: ResumeSectionProps) => {
+const ResumeSection = ({
+  carrers = [], sortOrder,
+  userName,
+  onSave,
+  onDelete,
+  setSortOrder,
+  documents,
+  isReadOnly = false,
+  isMyProfile = true
+}: ResumeSectionProps) => {
   const [selectedCarrer, setSelectedCareer] = useState<any | null>(null);
   const navigate = useNavigate();
 
-  const hasData = carrers.length > 0; //데이터 유무 판단
+  // 타인이 볼 때는 visible이 true인 것만, 내가 볼 때는 전부 다 보여줌
+  const filteredCarrers = useMemo(() => {
+    return carrers.filter(career => isReadOnly ? career.visible : true);
+  }, [carrers, isReadOnly]); const hasData = filteredCarrers.length > 0;
 
-  const sortedCarrers = [...carrers].sort((a, b) => {
-    const dateA = new Date(a.startDate).getTime();
-    const dateB = new Date(b.startDate).getTime();
-    return sortOrder === 'latest' ? dateB - dateA : dateA - dateB;
-  });
+  //정렬 로직(날짜 없으면 뒤로)
+  const sortedCarrers = useMemo(() => {
+    return [...filteredCarrers].sort((a, b) => {
+      const hasA = a.startDate && a.startDate.trim() !== "";
+      const hasB = b.startDate && b.startDate.trim() !== "";
+
+      if (!hasA && !hasB) return 0; 
+      if (!hasA) return 1;          
+      if (!hasB) return -1;         
+
+      const dateA = new Date(a.startDate).getTime();
+      const dateB = new Date(b.startDate).getTime();
+
+      if (isNaN(dateA)) return 1;
+      if (isNaN(dateB)) return -1;
+
+      return sortOrder === 'latest' ? dateB - dateA : dateA - dateB;
+    });
+  }, [filteredCarrers, sortOrder]);
 
 
 
@@ -50,15 +80,18 @@ const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder
               </button>
             )}
             {/* 이력 추가 버튼 */}
-            <button
-              onClick={() => navigate("/profile/add-career")}
-              className="flex w-[100px] sm:w-[120px] h-[44px] sm:h-[48px] justify-center items-center 
+            {!isReadOnly && (
+              <button
+                type="button"
+                onClick={() => navigate("/profile/add-career")}
+                className="flex w-[100px] sm:w-[120px] h-[44px] sm:h-[48px] justify-center items-center 
               bg-[#6EEBC7] rounded-[10px] hover:bg-[#5BD9B5] transition-colors shadow-sm"
-            >
-              <span className="text-[#25221D] font-pretendard font-medium text-[14px] sm:text-[16px]">
-                이력 추가
-              </span>
-            </button>
+              >
+                <span className="text-[#25221D] font-pretendard font-medium text-[14px] sm:text-[16px]">
+                  이력 추가
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -73,39 +106,42 @@ const ResumeSection = ({ carrers = [], sortOrder, onSave, onDelete, setSortOrder
               />
             ))}
           </div>
-        ):(
+        ) : (
           <div className="flex flex-col justify-center items-center 
               w-full min-h-[200px] sm:min-h-[240px] p-8 gap-4
               border rounded-[10px] border-dashed border-[#5F5749]">
-              <div className="flex h-[88px] gap-[20px] justify-center items-center shrink-0 self-stretch">
-                <img
-                  src={MascotIcon}
-                  className="w-[50px] sm:w-[60px] h-auto object-contain"
-                  alt="mascot"
-                />
-                <span className="font-pretendard text-[16px] sm:text-[18px] font-medium leading-[130%] text-[#7C7160]
+            <div className="flex h-[88px] gap-[20px] justify-center items-center shrink-0 self-stretch">
+              <img
+                src={MascotIcon}
+                className="w-[50px] sm:w-[60px] h-auto object-contain"
+                alt="mascot"
+              />
+              <span className="font-pretendard text-[16px] sm:text-[18px] font-medium leading-[130%] text-[#7C7160]
                 text-center md:text-left break-keep">
-                  {getDisplayName(DUMMY_PROFILE.name)}님의 활동경험을 알려주세요!
-                </span>
-              </div>
+                {isReadOnly ? "공개된 활동 경험이 없습니다." : `${getDisplayName(userName || "사용자")}님의 활동경험을 알려주세요!`}
+              </span>
+            </div>
           </div>
         )}
-            {/* 상세 모달*/}
-            {selectedCarrer && (
-              <CarrerDetailModal
-                data={selectedCarrer}
-                onClose={() => setSelectedCareer(null)}
-                onDelete={(id) => {
-                  onDelete(id);
-                  setSelectedCareer(null);
-                }}
-                onSave={(updatedData) => {
-                  onSave(updatedData);
-                  setSelectedCareer(null);
-                }}
-              />
-            )}
-    </div>
+        {/* 상세 모달*/}
+        {selectedCarrer && (
+          <CarrerDetailModal
+            data={selectedCarrer}
+            documents={documents}
+            isReadOnly={isReadOnly}
+            isMyProfile={isMyProfile}
+            onClose={() => setSelectedCareer(null)}
+            onDelete={(id) => {
+              onDelete(id);
+              setSelectedCareer(null);
+            }}
+            onSave={(updatedData) => {
+              onSave(updatedData);
+              setSelectedCareer(null);
+            }}
+          />
+        )}
+      </div>
     </>
 
   );

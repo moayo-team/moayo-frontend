@@ -11,7 +11,7 @@ const rootElement = document.getElementById('root')!;
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    {/* 질문자님이 index.tsx에서 사용하던 App 렌더링 방식을 그대로 가져옵니다. */}
-    <App /> 
+      <App />
   </React.StrictMode>
-)
+);
+

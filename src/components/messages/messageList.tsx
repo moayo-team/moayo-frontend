@@ -1,16 +1,21 @@
 import MessageBubble from "./messageBubble";
-import type { Message } from "../../types/message";
+import type { ChatMessage } from "../../types/message";
 
 type Props = {
-  messages: Message[];
-  currentUserId: string;
+  messages: ChatMessage[];
+  currentUserId: number;
 };
 
 export default function MessageList({ messages, currentUserId }: Props) {
+
   return (
     <>
       {messages.map((m) => (
-        <MessageBubble key={m.id} message={m} currentUserId={currentUserId} />
+        <MessageBubble
+          key={String((m as any).id ?? `${m.senderId}-${m.createdAt}-${m.content}`)}
+          message={m}
+          currentUserId={currentUserId}
+        />
       ))}
     </>
   );

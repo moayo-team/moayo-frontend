@@ -1,37 +1,59 @@
 import { useEffect, useState } from "react";
-import defaultImage from "../../assets/profile_photo.svg"
+import defaultImage from "../../assets/default_profile.svg"
 import { FileText, ImageIcon, Paperclip, Pencil, Plus, X } from "lucide-react";
-import { formatBirthDate } from "../../utils/format";
+import { formatPhoneNumber } from "../../utils/format";
 import { useUploadManager } from "../../hooks/useUploadManager";
 import SchoolVerifyModal from "./SchoolVerifyModal";
 import TagSelectModal from "./TagSelectModal";
-import { getDisplayName } from "../../utils/name";
 import MascotIcon from "../../assets/white.svg"
-import type { ProfileResult } from "../../types/profile";
+import type { ProfileFormData } from "../../types/profileForm";
+import type { InterestTag } from "../../types/profile";
+//import MinLayoutContainer from './layouts/MinWidthLayout';
 
 interface ProfileDetailsProps {
     isEditing: boolean;
+    isReadOnly: boolean;
     isDetailsEmpty: boolean;
-    data: ProfileResult | any;
-    onDataChange: (field: string, value: any) => void;
+    data: ProfileFormData;
+    experienceIds: number[];
+    onDataChange: (
+        id:
+            | keyof ProfileFormData
+            | "school"
+            | "major"
+            | "email"
+            | "phone"
+            | "school_verified"
+            | "imageUrl"
+            | "profileFile",
+        value: any
+    ) => void;
 }
 
-const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: ProfileDetailsProps) => {
+const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienceIds, onDataChange }: ProfileDetailsProps) => {
+    const canEdit = isEditing && !isReadOnly;
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isTagModalOpen, setIsTagModalOpen] = useState(false);
 
     // 학력 인증 상태 확인
-    const schoolData = data.details.find((d: any) => d.id === "school");
-    const isVerified = schoolData?.isVerified || false;
+    //const schoolData = data.details.find((d: any) => d.id === "school");
+//    const isVerified = schoolData?.isVerified || false;
 
+    const additionalDetails = data.additionalDetails || [];
+    const tags = data.tags || [];
+//    const documents = data.documents || [];
+    
     //추가 정보 생성을 위한 상태
-    const showPlusButton = isEditing && !isDetailsEmpty && (data.additionalDetails?.length || 0) < 4;
+//    const showPlusButton = isEditing && !isDetailsEmpty && (additionalDetails.length || 0) < 4;
     const [showAddOptions, setShowAddOptions] = useState(false);
     const [activeType, setActiveType] = useState<'file' | 'link' | 'text' | null>(null);
 
     //타입별 상세 입력을 위한 임시 상태
     const [tempLabel, setTempLabel] = useState("");
     const [tempValue, setTempValue] = useState("");
+    const [isUploading, _setIsUploading] = useState(false);
+ //   const [isAddingFile, setIsAddingFile] = useState(false);
 
     // 프로필 사진 업도르 전용 훅 
     const profileUpload = useUploadManager({
@@ -40,9 +62,10 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
     });
     //추가 정보 업로드 전용 훅
     const uploadManager = useUploadManager({
-        maxFiles: 1,
+        maxFiles: 3,
         maxLeftText: 10,
-        maxRightText: 20
+        maxRightText: 20,
+        maxLinkLength: 40,
     });
 
     const ADD_OPTIONS = [
@@ -112,25 +135,166 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
         e.target.value = "";
     };
 
-    const handleConfirmAdd = () => {
+    //이미지 압축
+    const compressImage = (file: File, maxSizeMB: number = 1): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // 최대 너비 제한 (큰 이미지 축소)
+                    const maxWidth = 1920;
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) {
+                        reject(new Error('Canvas context not available'));
+                        return;
+                    }
+
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // 품질을 조절하며 압축
+                    let quality = 0.9;
+                    const tryCompress = () => {
+                        canvas.toBlob(
+                            (blob) => {
+                                if (!blob) {
+                                    reject(new Error('Compression failed'));
+                                    return;
+                                }
+
+                                const compressedFile = new File(
+                                    [blob],
+                                    file.name,
+                                    { type: file.type || 'image/jpeg' }
+                                );
+
+                                console.log("🗜️ 압축 시도:", {
+                                    quality: quality,
+                                    original: (file.size / 1024).toFixed(2) + 'KB',
+                                    compressed: (compressedFile.size / 1024).toFixed(2) + 'KB',
+                                    targetMB: maxSizeMB
+                                });
+
+                                // 목표 크기보다 작으면 성공
+                                if (compressedFile.size <= maxSizeMB * 1024 * 1024) {
+                                    console.log("✅ 압축 성공:", {
+                                        finalSize: (compressedFile.size / 1024).toFixed(2) + 'KB',
+                                        compressionRatio: ((compressedFile.size / file.size) * 100).toFixed(1) + '%'
+                                    });
+                                    resolve(compressedFile);
+                                } else if (quality > 0.5) {
+                                    // 아직 크면 품질을 더 낮춰서 재시도
+                                    quality -= 0.1;
+                                    tryCompress();
+                                } else {
+                                    // 더 이상 압축할 수 없으면 실패
+                                    reject(new Error(`이미지를 ${maxSizeMB}MB 이하로 압축할 수 없습니다.`));
+                                }
+                            },
+                            file.type || 'image/jpeg',
+                            quality
+                        );
+                    };
+
+                    tryCompress();
+                };
+
+                img.onerror = () => reject(new Error('Image load failed'));
+                img.src = e.target?.result as string;
+            };
+
+            reader.onerror = () => reject(new Error('File read failed'));
+            reader.readAsDataURL(file);
+        });
+    };
+
+    //  프로필 이미지 변경 전용 핸들러
+    const handleProfileImageChange = async (files: FileList | null) => {
+        if (!files || files.length === 0) return;
+
+        const file = files[0];
+        // 파일 타입 검증
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('JPG, PNG, GIF 형식의 이미지만 업로드 가능합니다.');
+            return;
+        }
+
+        const maxSize = 10 * 1024 * 1024; // 10MB
+
+        let finalFile = file;
+        // 1MB 초과 시 자동 압축
+        if (file.size > maxSize) {
+            console.log("⚠️ 이미지 크기 초과, 압축 시작:", (file.size / 1024).toFixed(2) + 'KB');
+
+            try {
+                finalFile = await compressImage(file, 1);
+                //alert(`이미지가 1MB를 초과하여 자동으로 압축되었습니다.\n원본: ${(file.size / 1024).toFixed(0)}KB → 압축: ${(finalFile.size / 1024).toFixed(0)}KB`);
+            } catch (error: any) {
+                //alert(`이미지 압축 실패: ${error.message}\n1MB 이하의 이미지를 선택해주세요.`);
+                return;
+            }
+        }
+        const previewUrl = URL.createObjectURL(finalFile);
+
+        // 미리보기 주소 저장
+        onDataChange("profileImage", previewUrl);
+        //onDataChange("profileFile", finalFile);
+        onDataChange("profileFile", finalFile);
+
+        console.log("📸 프로필 사진 변경:", {
+            name: file.name,
+            type: file.type,
+            sizeKB: (file.size / 1024).toFixed(2) + 'KB'
+        });
+    };
+
+    const handleConfirmAddDetail = async () => {
         const isFile = activeType === "file";
+        const isLink = activeType === "link";
+
+        const selectedFile = uploadManager.selectedFiles[0] as unknown as File;
+
         const hasValue = isFile ? uploadManager.selectedFiles.length > 0 : tempValue.trim() !== "";
 
         if (!activeType || !hasValue || !tempLabel.trim()) return;
+        if (isFile && !selectedFile) return alert("파일을 선택해주세요.");
 
-        let attachedFile = null;
-        if (activeType === 'file' && uploadManager.selectedFiles.length > 0) {
-            attachedFile = uploadManager.selectedFiles[0];
+        let displayValueForServer = tempValue;
+        if (isLink && tempValue.length > 20) {
+            displayValueForServer = tempLabel.substring(0, 20);
+        } else if (isFile) {
+            displayValueForServer = uploadManager.selectedFiles[0]?.name.substring(0, 20);
         }
 
+        // 리스트에 들어갈 객체 구성
         const newField = {
-            id: `custom_${Date.now()}`,
+            id: `new_${Date.now()}`,
             type: activeType,
             label: tempLabel,
-            value: isFile ? attachedFile?.name : tempValue,
-            fileObj: attachedFile,
-            url: activeType === 'link' ? tempValue : null
+            value: isFile ? selectedFile.name : displayValueForServer,
+            // ERD 필수 컬럼들 매핑 준비
+            linkUrl: activeType === "link" ? tempValue : null,
+            fileName: isFile ? selectedFile.name : null,
+            fileType: isFile ? selectedFile.type : null,
+            fileSize: isFile ? selectedFile.size : null,
+            fileObj: isFile ? selectedFile : null,
         };
+        console.log("🔍 newField 확인:", newField);
 
         onDataChange("additionalDetails", [...(data.additionalDetails || []), newField]);
 
@@ -144,13 +308,89 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
 
     //다운로드/이동 핸들러
     const handleIconClick = (item: any) => {
-        if (item.type === 'file' && item.fileObj) {
-            uploadManager.handleFileDownload(item.fileObj);
-        } else if (item.type === 'link' && item.value) {
-            const targetUrl = item.value.startsWith('http') ? item.value : `https://${item.value}`;
-            window.open(targetUrl, '_blank');
+
+        const targetUrl = item.type === 'file'
+            ? (item.linkUrl || item.fileUrl || item.url || item.value)
+            : (item.linkUrl || item.url || item.value);
+
+        if (!targetUrl) {
+            alert("URL을 찾을 수 없습니다.");
+            return;
         }
+
+        let fullUrl: string;
+
+        if (item.type === 'file') {
+            if (targetUrl.startsWith('http')) {
+                fullUrl = targetUrl;
+            } else {
+                const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+                const cleanPath = targetUrl.startsWith('/') ? targetUrl : `/${targetUrl}`;
+                fullUrl = `${baseUrl}${cleanPath}`;
+            }
+
+            // PDF 툴바 숨김
+            if (fullUrl.toLowerCase().endsWith('.pdf')) {
+                fullUrl += '#toolbar=0';
+            }
+        } else {
+            // 링크: http 프로토콜 추가
+            fullUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+        }
+
+        window.open(fullUrl, '_blank', 'noopener,noreferrer');
     };
+
+    //기존 리스트 수정/삭제 로직
+    const updateCustomField = (id: number | string, key: "label" | "value", val: string) => {
+        const updated = additionalDetails.map((item) => {
+            if (item.id !== id) return item;
+
+            if (key === 'value' && item.type === 'link') {
+                return {
+                    ...item,
+                    value: val,
+                    linkUrl: val,
+                    url: val
+                };
+            }
+
+            if (key === 'value' && item.type === 'file') {
+                return {
+                    ...item,
+                    value: val
+                };
+            }
+
+            return { ...item, [key]: val };
+        });
+        onDataChange("additionalDetails", updated);
+    };
+
+
+    const getValue = (id: "school" | "major" | "email" | "phone") => {
+        return data.details.find((item) => item.id === id)?.value || "";
+    };
+
+    //태그 삭제 핸들러
+    const handleDeleteTag = (tagId: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        const newTags = tags.filter((t: InterestTag) => t.id !== tagId);
+        onDataChange("tags", newTags);
+    };
+
+
+    const fieldConfig: {
+        label: string;
+        id: "school" | "major" | "email" | "phone";
+        value: string;
+        max?: number;
+    }[] = [
+            { label: "학력", id: "school", value: getValue("school") },
+            { label: "학과", id: "major", value: getValue("major") },
+            { label: "이메일", id: "email", value: getValue("email"), max: 30 },
+            { label: "전화번호", id: "phone", value: getValue("phone"), max: 13 },
+        ];
 
     // 파일이 선택되었을 때 미리보기를 부모 상태에 반영
     useEffect(() => {
@@ -159,90 +399,36 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
         }
     }, [uploadManager.selectedFiles]);
 
-
-
-    //기존 리스트 수정/삭제 로직
-    const updateCustomField = (id: string, key: 'label' | 'value', val: string) => {
-        if (!uploadManager.isTextValid(val, key === 'label' ? 'left' : 'right')) return;
-
-        const updated = data.additionalDetails.map((item: any) =>
-            item.id === id ? { ...item, [key]: val } : item
-        );
-        onDataChange("additionalDetails", updated);
-    };
-
-    const getValue = (id: string) => {
-        return data.details.find((item: any) => item.id === id)?.value || "";
-    };
-
-    //태그 삭제 핸들러
-    const handleDeleteTag = (tagId: any, e: React.MouseEvent) => {
-        e.stopPropagation();
-        const newTags = data.tags.filter((t: any) => t.id !== tagId);
-        onDataChange("tags", newTags);
-    };
-
-
-    const fieldConfig = [
-        { label: "생년월일", id: "birth", value: getValue("birth") },
-        { label: "학력", id: "school", value: getValue("school") },
-        { label: "학과", id: "major", value: getValue("major") },
-        { label: "이메일", id: "email", value: getValue("email"), max: 30 },
-        { label: "전화번호", id: "phone", value: getValue("phone"), max: 11 },
-    ];
-
-    //프로필 사진 미리보기 및 부모 상태 반영 
-    useEffect(() => {
-        // 선택된 파일이 있을 때만 실행
-        if (profileUpload.selectedFiles.length > 0) {
-            const file = profileUpload.selectedFiles[0];
-            const previewUrl = URL.createObjectURL(file);
-
-            // 현재 이미지와 새로 선택한 이미지가 다를 때만 부모 상태 업데이트
-            if (data.profileImage !== previewUrl) {
-                onDataChange("profileImage", previewUrl);
-            }
-
-            // 클린업
-            return () => URL.revokeObjectURL(previewUrl);
-        }
-    }, [profileUpload.selectedFiles]);
-
-
     const handleVerifyComplete = (files: File[]) => {
         console.log("업로드 완료:", files);
         onDataChange("school_verified", true);
     };
 
-    const handleTagComplete = (newTags: any[]) => {
+    const handleTagComplete = (newTags: InterestTag[]) => {
         onDataChange("tags", newTags);
     };
 
-    const handleBasicInfoChange = (e: React.ChangeEvent<HTMLInputElement>, id: string, currentValue: string) => {
+    const handleBasicInfoChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+        id: "school" | "major" | "email" | "phone",
+        _currentValue: string
+    ) => {
         const input = e.target;
         const newValue = input.value;
 
-        if (id === "birth") {
-            const formattedValue = formatBirthDate(newValue);
-            const start = input.selectionStart || 0; //커서위치
-
-            // 값이 변경되는 경우에만 업데이트
-            if (currentValue !== formattedValue) {
-                onDataChange(id, formattedValue);
-
-                //커서 위치 보정
-                const isDeleting = newValue.length < currentValue.length;
-                const isModifiedInMiddle = start < newValue.length;
-
-                if (isDeleting || isModifiedInMiddle) {
-                    setTimeout(() => {
-                        input.setSelectionRange(start, start);
-                    }, 0);
-                }
-            }
+        if (id === "phone") {
+            const formattedValue = formatPhoneNumber(newValue);
+            onDataChange(id, formattedValue);
         } else {
             onDataChange(id, newValue);
         }
+    };
+
+    const getFullImageUrl = (url: string) => {
+        if (!url) return defaultImage;
+        if (url.startsWith('blob:')) return url;
+        if (url.startsWith('/uploads')) return `${import.meta.env.VITE_API_BASE_URL}${url}`;
+        return url;
     };
 
     return (
@@ -254,21 +440,29 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                         onDragOver={handleProfileDragOver}
                         onDragLeave={handleProfileDragLeave}
                         onDrop={handleProfileDrop}
-                        onClick={isEditing ? () => {
-                            profileUpload.setSelectedFiles([]);
+                        onClick={canEdit ? () => {
                             profileUpload.fileInputRef.current?.click();
                         } : undefined}
                         className={`relative flex justify-center items-center bg-[#FBFAF9]
                          ${isEditing ? "cursor-pointer" : "cursor-default"}`}
                     >
-                        <div className="w-[140px] h-[140px] lg:w-[160px] lg:h-[160px] rounded-full overflow-hidden">
+                        <div className="w-[140px] h-[140px] lg:w-[160px] lg:h-[160px] rounded-[10px] overflow-hidden">
                             <img
-                                src={data.profileImage || defaultImage}
+                                src={getFullImageUrl(data.profileImage)}
                                 alt="프로필 이미지"
-                                className="w-full h-full object-cover"
+                                className={`w-full h-full rounded-[10px]
+                                    ${!data.profileImage ? "object-contain p-2" : "object-cover"}
+                                `}
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    if (target.src !== defaultImage) {
+                                        target.src = defaultImage;
+                                        target.className = "w-full h-full object-contain p-2";
+                                    }
+                                }}
                             />
                         </div>
-                        {isEditing && (
+                        {canEdit && (
                             <div className="absolute bottom-0 right-1 lg:right-2 flex w-[36px] h-[36px] 
                                     justify-center items-center rounded-full z-20 shadow-md
                                     bg-[#EFEEEB] border border-[#C2BBB0] text-[#C2BBB0]">
@@ -284,25 +478,32 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                             ref={profileUpload.fileInputRef}
                             className="hidden"
                             accept="image/*"
-                            onChange={(e) => profileUpload.handleFileUpload(e.target.files)}
+                            onChange={(e) => handleProfileImageChange(e.target.files)}
                         />
                     </div>
-                    <input
-                        readOnly={!isEditing}
-                        maxLength={6}
-                        value={data.name}
-                        onChange={(e) => onDataChange("name", e.target.value)}
-                        className="outline-none bg-transparent
-                            text-center self-stretch text-[#25221D] font-pretendard text-[20px] lg:text-[24px] font-bold leading-[130%] tracking-[-0.01em]"
-                    />
-
+                    <div className="flex items-center justify-center relative w-fit mx-auto group">
+                        <input
+                            readOnly={!canEdit}
+                            maxLength={6}
+                            value={data.name}
+                            onChange={(e) => onDataChange("name", e.target.value)}
+                            className={`outline-none bg-transparent
+                            text-center self-stretch text-[#25221D] font-pretendard text-[20px] lg:text-[24px] font-bold leading-[130%] tracking-[-0.01em]
+                            w-full max-w-[120px] ${!canEdit ? "cursor-default" : "cursor-text"}`}
+                        />
+                        {canEdit && (
+                            <div className="ml-1 shrink-0">
+                                <Pencil size={18} color="#C2BBB0" />
+                            </div>
+                        )}
+                    </div>
                 </div>
                 {/**정보 */}
                 <div className="flex flex-col w-full lg:max-w-[440px] gap-[12px] items-start">
                     {/**디폴트 정보 */}
                     {fieldConfig.map((item) => {
                         // 편집 모드가 아닌데 값이 없으면 렌더링 스킵
-                        if (!isEditing && !item.value) return null;
+                        if (isReadOnly && !item.value) return null;
                         return (
                             <div
                                 key={item.id}
@@ -320,36 +521,40 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
 
                                     <input
                                         maxLength={item.max}
-                                        readOnly={!isEditing}
-                                        value={item.value || ""}
-                                        onChange={(e) => handleBasicInfoChange(e, item.id, item.value || "")}
-                                        placeholder="입력해주세요."
-                                        className="w-full h-full outline-none font-pretendard text-[15px] lg:text-[16px]
-                                            placeholder:text-[#978B78] text-[#342F28] font-medium leading-[130%] bg-transparent"
+                                        readOnly={item.id === "email" || !canEdit}
+                                        value={item.id === "phone" ? formatPhoneNumber(item.value || "") : (item.value || "")}
+                                        onChange={(e) => {
+                                            if (item.id === "email") return;
+                                            handleBasicInfoChange(e, item.id, item.value || "")
+                                        }}
+                                        placeholder={item.id === "school" || item.id === "major" ? "필수 입력 항목입니다." : "입력해주세요."}
+                                        className={`w-full h-full outline-none font-pretendard text-[15px] lg:text-[16px]
+                                            placeholder:text-[#978B78] text-[#342F28] font-medium leading-[130%] bg-transparent
+                                            ${!canEdit ? "cursor-default" : "cursor-text"}`}
                                     />
 
                                     {item.id === "school" ? (
-                                        <button
-                                            // 수정 모드일 때만 클릭 가능하게 설정
-                                            onDoubleClick={() => isEditing && setIsModalOpen(true)}
-                                            disabled={!isEditing}
-                                            className={`flex p-[5px] items-center gap-[3px] rounded-[10px] transition-colors shrink-0 
-                                                    ${isVerified
-                                                    ? "bg-[#E9FCF7] text-[#1BA07A]"
-                                                    : "bg-[#EFEEEB] text-[#5F5749]"
-                                                }
-                                            ${!isEditing ? "cursor-default" : "cursor-pointer"}
-                                        `}
-                                        >
-                                            <Paperclip size={24} />
-                                            <span className={`hidden md:inline text-[12px] font-medium font-pretendard leading-[150%] tracking-[-0.01em] 
-                                                ${isVerified ? "text-[#1BA07A]" : "text-[#5F5749]"}`}>
-                                                {isVerified ? "첨부파일 확인" : "첨부파일 증빙 전"}
-                                            </span>
-                                        </button>
+                                        (item.value || canEdit) && (
+                                            <div className="flex items-center gap-2 shrink-0">
+
+                                                <button
+                                                    // 수정 모드일 때만 클릭 가능하게 설정
+                                                    onDoubleClick={() => setIsModalOpen(true)}
+                                                    className={`flex py-[4px] px-[8px] items-center gap-[4px] rounded-[8px] transition-colors shrink-0
+                                                bg-[#E9FCF7] text-[#1BA07A]  cursor-pointer hover:opacity-80
+                                                `}
+                                                >
+                                                    <Paperclip size={18} />
+                                                    <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em] text-[#1BA07A]">
+                                                        첨부파일
+                                                    </span>
+                                                </button>
+                                                {isEditing && <Pencil size={16} color="#C2BBB0" className="shrink-0" />}
+                                            </div>
+                                        )
                                     ) : (
-                                        isEditing && (
-                                            <Pencil size={18} color="#C2BBB0" />
+                                        canEdit && item.id !== "email" && (
+                                            <Pencil size={16} color="#C2BBB0" />
                                         )
                                     )}
                                 </div>
@@ -361,54 +566,67 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                         isEditing={isEditing}
                         onClose={() => setIsModalOpen(false)}
                         onComplete={handleVerifyComplete}
+                        currentProfileImage={data.imageUrl}
+                        documents={data.documents}
+                        experienceIds={experienceIds}
+                        isMyProfile={!isReadOnly}
                     />
 
                     {/* 커스텀 추가 정보 리스트 */}
                     {data.additionalDetails?.map((item: any) => {
-                        if (!isEditing && !item.value) return null;
+                        if (isReadOnly && !item.value) return null;
 
                         return (
                             <div key={item.id} className="flex items-center gap-[8px] h-[50px] lg:h-[56px] w-full animate-in fade-in slide-in-from-top-1">
                                 <div className="flex w-[70px] lg:w-[85px] h-full justify-center items-center rounded-l-[10px] bg-[#E9FCF7] shrink-0">
                                     <input
-                                        readOnly={!isEditing}
+                                        readOnly={!canEdit}
                                         value={item.label}
                                         onChange={(e) => updateCustomField(item.id, 'label', e.target.value)}
                                         className={`bg-transparent w-full text-center outline-none text-[#423C33] font-medium text-[14px] lg:text-[16px] 
                                             ${isEditing ? "cursor-text" : "cursor-default"}`} />
                                 </div>
-                                <div className="flex flex-1 h-full px-[15px] md:px-[30px] items-center justify-between border border-[#FBFAF9] 
+                                <div className="flex flex-1 h-[50px] lg:h-[56px] px-[15px] items-center justify-between border border-[#D6D6D8] 
                                     rounded-r-[10px] bg-white relative overflow-hidden">
-                                    {item.type === 'file' || item.type === "link" ? (
-                                        <div className="flex items-center justify-between w-full">
-                                            <span className="text-[#25221D] text-[14px] lg:text-[16px] truncate">
-                                                {item.value}
-                                            </span>
-                                            <button
-                                                onClick={() => handleIconClick(item)}
-                                                className={`${isEditing ? "cursor-default" : "cursor-pointer"}`}>
-                                                <Paperclip size={18} className="text-[#5F5749]" />
-                                            </button>
-                                        </div>
-                                    ) : (
+
+                                    <div className="relative flex items-center w-full h-full">
                                         <input
-                                            readOnly={!isEditing}
-                                            value={item.value}
+                                            readOnly={!canEdit}
+                                            value={item.type === 'link' ? (item.url || item.value) : item.value}
                                             onChange={(e) => updateCustomField(item.id, 'value', e.target.value)}
-                                            className={`w-full h-full outline-none text-[#25221D] text-[14px] lg:text-[16px] bg-transparent 
-                                                ${isEditing ? "cursor-text" : "cursor-default"}`} />
-                                    )}
-                                    {isEditing && (
-                                        <X size={18} className="absolute right-2 text-[#7C7160] cursor-pointer"
-                                            onClick={() => onDataChange("additionalDetails", data.additionalDetails.filter((d: any) => d.id !== item.id))} />
-                                    )}
+                                            placeholder="내용을 입력해주세요."
+                                            className={`w-full h-full outline-none text-[#25221D] text-[15px] lg:text-[16px] font-medium bg-transparent
+                                                ${!canEdit ? "cursor-default pr-[40px]" : "cursor-text pr-[30px]"} 
+                                                truncate`}
+                                        />
+
+                                        {/* 아이콘 영역 */}
+                                        <div className="absolute right-0 flex items-center gap-1 shrink-0 bg-white/80 h-full pl-2">
+                                            {canEdit ? (
+                                                <button
+                                                    onClick={() => onDataChange("additionalDetails", additionalDetails.filter((d: any) => d.id !== item.id))}
+                                                    className="p-1 text-[#7C7160] hover:text-red-500"
+                                                >
+                                                    <X size={18} />
+                                                </button>
+                                            ) : (
+                                                (item.type === 'file' || item.type === 'link') && (
+                                                    <button
+                                                        onClick={() => !canEdit && handleIconClick(item)}
+                                                        className={`${canEdit ? "cursor-default opacity-30" : "cursor-pointer"} p-1 transition-opacity`}
+                                                    >
+                                                        <Paperclip size={18} className="text-[#5F5749]" />
+                                                    </button>
+                                                ))}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         );
                     })}
 
                     {/* [+] 버튼 및 옵션창 */}
-                    {showPlusButton && (
+                    {canEdit && !isDetailsEmpty && (data.additionalDetails?.length || 0) < 4 && (
                         <div className="mt-2 w-full">
                             {!showAddOptions ? (
                                 <button
@@ -418,6 +636,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                 >
                                     <Plus size={20} className="aspect-ratio shrink-0" color="#C2BBB0" />
                                 </button>
+
                             ) : (
                                 <div className="flex flex-col items-center w-full max-w-[720px] px-[20px] py-[30px] 
                                     shadow-sm animate-in fade-in zoom-in-95 gap-[16px]
@@ -454,7 +673,12 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                                 <div className="flex items-center self-stretch gap-[8px] h-[48px]">
                                                     <div className="flex w-[70px] h-full justify-center items-center rounded-[10px] bg-[#E9FCF7] shrink-0">
                                                         <input
-                                                            onChange={(e) => setTempLabel(e.target.value)}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                if (uploadManager.isInputValidByType(val, 'text', 'left')) {
+                                                                    setTempLabel(val);
+                                                                }
+                                                            }}
                                                             placeholder="텍스트"
                                                             className="w-full bg-transparent text-center
                                                             rounded-l-[10px] bg-[#E9FCF7] outline-none
@@ -463,7 +687,12 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                                     </div>
                                                     <input
                                                         value={tempValue}
-                                                        onChange={(e) => setTempValue(e.target.value)}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            if (uploadManager.isInputValidByType(val, 'text', 'right')) {
+                                                                setTempValue(val);
+                                                            }
+                                                        }}
                                                         placeholder="입력해주세요"
                                                         className="flex-1 h-full px-[15px]
                                                         bg-transparent border rounded-r-[10px] border-[#D9D5CE] outline-none 
@@ -481,7 +710,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                                         bg-transparent border rounded-[10px] border-[#D9D5CE] outline-none 
                                                         font-pretendard text-[15px] font-medium leading-[130%] text-[#978B78]"
                                                     />
-                                                    {activeType === "file" ? (
+                                                    {activeType === "file" &&
                                                         <div
                                                             onDragOver={handleAddFileDragOver}
                                                             onDragLeave={handleAddFileDragLeave}
@@ -510,7 +739,7 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                                                     <FileText size={28} color="#978B78" />
                                                                     <div className="flex flex-col items-center gap-2">
                                                                         <span className="self-stretch text-center text-[#978B78] font-pretendard text-[14px] font-medium leading-[140%] whitespace-nowrap">
-                                                                            파일을 첨부해주세요
+                                                                            파일을 첨부해주세요(**추가확인필요**)
                                                                         </span>
                                                                         <span className="self-stretch text-center text-[#978B78] font-pretendard text-[12px] font-normal leading-[150%]">
                                                                             (증빙서류, 포트폴리오)
@@ -525,22 +754,28 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                                                 onChange={(e) => uploadManager.handleFileUpload(e.target.files)}
                                                             />
                                                         </div>
-                                                    ) : (
+                                                    }{activeType === "link" &&
                                                         <input
                                                             value={tempValue}
-                                                            onChange={(e) => setTempValue(e.target.value)}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                if (uploadManager.isInputValidByType(val, 'link')) {
+                                                                    setTempValue(val);
+                                                                }
+                                                            }}
+                                                            maxLength={40}
                                                             placeholder="링크를 첨부해주세요. (Github, Behance)"
                                                             className="h-[48px] px-[15px] text-[#978B78]
                                                             bg-white border rounded-[10px] border-[#D9D5CE] outline-none text-[15px]"
                                                         />
-                                                    )}
+                                                    }
                                                 </div>
                                             )}
                                             <div className="flex justify-end w-full">
                                                 <button
-                                                    onClick={handleConfirmAdd}
+                                                    onClick={handleConfirmAddDetail}
                                                     className="px-5 py-2 bg-[#6EEBC7] text-[#25221D] rounded-lg font-medium text-[14px]">
-                                                    추가하기
+                                                    {isUploading ? "업로드 중..." : "추가하기"}
                                                 </button>
                                             </div>
                                         </div>
@@ -567,33 +802,36 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                         {/* 태그 영역 클릭 시 모달 오픈 */}
                         <div
                             onClick={() => {
-                                if (isEditing) setIsTagModalOpen(true);
+                                if (canEdit) setIsTagModalOpen(true);
                             }}
                             className={`flex w-full justify-center min-h-[auto]
-                                ${isEditing ? "cursor-pointer" : "cursor-default"}
-                                ${data.tags && data.tags.length > 0
-                                    ? "justify-start items-start p-0 border-none"
-                                    : "min-h-[120px] lg:min-h-[140px] justify-center items-center p-[30px] rounded-[10px] border-dashed border-[#5F5749] border"
+                                ${isEditing
+                                    ? "cursor-pointer border border-dashed border-[#D9D5CE] bg-[#F9FFFD] rounded-[15px] p-[16px]"
+                                    : "cursor-default border-none p-0"
+                                }
+                            ${data.tags && data.tags.length > 0
+                                    ? "justify-start items-start"
+                                    : "justify-center items-center rounded-[10px] border-dashed border-[#D9D5CE] border-2"
                                 }`}
                         >
                             {data.tags && data.tags.length > 0 ? (
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[8px] w-full">
-                                    {data.tags.map((tag: any) => (
+                                    {data.tags.map((tag: InterestTag, index: number) => (
                                         <div
-                                            key={tag.id}
+                                            key={`${tag.id}-${index}`}
                                             className={`flex justify-center items-center px-3 py-2
                                             min-h-[44px] h-auto text-center
                                             bg-[#E9FCF7] rounded-[10px] border border-[#26E1AC] 
                                             font-normal font-pretendard  text-[12px] lg:text-[14px]
-                                            ${tag.title.length <= 6
+                                            ${tag.name.length <= 6
                                                     ? "whitespace-nowrap"
                                                     : "whitespace-normal break-words"}
                                             ${isEditing ? "text-[#978B78] pr-[8px]" : "text-[#342F28]"}                                    
                                             `}
                                         >
-                                            {tag.title}
+                                            {tag.name}
 
-                                            {isEditing && (
+                                            {canEdit && (
                                                 <div
                                                     onClick={(e) => handleDeleteTag(tag.id, e)}
                                                     className="flex items-center justify-center w-[18px] h-[18px] 
@@ -606,17 +844,17 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                                     ))}
                                 </div>
                             ) : (
-                                <>
+                                isReadOnly && (
                                     <div className="flex flex-col md:flex-row gap-[12px] items-center text-center">
                                         <img
                                             src={MascotIcon}
                                             className="w-[40px] lg:w-[50px] h-auto"
                                         />
                                         <span className="text-[#7C7160] font-pretendard text-[14px] lg:text-[16px] font-medium ">
-                                            {getDisplayName(data.name)}님의 관심사를 알려주세요!
+                                            {data.name}님의 관심사를 알려주세요!
                                         </span>
                                     </div>
-                                </>
+                                )
                             )}
                         </div>
                     </div>
@@ -629,21 +867,39 @@ const ProfileDetails = ({ isEditing, isDetailsEmpty, data, onDataChange }: Profi
                     />
                     {/* 자기소개  */}
                     <div className="flex flex-col gap-[12px] w-full">
-                        <span className="text-[#423C33] font-pretendard text-[18px] lg:text-[20px] font-semibold leading0[130%]">자기소개</span>
-                        <textarea
-                            readOnly={!isEditing}
-                            value={data.introduction || ""}
-                            maxLength={500}
-                            onChange={(e) => onDataChange("introduction", e.target.value)}
-                            placeholder="입력해주세요."
-                            className={`flex flex-col items-start gap-[10px] shrink-0 w-full h-[140px] lg:h-[180px] px-[15px] py-[20px]
+                        <div className="flex items-center gap-1">
+                            <span className="text-[#423C33] font-pretendard text-[18px] lg:text-[20px] font-semibold leading0[130%]">
+                                자기소개
+                            </span>
+                            {canEdit && <Pencil size={18} color="#C2BBB0" />}
+                        </div>
+                        <div className="relative w-full">
+                            <textarea
+                                readOnly={!canEdit}
+                                value={isReadOnly && !data.introduction ? "등록된 자기소개가 없습니다." : (data.introduction || "")}
+                                maxLength={500}
+                                onChange={(e) => onDataChange("introduction", e.target.value)}
+                                placeholder="자기소개는 필수 입력 입니다."
+                                className={`flex flex-col items-start gap-[10px] shrink-0 w-full h-[140px] lg:h-[180px] px-[15px] py-[20px]
                                 bg-transparent rounded-[10px] border-[#D9D5CE] border placeholder:text-[#D9D5CE] text-[#342F28]
                                 outline-none resize-none font-pretendard text-[16px] md:text-[18px] 
                                 ${isEditing
-                                    ? "cursor-text"
-                                    : "cursor-default"
-                                }`}
-                        />
+                                        ? "cursor-text"
+                                        : "cursor-default"
+                                    }`}
+                            />
+                            {canEdit && (
+                                <div className="absolute bottom-3 right-4 flex items-center">
+                                    <span className={`font-pretendard text-[12px] font-medium 
+                                    ${(data.introduction?.length || 0) >= 500 ? "text-red-500" : "text-[#978B78]"}`}>
+                                        {(data.introduction?.length || 0)}
+                                    </span>
+                                    <span className="font-pretendard text-[12px] font-medium text-[#C2BBB0]">
+                                        /500
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
