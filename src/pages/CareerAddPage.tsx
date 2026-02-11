@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CircleCheck, FileText, Mic, Pencil, X } from "lucide-react";
+import { CircleCheck, FileText, Pencil, X } from "lucide-react";
 
 
 import { useUploadManager, type LinkItem } from "../hooks/useUploadManager";
@@ -492,34 +492,6 @@ const CareerAddPage = (): JSX.Element => {
         isPublic: newCareer.isPublic
       });
 
-      // 파일 업로드 + experience 연결
-      // if (selectedFiles.length > 0) {
-      //   try {
-      //     const uploadResults: UploadDocumentResponse[] = await Promise.all(
-      //       selectedFiles.map((file) => {
-      //         if (file.fileObj) return uploadProfileDocument(file.fileObj);
-      //         return Promise.resolve({ isSuccess: false, result: null } as any);
-      //       })
-      //     );
-
-      //     const attachPromises: Promise<any>[] = [];
-      //     uploadResults.forEach((res, idx) => {
-      //       if (res.isSuccess && res.result) {
-      //         attachPromises.push(
-      //           postExperienceFile(id!, {
-      //             fileId: res.result.id,
-      //             fileName: selectedFiles[idx].name
-      //           })
-      //         );
-      //       }
-      //     });
-
-      //     await Promise.all(attachPromises);
-      //   } catch (error) {
-      //     console.error("❌ 파일 업로드 중 오류:", error);
-      //     alert("이력은 저장되었으나 일부 파일 업로드에 실패했습니다.");
-      //   }
-      // }
       if (selectedFiles.length > 0) {
         try {
 
@@ -612,7 +584,7 @@ const CareerAddPage = (): JSX.Element => {
                         onChange={handleTextareaChange}
                         onClick={(e) => e.stopPropagation()}
                       />
-                      <Mic size={20} className="text-[#1BA07A] shrink-0 pt-1" />
+                      <Pencil size={20} className="text-[#1BA07A] shrink-0 pt-1" />
                     </div>
                   )}
                 </div>
@@ -725,7 +697,7 @@ const CareerAddPage = (): JSX.Element => {
                   onDrop={handleDrop}
                   onClick={handleBoxClick}
                   className="flex items-center justify-center h-[60px] sm:h-[80px] gap-[8px]
-                    rounded-[20px] boder boder-[#ADA395] bg-[#EFEEEB] cursor-pointer"
+                    rounded-[20px] border border-[#ADA395] bg-[#EFEEEB] cursor-pointer"
                 >
                   <div className="flex items-center justify-center gap-[8px] pointer-events-none">
                     <FileText size={20} className="text-[#978B78] mb-1" />

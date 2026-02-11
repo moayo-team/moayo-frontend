@@ -157,7 +157,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
         if (!isEditMode && !isSaving && Array.isArray(linksRes)) {
             setLinks(linksRes);
         }
-    }, [linksRes, isEditMode, setLinks, isSaving]);
+    }, [linksRes, isEditMode, isSaving]);
 
     const handleFileClick = async (file: AttachedFile) => {
         if (isEditMode) return;

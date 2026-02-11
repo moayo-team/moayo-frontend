@@ -249,7 +249,6 @@ const ProfilePage = () => {
   if (resolvedIsLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
   if (resolvedIsError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;
   if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
-  if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
 
   return (
     <div className="flex flex-col gap-12 w-full">
