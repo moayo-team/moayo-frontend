@@ -133,7 +133,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
     // 서버 데이터 동기화 (파일 목록)
     useEffect(() => {
-        if (!isEditMode && filesRes.length > 0) {
+        if (!isEditMode && !isSaving && filesRes.length > 0) {
             console.log("📥 서버에서 받은 파일 목록:", filesRes);
 
             const mappedFiles: AttachedFile[] = filesRes
@@ -152,15 +152,15 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             // 타인 프로필인데 데이터가 없으면 비워줌
             setSelectedFiles([]);
         }
-    }, [filesRes, isEditMode, documents, isMyProfile]);
+    }, [filesRes, isEditMode, documents, isMyProfile, isSaving]);
 
     // 서버 데이터 동기화(링크)
     useEffect(() => {
-        if (!isEditMode && Array.isArray(linksRes)) {
+        if (!isEditMode && isSaving && Array.isArray(linksRes)) {
             console.log("🔗 서버에서 받은 링크 목록:", linksRes);
             setLinks(linksRes);
         }
-    }, [linksRes, isEditMode, setLinks]);
+    }, [linksRes, isEditMode, setLinks, isSaving]);
 
     const handleFileClick = async (file: AttachedFile) => {
         if (isEditMode) return;
