@@ -3,26 +3,40 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CircleCheck, FileText, Pencil, X } from "lucide-react";
 
-
 import { useUploadManager, type LinkItem } from "../hooks/useUploadManager";
 
-import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
-//import { uploadProfileDocument } from "../api/profile/profile";
-import { addExperienceLink, postExperienceFile } from "../api/profile/experiences";
-//import type { UploadDocumentResponse } from "../types/profile";
+import {
+  formatPeriod,
+  getEndDateFromPeriod,
+  getStartDateFromPeriod,
+  validatePeriod
+} from "../utils/format";
 
-import { createExperienceSession, createAIDraft, patchExperience } from "../api/profile/session";
+import { addExperienceLink, postExperienceFile } from "../api/profile/experiences";
+import { createAIDraft } from "../api/profile/session";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFileUpload } from "../hooks/useProfileMutation";
 import type { AttachedFile } from "../types/career";
 import { useProfileData } from "../hooks/useProfileQueries";
 
-// --------------------
-// types (페이지 내부 상태용)
-// --------------------
+import { apiClient } from "../api/client";
+
 type DraftAiResult = Partial<{
   draft?: string;
 }>;
+
+type ApiEnvelope<T> = {
+  isSuccess: boolean;
+  code?: string;
+  message?: string;
+  result?: T;
+};
+
+type CreateExperienceResult =
+  | {
+      id?: number;
+    }
+  | number;
 
 const CareerAddPage = (): JSX.Element => {
   const navigate = useNavigate();
@@ -31,8 +45,6 @@ const CareerAddPage = (): JSX.Element => {
 
   const { mutateAsync: uploadFile } = useFileUpload();
 
-
-  // ✅ HomePage에서 넘긴 prompt
   const initialPrompt = (location.state as any)?.prompt as string | undefined;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -49,21 +61,13 @@ const CareerAddPage = (): JSX.Element => {
     fileInputRef
   } = useUploadManager({ maxFiles: 3 });
 
-  const { user } = useProfileData(); 
+  const { user } = useProfileData();
   const userName = user?.name || "사용자";
-  
+
   const [isAIInputOpen, setIsAIInputOpen] = useState(false);
   const [aiText, setAiText] = useState("");
   const [isAnalysing, setIsAnalysing] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
-
-  // ✅ 서버 세션 experienceId
-  //const [experienceId, setExperienceId] = useState<number | null>(null);
-  const experienceIdRef = useRef<number | null>(null);
-
-  // ✅ autosave debounce
-  const autosaveTimerRef = useRef<number | null>(null);
-  const autosaveEnabledRef = useRef(false); // 세션 생긴 이후 true
 
   const [newCareer, setNewCareer] = useState({
     title: "",
@@ -94,25 +98,25 @@ const CareerAddPage = (): JSX.Element => {
       .split(/\r?\n/)
       .map((v) => v.trim())
       .filter(Boolean)
-      // 앞에 붙는 불릿/번호 제거
       .map((v) => v.replace(/^([•\-*]|(\d+[\.\)]))\s*/g, "").trim())
       .filter(Boolean);
 
-    return lines.join("\n"); //줄바꿈 유지
+    return lines.join("\n");
   }
 
   useEffect(() => {
     if (!initialPrompt || initialPrompt.trim().length === 0) return;
 
-    // AI 입력창에 prompt 표시
     setAiText(initialPrompt);
     setIsAIInputOpen(true);
 
-    // textarea 높이 반영
     requestAnimationFrame(() => {
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
-        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+        textareaRef.current.style.height = `${Math.min(
+          textareaRef.current.scrollHeight,
+          120
+        )}px`;
       }
     });
 
@@ -122,28 +126,11 @@ const CareerAddPage = (): JSX.Element => {
       try {
         setIsAnalysing(true);
 
-        // (A) experience 세션 생성
-        const created = await createExperienceSession();
-        if (!created?.isSuccess) throw new Error(created?.message ?? "experience 생성 실패");
-
-        const id = Number(created.result);
-        if (!Number.isFinite(id)) throw new Error("experienceId가 올바르지 않습니다.");
-
-        if (cancelled) return;
-        //setExperienceId(id);
-        experienceIdRef.current = id;
-
-        // 세션 생성되었으니 autosave 활성화
-        autosaveEnabledRef.current = true;
-
-        // (B) ai draft 호출 (experienceId 필요)
-        // ⚠️ DraftRequest 키가 다르면 여기만 수정
-        const draftRes = await createAIDraft(id, { prompt: initialPrompt } as any);
+        const draftRes = await createAIDraft({ prompt: initialPrompt } as any);
 
         if (cancelled) return;
 
         if (!draftRes?.isSuccess) {
-          // ai draft 실패해도 세션은 생성됨 → 사용자가 직접 작성 가능
           setIsToastVisible(false);
           return;
         }
@@ -153,19 +140,12 @@ const CareerAddPage = (): JSX.Element => {
 
         if (rawDraft) {
           const introText = normalizeDraftToIntro(rawDraft);
-
-          setNewCareer((prev) => ({
-            ...prev,
-            intro: introText
-          }));
+          setNewCareer((prev) => ({ ...prev, intro: introText }));
         }
 
-
-        // 토스트 노출
         setIsAIInputOpen(false);
         setIsToastVisible(true);
       } catch (e) {
-        // 실패해도 사용자가 수동 작성 가능하게만 둠
         console.error("[CareerAddPage] init AI flow error:", e);
       } finally {
         if (!cancelled) setIsAnalysing(false);
@@ -179,19 +159,17 @@ const CareerAddPage = (): JSX.Element => {
     };
   }, [initialPrompt]);
 
-  // --------------------
-  // 2) 토스트 자동 종료
-  // --------------------
   useEffect(() => {
     if (!isToastVisible) return;
     const t = window.setTimeout(() => setIsToastVisible(false), 1000);
     return () => window.clearTimeout(t);
   }, [isToastVisible]);
 
-  // --------------------
-  // 3) 입력 변경: period 포맷 유지
-  // --------------------
-  const handleInputChange = (field: string, value: string, e?: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    field: string,
+    value: string,
+    e?: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (field === "period" && e) {
       const input = e.target;
       const start = input.selectionStart || 0;
@@ -216,64 +194,17 @@ const CareerAddPage = (): JSX.Element => {
     setNewCareer((prev) => ({ ...prev, [field]: value }));
   };
 
-  // --------------------
-  // 4) Autosave: newCareer 변경 시 debounce로 PATCH
-  //    - experienceId가 있어야만 작동
-  // --------------------
-  useEffect(() => {
-    const id = experienceIdRef.current;
-    if (!id) return;
-    if (!autosaveEnabledRef.current) return;
-
-    // debounce clear
-    if (autosaveTimerRef.current) {
-      window.clearTimeout(autosaveTimerRef.current);
-    }
-
-    autosaveTimerRef.current = window.setTimeout(async () => {
-      try {
-        // period → start/end 파싱
-        let startDate: string | null = null;
-        let endDate: string | null = null;
-
-        if (newCareer.period && validatePeriod(newCareer.period)) {
-          startDate = getStartDateFromPeriod(newCareer.period) ?? null;
-          endDate = getEndDateFromPeriod(newCareer.period) ?? null;
-        }
-
-        await patchExperience(id, {
-          title: newCareer.title,
-          organization: newCareer.organizer,
-          startDate,
-          endDate,
-          activity: newCareer.participation,
-          role: newCareer.role,
-          summary: newCareer.intro,
-          isPublic: newCareer.isPublic
-        });
-      } catch (e) {
-        console.warn("[CareerAddPage] autosave failed:", e);
-      }
-    }, 800);
-
-    return () => {
-      if (autosaveTimerRef.current) window.clearTimeout(autosaveTimerRef.current);
-    };
-  }, [newCareer]);
-
-  // --------------------
-  // 5) textarea auto height
-  // --------------------
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setAiText(e.target.value);
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height =
-        `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      textareaRef.current.style.height = `${Math.min(
+        textareaRef.current.scrollHeight,
+        120
+      )}px`;
     }
   };
 
-  //  파일 업로드 핸들러 (실제 서버 업로드)
   const handleMultipleFileUpload = async (files: FileList) => {
     const fileArray = Array.from(files);
 
@@ -283,7 +214,10 @@ const CareerAddPage = (): JSX.Element => {
     }
 
     try {
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/dev
       const uploadedFiles: AttachedFile[] = [];
 
       for (const file of fileArray) {
@@ -293,22 +227,26 @@ const CareerAddPage = (): JSX.Element => {
           id: res.result.fileId,
           name: file.name,
           fileObj: file,
-          type: 'file'
+          type: "file"
         });
       }
 
+<<<<<<< HEAD
       setSelectedFiles(prev => [...prev, ...uploadedFiles]);
 
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.message || "알 수 없는 오류";
+=======
+      setSelectedFiles((prev: any) => [...prev, ...uploadedFiles]);
+    } catch (error: any) {
+      console.error("❌ 파일 업로드 실패:", error);
+      const errorMsg =
+        error.response?.data?.message || error.message || "알 수 없는 오류";
+>>>>>>> origin/dev
       alert(`파일 업로드 실패:\n${errorMsg}`);
     }
   };
 
-
-  // --------------------
-  // 6) 파일 선택 시 UI 추가
-  // --------------------
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -318,18 +256,7 @@ const CareerAddPage = (): JSX.Element => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-
   const handleBoxClick = () => fileInputRef.current?.click();
-  {/*
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    if (selectedFiles.length + e.target.files.length > 3) {
-      alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
-      return;
-    }
-    handleFileUpload(e.target.files);
-  };
-   */}
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -352,11 +279,6 @@ const CareerAddPage = (): JSX.Element => {
     }
   };
 
-  // --------------------
-  // 7) (선택) 페이지 내부에서 “생성하기” 버튼을 눌러도 draft 호출 가능하게
-  //    - 이미 experienceId가 있으면 draft만 다시 호출
-  //    - 없으면 세션 먼저 만들고 호출
-  // --------------------
   const handleAIDraft = async () => {
     const prompt = aiText.trim();
     if (!prompt) return;
@@ -364,19 +286,7 @@ const CareerAddPage = (): JSX.Element => {
     try {
       setIsAnalysing(true);
 
-      let id = experienceIdRef.current;
-
-      if (!id) {
-        const created = await createExperienceSession();
-        if (!created?.isSuccess) throw new Error(created?.message ?? "experience 생성 실패");
-        id = Number(created.result);
-        if (!Number.isFinite(id)) throw new Error("experienceId가 올바르지 않습니다.");
-        //setExperienceId(id);
-        experienceIdRef.current = id;
-        autosaveEnabledRef.current = true;
-      }
-
-      const draftRes = await createAIDraft(id, { prompt } as any);
+      const draftRes = await createAIDraft({ prompt } as any);
       if (!draftRes?.isSuccess) {
         alert(draftRes?.message ?? "AI 초안 생성에 실패했습니다.");
         return;
@@ -391,12 +301,7 @@ const CareerAddPage = (): JSX.Element => {
       }
 
       const introText = normalizeDraftToIntro(rawDraft);
-
-      setNewCareer((prev) => ({
-        ...prev,
-        intro: introText
-      }));
-
+      setNewCareer((prev) => ({ ...prev, intro: introText }));
 
       setAiText("");
       setIsAIInputOpen(false);
@@ -409,18 +314,14 @@ const CareerAddPage = (): JSX.Element => {
     }
   };
 
-  // --------------------
-  // 8) 등록하기(최종 확정): 기존 experienceId 있으면 PATCH + 첨부 연결
-  //    - 없다면 (AI 없이 직접 작성 케이스) 세션 생성 후 PATCH
-  // --------------------
   const handleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
 
-    //모든 필드가 비어있는지 
-    const isAllEmpty = !newCareer.title.trim() &&
+    const isAllEmpty =
+      !newCareer.title.trim() &&
       !newCareer.organizer.trim() &&
       !newCareer.period.trim() &&
       !newCareer.participation.trim() &&
@@ -437,24 +338,26 @@ const CareerAddPage = (): JSX.Element => {
       return;
     }
 
-    let start = "";
-    let end = "";
+    let start: string | null = null;
+    let end: string | null = null;
 
     if (newCareer.period && newCareer.period.trim() !== "") {
       if (!validatePeriod(newCareer.period)) {
         alert("날짜 형식이 올바르지 않습니다.\n예: 2024.01.01 - 2024.12.31");
         return;
       }
-      start = getStartDateFromPeriod(newCareer.period);
-      end = getEndDateFromPeriod(newCareer.period);
+      start = getStartDateFromPeriod(newCareer.period) ?? null;
+      end = getEndDateFromPeriod(newCareer.period) ?? null;
 
-      const startYear = parseInt(start.split("-")[0]);
-      if (startYear < 1900 || startYear > 2100) {
-        alert("연도를 정확히 입력해주세요. (예: 2024)");
-        return;
+      if (start) {
+        const startYear = parseInt(start.split("-")[0]);
+        if (startYear < 1900 || startYear > 2100) {
+          alert("연도를 정확히 입력해주세요. (예: 2024)");
+          return;
+        }
       }
 
-      if (end) {
+      if (start && end) {
         const endYear = parseInt(end.split("-")[0]);
         if (endYear < 1900 || endYear > 2100) {
           alert("종료 연도를 정확히 입력해주세요.");
@@ -466,54 +369,71 @@ const CareerAddPage = (): JSX.Element => {
         }
       }
     }
+
     try {
-      let id = experienceIdRef.current;
-
-      // experience 세션이 없으면 생성
-      if (!id) {
-        const created = await createExperienceSession();
-        if (!created?.isSuccess) throw new Error(created?.message ?? "experience 생성 실패");
-        id = Number(created.result);
-        if (!Number.isFinite(id)) throw new Error("experienceId가 올바르지 않습니다.");
-        //setExperienceId(id);
-        experienceIdRef.current = id;
-        autosaveEnabledRef.current = true;
-      }
-
-      // 최종 PATCH (작성 완료 확정)
-      await patchExperience(id, {
+      const payload = {
         title: newCareer.title,
         organization: newCareer.organizer,
-        startDate: start ?? null,
-        endDate: end ?? null,
+        startDate: start,
+        endDate: end,
         activity: newCareer.participation,
         role: newCareer.role,
         summary: newCareer.intro,
         isPublic: newCareer.isPublic
-      });
+      };
 
+<<<<<<< HEAD
       if (selectedFiles.length > 0) {
         try {
 
+=======
+      const res = await apiClient.post<ApiEnvelope<CreateExperienceResult>>(
+        "/api/v1/experiences",
+        payload
+      );
+
+      if (!res.data?.isSuccess) {
+        alert(res.data?.message ?? "이력 저장에 실패했습니다.");
+        return;
+      }
+
+      const result = res.data.result;
+      const createdId =
+        typeof result === "number"
+          ? result
+          : typeof result === "object" && result && typeof (result as any).id === "number"
+          ? (result as any).id
+          : null;
+
+      if (!createdId) {
+        console.error("Create experience response result=", res.data);
+        alert("저장에 성공했지만 id를 확인할 수 없습니다.");
+        return;
+      }
+
+      if (selectedFiles.length > 0) {
+        try {
+>>>>>>> origin/dev
           await Promise.all(
-            selectedFiles.map((file) => {
-              return postExperienceFile(id!, {
-                fileId: Number(file.id), // ✅ 서버에서 받은 진짜 ID
+            (selectedFiles as any[]).map((file) =>
+              postExperienceFile(createdId, {
+                fileId: Number(file.id),
                 fileName: file.name
-              });
-            })
+              })
+            )
           );
         } catch (error) {
           alert("이력 정보는 저장되었으나, 파일 연결에 실패했습니다.");
         }
       }
-      // 링크 연결
+
       if (links.length > 0) {
         try {
-          const linkPromises = links.map(async (link: LinkItem) =>
-            addExperienceLink(id!, { title: "", url: link.url })
+          await Promise.all(
+            links.map((link: LinkItem) =>
+              addExperienceLink(createdId, { title: "", url: link.url })
+            )
           );
-          await Promise.all(linkPromises);
         } catch (error) {
           alert("이력은 저장되었으나 일부 링크 등록에 실패했습니다.");
         }
@@ -521,15 +441,13 @@ const CareerAddPage = (): JSX.Element => {
 
       await queryClient.invalidateQueries({ queryKey: ["myExperiences"] });
       await queryClient.invalidateQueries({ queryKey: ["myProfile"] });
+
       navigate("/profile");
     } catch (error) {
       alert("등록 중 오류가 발생했습니다.");
     }
   };
 
-  // --------------------
-  // UI
-  // --------------------
   return (
     <>
       <div className="flex flex-col items-center w-full min-h-screen bg-white pb-20">
@@ -539,10 +457,10 @@ const CareerAddPage = (): JSX.Element => {
           </p>
         </div>
 
-        <div className="flex flex-col w-full max-w-[800px] px-5 md:px-[40px] py-[40px] md:py-[50px]
-          gap-[40px] rounded-[20px] lg:rounded-[30px] bg-[#FAFAFA]">
-
-          {/* AI 영역 */}
+        <div
+          className="flex flex-col w-full max-w-[800px] px-5 md:px-[40px] py-[40px] md:py-[50px]
+          gap-[40px] rounded-[20px] lg:rounded-[30px] bg-[#FAFAFA]"
+        >
           <div className="flex flex-col w-full gap-[16px]">
             {isToastVisible && !isAIInputOpen && (
               <div className="flex w-full p-4 items-center gap-3 border border-[#D6D6D8] rounded-[10px] bg-[#F2F2F2] shadow-sm animate-fadeIn">
@@ -621,7 +539,6 @@ const CareerAddPage = (): JSX.Element => {
             )}
           </div>
 
-          {/* 활동 정보 */}
           <div className="flex flex-col gap-[12px]">
             {inputFields.map((item, idx) => (
               <div key={idx} className="flex items-center gap-[8px] h-[48px] sm:h-[52px]">
@@ -644,7 +561,6 @@ const CareerAddPage = (): JSX.Element => {
             ))}
           </div>
 
-          {/* 활동 소개 */}
           <div className="flex flex-col gap-[10px]">
             <span className="self-stretch font-pretendard text-[16px] sm:text-[18px] font-semibold text-[#25221D] leading-[130%] tracking-[-0.01em]">
               활동 소개
@@ -660,14 +576,13 @@ const CareerAddPage = (): JSX.Element => {
             />
           </div>
 
-          {/* 파일 첨부 */}
           <div className="flex flex-col gap-[10px]">
             <span className="self-stretch text-[#25221D] font-pretendard text-[16px] sm:text-[18px] font-semibold leading-[130%] tracking-[-0.01em]">
               파일 첨부
             </span>
 
             <div className="flex flex-col gap-[8px]">
-              {selectedFiles.map((file, index) => (
+              {selectedFiles.map((file: any, index: number) => (
                 <div
                   key={index}
                   className="flex items-center justify-between w-full h-[50px] px-[16px]
@@ -676,7 +591,11 @@ const CareerAddPage = (): JSX.Element => {
                   <span className="text-[14px] font-medium truncate font-pretendard text-[#25221D] leading-[140%] max-w-[80%]">
                     {file.name}
                   </span>
-                  <button onClick={() => removeFile(index)} className="text-[#7C7160] hover:text-[#1BA07A]" type="button">
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="text-[#7C7160] hover:text-[#1BA07A]"
+                    type="button"
+                  >
                     <X size={24} />
                   </button>
                 </div>
@@ -715,7 +634,6 @@ const CareerAddPage = (): JSX.Element => {
             </div>
           </div>
 
-          {/* 링크 첨부 */}
           <div className="flex flex-col gap-[10px]">
             <span className="self-stretch font-pretendard text-[16px] sm:text-[18px] font-semibold leading-[130%] tracking-[-0.01em] text-[#25221D]">
               링크 첨부
@@ -723,8 +641,11 @@ const CareerAddPage = (): JSX.Element => {
 
             {links.length > 0 && (
               <div className="flex flex-col gap-[8px]">
-                {links.map((link, index) => (
-                  <div key={index} className="flex items-center justify-between w-full h-[50px] px-[16px] bg-[#E9FCF7] rounded-[10px]">
+                {links.map((link: LinkItem, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between w-full h-[50px] px-[16px] bg-[#E9FCF7] rounded-[10px]"
+                  >
                     <a
                       href={link.url}
                       target="_blank"
