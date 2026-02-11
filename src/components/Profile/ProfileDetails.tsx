@@ -249,12 +249,12 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                 return;
             }
         }
-        const previewUrl = URL.createObjectURL(file);
+        const previewUrl = URL.createObjectURL(finalFile);
 
         // 미리보기 주소 저장
         onDataChange("profileImage", previewUrl);
         //onDataChange("profileFile", finalFile);
-        onDataChange("profileFile", file);
+        onDataChange("profileFile", finalFile);
 
         console.log("📸 프로필 사진 변경:", {
             name: file.name,
