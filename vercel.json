@@ -1,3 +1,16 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "http://3.34.183.233.nip.io/api/:path*"
+    },
+    {
+      "source": "/ws-chat/:path*",
+      "destination": "http://3.34.183.233.nip.io/ws-chat/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
