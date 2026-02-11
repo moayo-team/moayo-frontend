@@ -103,7 +103,7 @@ const CareerAddPage = (): JSX.Element => {
 
     return lines.join("\n");
   }
-
+  
   useEffect(() => {
     if (!initialPrompt || initialPrompt.trim().length === 0) return;
 
@@ -113,51 +113,11 @@ const CareerAddPage = (): JSX.Element => {
     requestAnimationFrame(() => {
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
-        textareaRef.current.style.height = `${Math.min(
-          textareaRef.current.scrollHeight,
-          120
-        )}px`;
+        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
       }
     });
-
-    let cancelled = false;
-
-    const run = async () => {
-      try {
-        setIsAnalysing(true);
-
-        const draftRes = await createAIDraft({ prompt: initialPrompt } as any);
-
-        if (cancelled) return;
-
-        if (!draftRes?.isSuccess) {
-          setIsToastVisible(false);
-          return;
-        }
-
-        const draftObj: DraftAiResult = (draftRes.result ?? {}) as any;
-        const rawDraft = typeof draftObj?.draft === "string" ? draftObj.draft : "";
-
-        if (rawDraft) {
-          const introText = normalizeDraftToIntro(rawDraft);
-          setNewCareer((prev) => ({ ...prev, intro: introText }));
-        }
-
-        setIsAIInputOpen(false);
-        setIsToastVisible(true);
-      } catch (e) {
-        console.error("[CareerAddPage] init AI flow error:", e);
-      } finally {
-        if (!cancelled) setIsAnalysing(false);
-      }
-    };
-
-    run();
-
-    return () => {
-      cancelled = true;
-    };
   }, [initialPrompt]);
+
 
   useEffect(() => {
     if (!isToastVisible) return;
