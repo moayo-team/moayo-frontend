@@ -120,6 +120,13 @@ export const getExperienceFiles = async (experienceId: number): Promise<BaseResp
     return data.result;
 };
 
+//이력 파일 다운로드
+export const downloadFileApi = async (fileId: number): Promise<Blob> => {
+    const response = await apiClient.get(`/api/v1/files/${fileId}`, {
+        responseType: 'blob', 
+    });
+    return response.data;
+};
 //이력 파일 삭제
 export const deleteExperienceFile = async (
     expId: number,

@@ -11,7 +11,7 @@ import { useExperienceDelete, useExperienceFileAttach, useExperienceLinkDelete, 
 //import { deleteProfileDocument, uploadProfileDocument } from "../../api/profile/profile";
 import { useQueryClient } from "@tanstack/react-query";
 //import { addExperienceLink, deleteExperienceFile, getPublicExperiences, postExperienceFile, updateExperienceLink } from "../../api/profile/experiences";
-import { addExperienceLink, deleteExperienceFile, updateExperienceLink } from "../../api/profile/experiences";
+import { addExperienceLink, deleteExperienceFile, downloadFileApi, updateExperienceLink } from "../../api/profile/experiences";
 import type { ProfileDocument } from "../../types/profile";
 
 interface CarrerDetailModalProps {
@@ -211,42 +211,42 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     //     alert("파일 다운로드 경로를 찾을 수 없습니다.");
     // };
 
-    const handleFileClick = (file: AttachedFile) => {
+    const handleFileClick = async (file: AttachedFile) => {
         if (isEditMode) return;
 
-        // 1. 방금 선택한 새 파일(아직 서버에 안 올라감) 처리
+        //  방금 선택한 새 파일(아직 서버에 안 올라감) 처리
         if (file.fileObj) {
             const url = URL.createObjectURL(file.fileObj);
             window.open(url, '_blank');
             return;
         }
 
-        // 2. 서버에 저장된 파일 처리
+        //  서버에 저장된 파일 처리
         const targetFileId = (file as any).fileId || file.id;
 
         if (targetFileId) {
             try {
-                // [중요] 백엔드에 파일 다운로드/조회 API가 있는지 확인이 필요합니다.
-                // 예: GET /api/v1/files/download/{fileId}
-                // 만약 API를 모른다면 서연님께 "파일 다운로드용 API 주소가 뭐예요?"라고 물어봐야 합니다.
+                console.log(`📡 ID ${targetFileId}번 파일 다운로드 요청 중...`);
 
-                console.log(`📡 ID ${targetFileId}번 파일 데이터를 요청합니다...`);
+                // API 호출하여 Blob 데이터 수신
+                const blob = await downloadFileApi(Number(targetFileId));
 
-                // 임시로 브라우저가 직접 서버 API를 호출하게 시도 (가장 일반적인 방식)
-                const downloadUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v1/files/${targetFileId}`;
-                window.open(downloadUrl, '_blank');
+                // Blob을 브라우저 URL로 변환
+                const fileUrl = URL.createObjectURL(blob);
+
+                // 새 창에서 열기 (PDF나 이미지는 바로 보이고, 일반 파일은 다운로드됨)
+                window.open(fileUrl, '_blank');
+
+                // 메모리 해제 (약간의 시간차를 두고 실행)
+                setTimeout(() => URL.revokeObjectURL(fileUrl), 100);
 
             } catch (error) {
-                console.error("파일 열기 실패:", error);
-                alert("파일을 불러오는 중 오류가 발생했습니다.");
+                console.error("파일 다운로드 에러:", error);
+                alert("파일을 불러오는 데 실패했습니다.");
             }
-        }
 
-        // 3. 매칭 실패 시
-        console.error("❌ 파일 매칭 실패. targetFileId:", targetFileId, "documents:", documents);
-        alert("파일 다운로드 경로를 찾을 수 없습니다. (서버에 등록되지 않은 임시 ID일 수 있습니다)");
-    };
-
+        };
+    }
     // 커서 튕김 방지 로직이 포함된 핸들러
     const handleInputChange = (name: string, value: string, e?: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         let finalValue = value;

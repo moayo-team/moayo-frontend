@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { CircleCheck, FileText, Mic, X } from "lucide-react";
 
 import { getDisplayName } from "../utils/name";
-import { DUMMY_PROFILE } from "../data/profileData";
 import { useUploadManager, type LinkItem } from "../hooks/useUploadManager";
 
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
@@ -16,6 +15,7 @@ import { createExperienceSession, createAIDraft, patchExperience } from "../api/
 import { useQueryClient } from "@tanstack/react-query";
 import { useFileUpload } from "../hooks/useProfileMutation";
 import type { AttachedFile } from "../types/career";
+import { useProfileData } from "../hooks/useProfileQueries";
 
 // --------------------
 // types (페이지 내부 상태용)
@@ -49,6 +49,9 @@ const CareerAddPage = (): JSX.Element => {
     fileInputRef
   } = useUploadManager({ maxFiles: 3 });
 
+  const { user } = useProfileData(); 
+  const userName = user?.name || "사용자";
+  
   const [isAIInputOpen, setIsAIInputOpen] = useState(false);
   const [aiText, setAiText] = useState("");
   const [isAnalysing, setIsAnalysing] = useState(false);
@@ -603,7 +606,7 @@ const CareerAddPage = (): JSX.Element => {
                   {!isAIInputOpen ? (
                     <div className="flex items-center justify-between w-full">
                       <span className="flex-1 font-pretendard text-[#1BA07A] text-[14px] sm:text-[16px] font-medium leading-[130%]">
-                        {getDisplayName(DUMMY_PROFILE.name)}님이 했던 경험을 자유롭게 서술해주세요. 모아요 AI가 정리해드려요!
+                        {userName}님이 했던 경험을 자유롭게 서술해주세요. 모아요 AI가 정리해드려요!
                       </span>
                       <Mic size={20} className="text-[#1BA07A] shrink-0" />
                     </div>
@@ -613,7 +616,7 @@ const CareerAddPage = (): JSX.Element => {
                         ref={textareaRef}
                         className="flex-1 max-h-[120px] outline-none resize-none bg-transparent
                           font-pretendard text-[15px] sm:text-[16px] font-medium text-[#1BA07A]"
-                        placeholder={`${getDisplayName(DUMMY_PROFILE.name)}님이 했던 경험을 자유롭게 서술해주세요.`}
+                        placeholder={`${userName}님이 했던 경험을 자유롭게 서술해주세요.`}
                         autoFocus
                         value={aiText}
                         onChange={handleTextareaChange}
