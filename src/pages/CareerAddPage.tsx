@@ -34,8 +34,8 @@ type ApiEnvelope<T> = {
 
 type CreateExperienceResult =
   | {
-      id?: number;
-    }
+    id?: number;
+  }
   | number;
 
 const CareerAddPage = (): JSX.Element => {
@@ -214,10 +214,6 @@ const CareerAddPage = (): JSX.Element => {
     }
 
     try {
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/dev
       const uploadedFiles: AttachedFile[] = [];
 
       for (const file of fileArray) {
@@ -231,18 +227,11 @@ const CareerAddPage = (): JSX.Element => {
         });
       }
 
-<<<<<<< HEAD
       setSelectedFiles(prev => [...prev, ...uploadedFiles]);
 
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.message || "알 수 없는 오류";
-=======
-      setSelectedFiles((prev: any) => [...prev, ...uploadedFiles]);
-    } catch (error: any) {
-      console.error("❌ 파일 업로드 실패:", error);
-      const errorMsg =
-        error.response?.data?.message || error.message || "알 수 없는 오류";
->>>>>>> origin/dev
+
       alert(`파일 업로드 실패:\n${errorMsg}`);
     }
   };
@@ -382,11 +371,7 @@ const CareerAddPage = (): JSX.Element => {
         isPublic: newCareer.isPublic
       };
 
-<<<<<<< HEAD
-      if (selectedFiles.length > 0) {
-        try {
 
-=======
       const res = await apiClient.post<ApiEnvelope<CreateExperienceResult>>(
         "/api/v1/experiences",
         payload
@@ -402,8 +387,8 @@ const CareerAddPage = (): JSX.Element => {
         typeof result === "number"
           ? result
           : typeof result === "object" && result && typeof (result as any).id === "number"
-          ? (result as any).id
-          : null;
+            ? (result as any).id
+            : null;
 
       if (!createdId) {
         console.error("Create experience response result=", res.data);
@@ -413,7 +398,7 @@ const CareerAddPage = (): JSX.Element => {
 
       if (selectedFiles.length > 0) {
         try {
->>>>>>> origin/dev
+
           await Promise.all(
             (selectedFiles as any[]).map((file) =>
               postExperienceFile(createdId, {
