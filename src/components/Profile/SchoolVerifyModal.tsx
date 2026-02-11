@@ -188,7 +188,6 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
                 newWindow.location.href = blobUrl;
             }
         } catch (error: any) {
-            console.error("❌ 파일 열기 실패:", error);
             newWindow?.close();
             alert("파일을 열 수 없습니다.");
         }

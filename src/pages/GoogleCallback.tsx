@@ -16,39 +16,36 @@ export const GoogleCallback = () => {
     if (isProcessed.current) return;
     const accessToken = searchParams.get('accessToken');
 
-    const isFirst = searchParams.get('isFirst') === 'true'; 
+    const isFirst = searchParams.get('isFirst') === 'true';
 
-    if (accessToken) {
-      isProcessed.current = true;
-
-      completeLogin(accessToken)
-        .then(() => {
-          if (isFirst) {
-            // 신규 유저
-            navigate('/profile', { replace: true });
-          } else {
-            // 기존 유저
-            setIsNewUser(false);
-            setShowModal(true);
-          }
-        })
-        .catch(() => {
-          // 실패하면 로그인 화면으로
-          alert("로그인에 실패했습니다.");
-          navigate('/login');
-        });
-    } else {
-      // 토큰 없으면 로그인 화면으로
+    if (!accessToken) {
       navigate('/login');
+      return;
     }
-  }, [searchParams, completeLogin, navigate]);
+
+    isProcessed.current = true;
+
+    completeLogin(accessToken)
+      .then(() => {
+        if (isFirst) {
+          navigate('/profile', { replace: true });
+        } else {
+          setShowModal(true);
+        }
+      })
+      .catch(() => {
+        alert("로그인에 실패했습니다.");
+        navigate('/login');
+      });
+
+  }, []);
 
   const handleClose = (destination = '/') => {
     navigate(destination, { replace: true });
   };
 
-   if (isNewUser === null && !showModal) {
-    return null; 
+  if (isNewUser === null && !showModal) {
+    return null;
   }
 
   return (

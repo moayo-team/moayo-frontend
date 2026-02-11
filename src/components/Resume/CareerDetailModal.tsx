@@ -250,30 +250,6 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                 setLinksToDelete([]);
             }
 
-            // if (filesToDelete.length > 0) {
-            //     const uniqueIdsToDelete = Array.from(new Set(filesToDelete));
-
-            //     console.log("🗑️ 삭제 시도 ID 목록:", uniqueIdsToDelete);
-
-            //     await Promise.all(
-            //         uniqueIdsToDelete.map(async (fileId) => {
-            //             try {
-            //                 // 이력과 파일 연결 끊기
-            //                 await deleteExperienceFile(initialData.id, fileId);
-
-            //                 //  원본 파일 삭제
-            //                 await deleteProfileDocument(fileId);
-            //             } catch (error: any) {
-            //                 if (error.response?.status === 404) {
-            //                     console.warn(`⚠️ 파일 ${fileId}이 이미 없습니다.`);
-            //                     return;
-            //                 }
-            //                 throw error;
-            //             }
-            //         })
-            //     );
-            //     setFilesToDelete([]);
-            // }
 
             if (filesToDelete.length > 0) {
                 const uniqueIdsToDelete = Array.from(new Set(filesToDelete));
@@ -355,7 +331,6 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             ]);
 
             await new Promise(resolve => setTimeout(resolve, 150));
-            alert("모든 변경사항이 저장되었습니다.");
 
             setIsEditMode(false);
             if (onSave) onSave({ ...initialData, ...formData, visible: isPublic });

@@ -215,7 +215,7 @@ const ProfilePage = () => {
             await refreshUser();
             setIsEditing(false);
           },
-          onError: (error) => {
+          onError: (_error) => {
             alert("프로필 저장에 실패했습니다. 다시 시도해 주세요.");
           }
 
