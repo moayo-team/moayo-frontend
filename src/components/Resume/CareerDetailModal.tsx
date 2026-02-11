@@ -7,7 +7,7 @@ import type { AttachedFile, UpdateExperienceRequest } from "../../types/career";
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod } from "../../utils/format";
 //import { useExperienceDetail, useExperienceFiles, useExperienceLinks, usePublicExperienceDetailQuery, usePublicExperienceFiles, usePublicExperienceLinks, usePublicExperiences } from "../../hooks/useProfileQueries";
 import { useExperienceDetail, useExperienceFiles, useExperienceLinks, usePublicExperienceDetailQuery, usePublicExperienceFiles, usePublicExperienceLinks, } from "../../hooks/useProfileQueries";
-import { useExperienceDelete, useExperienceFileAttach, useExperienceLinkDelete, useExperienceUpdate } from "../../hooks/useProfileMutation";
+import { useExperienceDelete, useExperienceFileAttach, useExperienceLinkDelete, useExperienceUpdate, useFileUpload } from "../../hooks/useProfileMutation";
 //import { deleteProfileDocument, uploadProfileDocument } from "../../api/profile/profile";
 import { useQueryClient } from "@tanstack/react-query";
 //import { addExperienceLink, deleteExperienceFile, getPublicExperiences, postExperienceFile, updateExperienceLink } from "../../api/profile/experiences";
@@ -26,6 +26,7 @@ interface CarrerDetailModalProps {
 const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, documents, isReadOnly = false, isMyProfile = true }: CarrerDetailModalProps) => {
     const queryClient = useQueryClient();
 
+    const { mutateAsync: uploadFile } = useFileUpload();
     //내 프로필용 상세 조회
     const { data: myDetailRes, isLoading: myDetailLoading } = useExperienceDetail(
         isMyProfile ? initialData?.id : null
@@ -100,9 +101,9 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
     });
 
     const {
-        selectedFiles, setSelectedFiles, handleFileUpload, removeFile,
+        selectedFiles, setSelectedFiles, removeFile,
         links, setLinks, linkInput, setLinkInput, addLink, removeLink,
-        fileInputRef, //handleFileDownload, handleCareerFileUpload
+        fileInputRef,
     } = useUploadManager({
         maxFiles: 3,
     });
@@ -149,7 +150,16 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             setSelectedFiles(prev => {
                 if (!isMyProfile) return mappedFiles;
 
-                const newFilesOnly = prev.filter(f => !f.id);
+                // ✅ 서버 파일 ID 목록 추출
+                const serverFileIds = filesRes.map((f: any) => Number(f.fileId));
+
+                // ✅ 서버에 없는 새 파일만 유지 (ID로 비교)
+                const newFilesOnly = prev.filter(f =>
+                    f.id && !serverFileIds.includes(Number(f.id))
+                );
+
+                console.log("🆕 새로 추가된 파일(서버 ID 기준):", newFilesOnly);
+
                 return [...mappedFiles, ...newFilesOnly];
             });
         }
@@ -206,10 +216,10 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
         // 1. 방금 선택한 새 파일(아직 서버에 안 올라감) 처리
         if (file.fileObj) {
-        const url = URL.createObjectURL(file.fileObj);
-        window.open(url, '_blank');
-        return;
-    }
+            const url = URL.createObjectURL(file.fileObj);
+            window.open(url, '_blank');
+            return;
+        }
 
         // 2. 서버에 저장된 파일 처리
         const targetFileId = (file as any).fileId || file.id;
@@ -340,54 +350,35 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                 setFilesToDelete([]);
             }
 
-            //신규 파일 업로드
-            // const newFilesToUpload = selectedFiles.filter(file => file.fileObj && !file.id);
+            //  파일 연결 로직
+            const serverFileList = Array.isArray(filesRes) ? filesRes : (filesRes as any)?.result || [];
 
-            // if (newFilesToUpload.length > 0) {
-            //     const uploadResults = await Promise.all(
-            //         newFilesToUpload.map(f => uploadProfileDocument(f.fileObj!))
-            //     );
-
-            //     const attachPromises = uploadResults.map((res, idx) => {
-            //         if (res.isSuccess) {
-            //             return postExperienceFile(initialData.id, {
-            //                 fileId: res.result.id, // 업로드 API에서 받은 id
-            //                 fileName: newFilesToUpload[idx].name // 원본 파일 이름
-            //             });
-            //         }
-            //         return Promise.resolve();
-            //     });
-            //     await Promise.all(attachPromises);
-            // }
-            const serverFileList = Array.isArray(filesRes)
-                ? filesRes
-                : (filesRes as any)?.result || [];
-            console.log("📋 현재 서버에 등록된 파일 목록:", serverFileList);
             const newFilesToAttach = selectedFiles.filter(file => {
-                // 이미 서버에 등록된 파일(id가 존재)인지 체크
-                const isAlreadyOnServer = serverFileList.some((f: any) => f.fileId === file.id);
-                // 새로 추가된 파일(!file.id가 아니거나 로컬 생성된 id)이면서 서버에 없는 것만 필터링
-                return !isAlreadyOnServer && file.id;
-            });
-            console.log("📤 서버로 보낼 신규 첨부 파일:", newFilesToAttach);
+                return (
+                    typeof file.id === "number" &&
+                    !serverFileList.some((f: any) => Number(f.fileId) === Number(file.id))
+                );
+            }); console.log("📤 attachFile 대상:", newFilesToAttach.map(f => ({
+                id: f.id,
+                name: f.name,
+                hasFileObj: !!f.fileObj
+            })));
+
             if (newFilesToAttach.length > 0) {
-                console.log("🛰️ attachFile API 호출 시작...");
-                const attachResults = await Promise.all(
-                    newFilesToAttach.map(async (f) => {
-                        console.log(`📡 파일 연결 요청 전송: ${f.name} (ID: ${f.id})`);
-                        return attachFile({
+                console.log("🛰️ 확보된 진짜 ID들로 이력 연결 시작...");
+                await Promise.all(
+                    newFilesToAttach.map(f =>
+                        attachFile({
                             experienceId: initialData.id,
                             fileData: {
                                 fileId: Number(f.id),
                                 fileName: f.name
                             }
-                        });
-                    })
+                        })
+                    )
                 );
-                console.log("✅ attachFile API 호출 완료 결과:", attachResults);
-            } else {
-                console.log("ℹ️ 새로 첨부할 파일이 없습니다. (이미 서버에 있거나 ID가 없음)");
             }
+
             //이력 생성/수정
             await Promise.all(links.map(async (link: LinkItem) => {
                 const linkData = { title: "이력 첨부 링크", url: link.url };
@@ -441,6 +432,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
     // 파일 업로드 핸들러 
     const handleMultipleFileUpload = async (files: FileList) => {
+        console.log("🔥 내가 수정한 함수가 실행됨!"); // 👈 이 줄을 추가
         const fileArray = Array.from(files);
 
         if (selectedFiles.length + fileArray.length > 3) {
@@ -448,15 +440,36 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
             return;
         }
 
-        //  UI에만 추가
-        const newUploadedFiles = fileArray.map(file => ({
-            id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString()), // 백엔드에 보낼 임시 ID 생성
-            name: file.name,
-            fileObj: file,
-            type: 'file'
-        }));
-        console.log("🆕 새로 추가된 파일(랜덤ID 포함):", newUploadedFiles);
-        setSelectedFiles(prev => [...prev, ...newUploadedFiles]);
+        try {
+            console.log("📤 파일 업로드 시작:", fileArray.map(f => f.name));
+
+            // ✅ 각 파일을 순차적으로 업로드
+            const uploadedFiles: AttachedFile[] = [];
+
+            for (const file of fileArray) {
+                console.log(`🔄 업로드 중: ${file.name}`);
+
+                // ✅ mutateAsync를 제대로 await
+                const res = await uploadFile(file);
+
+                console.log(`✅ 업로드 완료: ${file.name}, ID: ${res.result.fileId}`);
+
+                uploadedFiles.push({
+                    id: res.result.fileId,
+                    name: file.name,
+                    fileObj: file,
+                    type: 'file' as const
+                });
+            }
+
+            console.log("✅ 모든 파일 업로드 완료:", uploadedFiles);
+            setSelectedFiles(prev => [...prev, ...uploadedFiles]);
+
+        } catch (error: any) {
+            console.error("❌ 파일 업로드 실패:", error);
+            const errorMsg = error.response?.data?.message || error.message || "알 수 없는 오류";
+            alert(`파일 업로드 실패:\n${errorMsg}`);
+        }
     };
 
     /** 이력 파일 삭제  핸들러 */
@@ -540,7 +553,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
         e.preventDefault();
         e.stopPropagation();
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            handleFileUpload(e.dataTransfer.files);
+            handleMultipleFileUpload(e.dataTransfer.files);
         }
     };
 

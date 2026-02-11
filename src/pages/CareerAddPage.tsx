@@ -14,6 +14,8 @@ import { addExperienceLink, postExperienceFile } from "../api/profile/experience
 
 import { createExperienceSession, createAIDraft, patchExperience } from "../api/profile/session";
 import { useQueryClient } from "@tanstack/react-query";
+import { useFileUpload } from "../hooks/useProfileMutation";
+import type { AttachedFile } from "../types/career";
 
 // --------------------
 // types (페이지 내부 상태용)
@@ -26,6 +28,9 @@ const CareerAddPage = (): JSX.Element => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
+
+  const { mutateAsync: uploadFile } = useFileUpload();
+
 
   // ✅ HomePage에서 넘긴 prompt
   const initialPrompt = (location.state as any)?.prompt as string | undefined;
@@ -84,15 +89,15 @@ const CareerAddPage = (): JSX.Element => {
 
   function normalizeDraftToIntro(draft: string): string {
     const lines = draft
-        .split(/\r?\n/)
-        .map((v) => v.trim())
-        .filter(Boolean)
-        // 앞에 붙는 불릿/번호 제거
-        .map((v) => v.replace(/^([•\-*]|(\d+[\.\)]))\s*/g, "").trim())
-        .filter(Boolean);
+      .split(/\r?\n/)
+      .map((v) => v.trim())
+      .filter(Boolean)
+      // 앞에 붙는 불릿/번호 제거
+      .map((v) => v.replace(/^([•\-*]|(\d+[\.\)]))\s*/g, "").trim())
+      .filter(Boolean);
 
     return lines.join("\n"); //줄바꿈 유지
-    }
+  }
 
   useEffect(() => {
     if (!initialPrompt || initialPrompt.trim().length === 0) return;
@@ -145,12 +150,12 @@ const CareerAddPage = (): JSX.Element => {
         const rawDraft = typeof draftObj?.draft === "string" ? draftObj.draft : "";
 
         if (rawDraft) {
-            const introText = normalizeDraftToIntro(rawDraft);
+          const introText = normalizeDraftToIntro(rawDraft);
 
-            setNewCareer((prev) => ({
-                ...prev,
-                intro: introText
-            }));
+          setNewCareer((prev) => ({
+            ...prev,
+            intro: introText
+          }));
         }
 
 
@@ -261,9 +266,48 @@ const CareerAddPage = (): JSX.Element => {
     setAiText(e.target.value);
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      textareaRef.current.style.height =
+        `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   };
+
+  //  파일 업로드 핸들러 (실제 서버 업로드)
+  const handleMultipleFileUpload = async (files: FileList) => {
+    const fileArray = Array.from(files);
+
+    if (selectedFiles.length + fileArray.length > 3) {
+      alert("파일은 최대 3개까지 첨부 가능합니다.");
+      return;
+    }
+
+    try {
+      console.log("📤 파일 업로드 시작:", fileArray.map(f => f.name));
+
+      const uploadedFiles: AttachedFile[] = [];
+
+      for (const file of fileArray) {
+        console.log(`🔄 업로드 중: ${file.name}`);
+        const res = await uploadFile(file);
+        console.log(`✅ 업로드 완료: ${file.name}, ID: ${res.result.fileId}`);
+
+        uploadedFiles.push({
+          id: res.result.fileId,
+          name: file.name,
+          fileObj: file,
+          type: 'file'
+        });
+      }
+
+      console.log("✅ 모든 파일 업로드 완료:", uploadedFiles);
+      setSelectedFiles(prev => [...prev, ...uploadedFiles]);
+
+    } catch (error: any) {
+      console.error("❌ 파일 업로드 실패:", error);
+      const errorMsg = error.response?.data?.message || error.message || "알 수 없는 오류";
+      alert(`파일 업로드 실패:\n${errorMsg}`);
+    }
+  };
+
 
   // --------------------
   // 6) 파일 선택 시 UI 추가
@@ -272,27 +316,14 @@ const CareerAddPage = (): JSX.Element => {
     const files = e.target.files;
     if (!files) return;
 
-    const fileArray = Array.from(files);
+    handleMultipleFileUpload(files);
 
-    if (selectedFiles.length + fileArray.length > 3) {
-      alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    const newFiles = fileArray.map((file) => ({
-      fileId: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString()),
-      name: file.name,
-      fileObj: file,
-      type: "file" as const
-    }));
-
-    setSelectedFiles((prev) => [...prev, ...newFiles]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+
   const handleBoxClick = () => fileInputRef.current?.click();
-{/*
+  {/*
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     if (selectedFiles.length + e.target.files.length > 3) {
@@ -314,20 +345,14 @@ const CareerAddPage = (): JSX.Element => {
       alert("파일은 최대 3개까지만 첨부할 수 있습니다.");
       return;
     }
-
-    const newFiles = Array.from(files).map((file) => ({
-      name: file.name,
-      fileObj: file,
-      type: "file" as const
-    }));
-
-    setSelectedFiles((prev) => [...prev, ...newFiles]);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.dataTransfer.files) handleFileUpload(e.dataTransfer.files);
+    if (e.dataTransfer.files) {
+      handleMultipleFileUpload(e.dataTransfer.files);
+    }
   };
 
   // --------------------
@@ -500,20 +525,17 @@ const CareerAddPage = (): JSX.Element => {
       // }
       if (selectedFiles.length > 0) {
         try {
-          console.log("🛰️ 임시 ID를 이용한 파일 연결 시작...", selectedFiles);
+          console.log("🛰️ 서버 ID로 파일 연결 시작...", selectedFiles);
 
           await Promise.all(
             selectedFiles.map((file) => {
-              // useUploadManager 혹은 handleMultipleFileUpload에서 생성된 
-              // 랜덤 숫자인 file.id를 그대로 사용합니다.
-              const targetId = Number((file as any).fileId);
               return postExperienceFile(id!, {
-                fileId: targetId,
+                fileId: Number(file.id), // ✅ 서버에서 받은 진짜 ID
                 fileName: file.name
               });
             })
           );
-          console.log("✅ 임시 ID 기반 파일 연결 완료");
+          console.log("✅ 파일 연결 완료");
         } catch (error) {
           console.error("❌ 파일 연결 중 오류:", error);
           alert("이력 정보는 저장되었으나, 파일 연결에 실패했습니다.");
