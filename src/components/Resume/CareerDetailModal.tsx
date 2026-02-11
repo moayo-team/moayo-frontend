@@ -133,83 +133,34 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
 
     // 서버 데이터 동기화 (파일 목록)
     useEffect(() => {
-        if (filesRes.length > 0) {
+        if (!isEditMode && filesRes.length > 0) {
             console.log("📥 서버에서 받은 파일 목록:", filesRes);
 
             const mappedFiles: AttachedFile[] = filesRes
-                .filter((f: any) => !filesToDelete.includes(Number(f.fileId)))
                 .map((f: any) => {
-                    const matchedDoc = documents?.find(doc => doc.id === f.fileId);
-                    return {
-                        id: f.fileId,
-                        name: f.fileName,
-                        url: matchedDoc?.fileUrl,
-                        type: 'file'
-                    };
-                });
-            setSelectedFiles(prev => {
-                if (!isMyProfile) return mappedFiles;
-
-                // ✅ 서버 파일 ID 목록 추출
-                const serverFileIds = filesRes.map((f: any) => Number(f.fileId));
-
-                // ✅ 서버에 없는 새 파일만 유지 (ID로 비교)
-                const newFilesOnly = prev.filter(f =>
-                    f.id && !serverFileIds.includes(Number(f.id))
-                );
-
-                console.log("🆕 새로 추가된 파일(서버 ID 기준):", newFilesOnly);
-
-                return [...mappedFiles, ...newFilesOnly];
+                const matchedDoc = documents?.find(doc => doc.id === f.fileId);
+                return {
+                    id: f.fileId,
+                    name: f.fileName,
+                    url: matchedDoc?.fileUrl,
+                    type: 'file'
+                };
             });
+            setSelectedFiles(mappedFiles);
         }
         else if (filesRes.length === 0 && !isMyProfile) {
             // 타인 프로필인데 데이터가 없으면 비워줌
             setSelectedFiles([]);
         }
-    }, [filesRes, filesToDelete, documents, isMyProfile]);
+    }, [filesRes, isEditMode, documents, isMyProfile]);
 
     // 서버 데이터 동기화(링크)
     useEffect(() => {
-        if (Array.isArray(linksRes)) {
+        if (!isEditMode && Array.isArray(linksRes)) {
             console.log("🔗 서버에서 받은 링크 목록:", linksRes);
-            const activeLinks = linksRes.filter(l => !linksToDelete.includes(Number(l.linkId)));
-            setLinks(activeLinks);
+            setLinks(linksRes);
         }
-    }, [linksRes, linksToDelete, setLinks]);
-
-
-    // const handleFileClick = (file: AttachedFile) => {
-    //     if (isEditMode) return;
-
-    //     // 새로 업로드한 파일 (File 객체)
-    //     if (isMyProfile && !isReadOnly && file.fileObj) {
-    //         const url = URL.createObjectURL(file.fileObj);
-    //         const link = document.createElement("a");
-    //         link.href = url;
-    //         link.download = file.name;
-    //         document.body.appendChild(link);
-    //         link.click();
-    //         document.body.removeChild(link);
-    //         URL.revokeObjectURL(url);
-    //         return;
-    //     }
-    //     const targetFileId = file.id || (file as any).fileId;
-
-    //     // 서버 파일 - documents에서 URL 찾기
-    //     if (targetFileId && documents) {
-    //         const matchedDoc = documents.find(doc => doc.id === file.id);
-    //         if (matchedDoc?.fileUrl) {
-    //             const fullUrl = matchedDoc.fileUrl.startsWith('/')
-    //                 ? `${import.meta.env.VITE_API_BASE_URL}${matchedDoc.fileUrl}`
-    //                 : matchedDoc.fileUrl;
-    //             window.open(fullUrl, '_blank', 'noopener,noreferrer');
-    //             return;
-    //         }
-    //     }
-
-    //     alert("파일 다운로드 경로를 찾을 수 없습니다.");
-    // };
+    }, [linksRes, isEditMode, setLinks]);
 
     const handleFileClick = async (file: AttachedFile) => {
         if (isEditMode) return;
