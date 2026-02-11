@@ -39,7 +39,6 @@ const CareerAddPage = (): JSX.Element => {
 
   const {
     selectedFiles,
-    handleFileUpload,
     removeFile,
     setSelectedFiles,
     links,
