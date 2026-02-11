@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
-import { useEffect, useState, type KeyboardEvent } from "react";
+//import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useState, } from "react";
 import type { InterestTag } from "../../types/profile";
 import { getAllInterestTag } from "../../api/profile/profile";
 

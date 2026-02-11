@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { postsApi } from '../api/posts';
-import type { Post, PostDraft } from '../types';
+//import type { Post, PostDraft } from '../types';
+import type { PostDraft } from '../types';
 
 // Query key factory
 export const postKeys = {

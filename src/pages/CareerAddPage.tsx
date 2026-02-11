@@ -8,9 +8,9 @@ import { DUMMY_PROFILE } from "../data/profileData";
 import { useUploadManager, type LinkItem } from "../hooks/useUploadManager";
 
 import { formatPeriod, getEndDateFromPeriod, getStartDateFromPeriod, validatePeriod } from "../utils/format";
-import { uploadProfileDocument } from "../api/profile/profile";
+//import { uploadProfileDocument } from "../api/profile/profile";
 import { addExperienceLink, postExperienceFile } from "../api/profile/experiences";
-import type { UploadDocumentResponse } from "../types/profile";
+//import type { UploadDocumentResponse } from "../types/profile";
 
 import { createExperienceSession, createAIDraft, patchExperience } from "../api/profile/session";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,13 +19,7 @@ import { useQueryClient } from "@tanstack/react-query";
 // types (페이지 내부 상태용)
 // --------------------
 type DraftAiResult = Partial<{
-  title: string;
-  organization: string;
-  startDate: string;
-  endDate: string;
-  activity: string;
-  role: string;
-  summary: string;
+  draft?: string;
 }>;
 
 const CareerAddPage = (): JSX.Element => {
@@ -57,7 +51,7 @@ const CareerAddPage = (): JSX.Element => {
   const [isToastVisible, setIsToastVisible] = useState(false);
 
   // ✅ 서버 세션 experienceId
-  const [experienceId, setExperienceId] = useState<number | null>(null);
+  //const [experienceId, setExperienceId] = useState<number | null>(null);
   const experienceIdRef = useRef<number | null>(null);
 
   // ✅ autosave debounce
@@ -88,10 +82,18 @@ const CareerAddPage = (): JSX.Element => {
     []
   );
 
-  // --------------------
-  // 1) Home에서 넘어온 prompt를 AI 입력칸에 넣고,
-  //    즉시 experience 세션 생성 → ai draft 호출 → 결과로 폼 채우기
-  // --------------------
+  function normalizeDraftToIntro(draft: string): string {
+    const lines = draft
+        .split(/\r?\n/)
+        .map((v) => v.trim())
+        .filter(Boolean)
+        // 앞에 붙는 불릿/번호 제거
+        .map((v) => v.replace(/^([•\-*]|(\d+[\.\)]))\s*/g, "").trim())
+        .filter(Boolean);
+
+    return lines.join("\n"); //줄바꿈 유지
+    }
+
   useEffect(() => {
     if (!initialPrompt || initialPrompt.trim().length === 0) return;
 
@@ -121,7 +123,7 @@ const CareerAddPage = (): JSX.Element => {
         if (!Number.isFinite(id)) throw new Error("experienceId가 올바르지 않습니다.");
 
         if (cancelled) return;
-        setExperienceId(id);
+        //setExperienceId(id);
         experienceIdRef.current = id;
 
         // 세션 생성되었으니 autosave 활성화
@@ -139,28 +141,18 @@ const CareerAddPage = (): JSX.Element => {
           return;
         }
 
-        const draft: DraftAiResult = (draftRes.result ?? {}) as any;
+        const draftObj: DraftAiResult = (draftRes.result ?? {}) as any;
+        const rawDraft = typeof draftObj?.draft === "string" ? draftObj.draft : "";
 
-        // draft 결과를 newCareer에 매핑
-        setNewCareer((prev) => {
-          const next = { ...prev };
+        if (rawDraft) {
+            const introText = normalizeDraftToIntro(rawDraft);
 
-          if (typeof draft.title === "string") next.title = draft.title;
-          if (typeof draft.organization === "string") next.organizer = draft.organization;
-          if (typeof draft.activity === "string") next.participation = draft.activity;
-          if (typeof draft.role === "string") next.role = draft.role;
-          if (typeof draft.summary === "string") next.intro = draft.summary;
+            setNewCareer((prev) => ({
+                ...prev,
+                intro: introText
+            }));
+        }
 
-          // start/endDate가 오면 period로 변환
-          if (draft.startDate || draft.endDate) {
-            const s = draft.startDate ? draft.startDate.replaceAll("-", ".") : "";
-            const e = draft.endDate ? draft.endDate.replaceAll("-", ".") : "";
-            if (s && e) next.period = `${s} - ${e}`;
-            else if (s && !e) next.period = `${s} - `;
-          }
-
-          return next;
-        });
 
         // 토스트 노출
         setIsAIInputOpen(false);
@@ -300,7 +292,7 @@ const CareerAddPage = (): JSX.Element => {
   };
 
   const handleBoxClick = () => fileInputRef.current?.click();
-
+{/*
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     if (selectedFiles.length + e.target.files.length > 3) {
@@ -309,6 +301,7 @@ const CareerAddPage = (): JSX.Element => {
     }
     handleFileUpload(e.target.files);
   };
+   */}
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -356,7 +349,7 @@ const CareerAddPage = (): JSX.Element => {
         if (!created?.isSuccess) throw new Error(created?.message ?? "experience 생성 실패");
         id = Number(created.result);
         if (!Number.isFinite(id)) throw new Error("experienceId가 올바르지 않습니다.");
-        setExperienceId(id);
+        //setExperienceId(id);
         experienceIdRef.current = id;
         autosaveEnabledRef.current = true;
       }
@@ -367,24 +360,21 @@ const CareerAddPage = (): JSX.Element => {
         return;
       }
 
-      const draft: DraftAiResult = (draftRes.result ?? {}) as any;
+      const draftObj: DraftAiResult = (draftRes.result ?? {}) as any;
+      const rawDraft = typeof draftObj?.draft === "string" ? draftObj.draft : "";
 
-      setNewCareer((prev) => {
-        const next = { ...prev };
-        if (typeof draft.title === "string") next.title = draft.title;
-        if (typeof draft.organization === "string") next.organizer = draft.organization;
-        if (typeof draft.activity === "string") next.participation = draft.activity;
-        if (typeof draft.role === "string") next.role = draft.role;
-        if (typeof draft.summary === "string") next.intro = draft.summary;
+      if (!rawDraft) {
+        alert("AI 초안이 비어있습니다.");
+        return;
+      }
 
-        if (draft.startDate || draft.endDate) {
-          const s = draft.startDate ? draft.startDate.replaceAll("-", ".") : "";
-          const e = draft.endDate ? draft.endDate.replaceAll("-", ".") : "";
-          if (s && e) next.period = `${s} - ${e}`;
-          else if (s && !e) next.period = `${s} - `;
-        }
-        return next;
-      });
+      const introText = normalizeDraftToIntro(rawDraft);
+
+      setNewCareer((prev) => ({
+        ...prev,
+        intro: introText
+      }));
+
 
       setAiText("");
       setIsAIInputOpen(false);
@@ -463,7 +453,7 @@ const CareerAddPage = (): JSX.Element => {
         if (!created?.isSuccess) throw new Error(created?.message ?? "experience 생성 실패");
         id = Number(created.result);
         if (!Number.isFinite(id)) throw new Error("experienceId가 올바르지 않습니다.");
-        setExperienceId(id);
+        //setExperienceId(id);
         experienceIdRef.current = id;
         autosaveEnabledRef.current = true;
       }

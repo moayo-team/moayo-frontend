@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { commentsApi } from '../api/comments';
-import type { Comment } from '../types';
+//import type { Comment } from '../types';
 
 // Query key factory for comments
 export const commentKeys = {

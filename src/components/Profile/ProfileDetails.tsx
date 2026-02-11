@@ -5,10 +5,10 @@ import { formatPhoneNumber } from "../../utils/format";
 import { useUploadManager } from "../../hooks/useUploadManager";
 import SchoolVerifyModal from "./SchoolVerifyModal";
 import TagSelectModal from "./TagSelectModal";
-import { getDisplayName } from "../../utils/name";
 import MascotIcon from "../../assets/white.svg"
 import type { ProfileFormData } from "../../types/profileForm";
 import type { InterestTag } from "../../types/profile";
+//import MinLayoutContainer from './layouts/MinWidthLayout';
 
 interface ProfileDetailsProps {
     isEditing: boolean;
@@ -37,23 +37,23 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
     const [isTagModalOpen, setIsTagModalOpen] = useState(false);
 
     // 학력 인증 상태 확인
-    const schoolData = data.details.find((d: any) => d.id === "school");
-    const isVerified = schoolData?.isVerified || false;
+    //const schoolData = data.details.find((d: any) => d.id === "school");
+//    const isVerified = schoolData?.isVerified || false;
 
     const additionalDetails = data.additionalDetails || [];
     const tags = data.tags || [];
-    const documents = data.documents || [];
+//    const documents = data.documents || [];
     
     //추가 정보 생성을 위한 상태
-    const showPlusButton = isEditing && !isDetailsEmpty && (additionalDetails.length || 0) < 4;
+//    const showPlusButton = isEditing && !isDetailsEmpty && (additionalDetails.length || 0) < 4;
     const [showAddOptions, setShowAddOptions] = useState(false);
     const [activeType, setActiveType] = useState<'file' | 'link' | 'text' | null>(null);
 
     //타입별 상세 입력을 위한 임시 상태
     const [tempLabel, setTempLabel] = useState("");
     const [tempValue, setTempValue] = useState("");
-    const [isUploading, setIsUploading] = useState(false);
-    const [isAddingFile, setIsAddingFile] = useState(false);
+    const [isUploading, _setIsUploading] = useState(false);
+ //   const [isAddingFile, setIsAddingFile] = useState(false);
 
     // 프로필 사진 업도르 전용 훅 
     const profileUpload = useUploadManager({
@@ -411,7 +411,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
     const handleBasicInfoChange = (
         e: React.ChangeEvent<HTMLInputElement>,
         id: "school" | "major" | "email" | "phone",
-        currentValue: string
+        _currentValue: string
     ) => {
         const input = e.target;
         const newValue = input.value;

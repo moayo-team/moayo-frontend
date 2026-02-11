@@ -9,15 +9,25 @@ type Props = {
 
 export default function ThreadList({ threads, selectedRoomId, onSelectRoom }: Props) {
   return (
-    <div className="h-full min-h-0 space-y-[10px]">
-      {threads.map((t) => (
-        <ThreadListItem
-          key={t.roomId}
-          thread={t}
-          active={t.roomId === selectedRoomId}
-          onClick={() => onSelectRoom(t.roomId)}
-        />
-      ))}
+    <div
+      className="
+        h-full min-h-0 w-full
+        overflow-y-auto overflow-x-hidden
+        [scrollbar-width:none]
+        [-ms-overflow-style:none]
+        [&::-webkit-scrollbar]:hidden
+      "
+    >
+      <div className="w-full space-y-[10px] px-2">
+        {threads.map((t) => (
+          <ThreadListItem
+            key={t.roomId}
+            thread={t}
+            active={t.roomId === selectedRoomId}
+            onClick={() => onSelectRoom(t.roomId)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
