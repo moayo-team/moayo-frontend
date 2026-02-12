@@ -287,7 +287,7 @@ export const MyPostsPage = (): JSX.Element => {
                         쪽지
                       </span>
                       {unreadCount > 0 && (
-                        <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-primaryprimary-300 text-gray-scalegray-scale-900 text-[12px] font-semibold flex items-center justify-center">
+                        <span className="font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
                           {unreadCount > 99 ? "99+" : unreadCount}
                         </span>
                       )}

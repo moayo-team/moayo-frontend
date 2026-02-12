@@ -295,7 +295,7 @@ export default function HomePage(): JSX.Element {
                 >
                   <img className="relative w-5 h-5" alt="" src={menu} aria-hidden="true" />
                   <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
-                    게시판으로 돌아가기
+                    내가 쓴 게시글
                   </span>
                 </button>
               </div>
