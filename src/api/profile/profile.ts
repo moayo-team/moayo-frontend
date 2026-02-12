@@ -107,10 +107,10 @@ export const updateIndexItem = async (
         formData.append("file", file);
     }
 
-    console.log("📤 [UPDATE] FormData 내용:");
-    for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-    }
+    //console.log("📤 [UPDATE] FormData 내용:");
+    // for (let pair of formData.entries()) {
+    //     console.log(pair[0], pair[1]);
+    // }
     const response = await apiClient.patch<BaseResponse<null>>(
         `/api/v1/profiles/me/index-items/${itemId}`,
         formData,
@@ -130,30 +130,30 @@ export const createIndexItem = async (
     const formData = new FormData();
 
     const jsonString = JSON.stringify(detailData);
-    console.log("📝 [1. JSON 데이터]:", jsonString);
+    //console.log("📝 [1. JSON 데이터]:", jsonString);
 
     formData.append("data", JSON.stringify(detailData));
 
-    if (file) {
-        console.log("📎 [2. 파일 정보]:", {
-            name: file.name,
-            type: file.type,
-            size: `${(file.size / 1024).toFixed(2)} KB`,
-            isActualFile: file instanceof File
-        }); formData.append("file", file);
-    } else {
-        console.log("📎 [2. 파일 정보]: 첨부된 파일 없음");
-    }
+    // if (file) {
+    //     console.log("📎 [2. 파일 정보]:", {
+    //         name: file.name,
+    //         type: file.type,
+    //         size: `${(file.size / 1024).toFixed(2)} KB`,
+    //         isActualFile: file instanceof File
+    //     }); formData.append("file", file);
+    // } else {
+    //     console.log("📎 [2. 파일 정보]: 첨부된 파일 없음");
+    // }
 
-    console.group("📤 [3. 서버로 날아가는 FormData 최종 체크]");
-    for (let [key, value] of formData.entries()) {
-        if (key === "data") {
-            console.log(`🔑 Key: ${key} | 📄 Value:`, value);
-        } else {
-            console.log(`🔑 Key: ${key} | 📁 Value:`, value instanceof File ? `File: ${value.name}` : value);
-        }
-    }
-    console.groupEnd();
+    // console.group("📤 [3. 서버로 날아가는 FormData 최종 체크]");
+    // for (let [key, value] of formData.entries()) {
+    //     if (key === "data") {
+    //         console.log(`🔑 Key: ${key} | 📄 Value:`, value);
+    //     } else {
+    //         console.log(`🔑 Key: ${key} | 📁 Value:`, value instanceof File ? `File: ${value.name}` : value);
+    //     }
+    // }
+    // console.groupEnd();
 
     try {
         const response = await apiClient.post<CreateIndexItemResponse>(
@@ -162,14 +162,14 @@ export const createIndexItem = async (
             { headers: { "Content-Type": "multipart/form-data" } }
         );
 
-        console.log("✨ [RESULT] 서버 응답 성공:", response.data);
+        //console.log("✨ [RESULT] 서버 응답 성공:", response.data);
         return response.data;
     } catch (error: any) {
-        console.error("💥 [RESULT] 서버 응답 실패:", error.response?.data || error.message);
+        ///console.error("💥 [RESULT] 서버 응답 실패:", error.response?.data || error.message);
 
-        if (error.response?.data) {
-            console.error("📋 [CREATE] 에러 상세:", JSON.stringify(error.response.data, null, 2));
-        }
+        // if (error.response?.data) {
+        //     console.error("📋 [CREATE] 에러 상세:", JSON.stringify(error.response.data, null, 2));
+        // }
 
         throw error;
     }
