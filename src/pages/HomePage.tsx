@@ -324,7 +324,7 @@ export default function HomePage(): JSX.Element {
                 imminentPosts.slice(0, 3).map((p) => (
                   <article
                     key={p.postId}
-                    className="w-full rounded-[14px] border border-[#D9D5CE] bg-[#FBFAF9] px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4 cursor-pointer hover:opacity-95 transition"
+                    className="w-full max-w-[475px] mx-auto rounded-[14px] border border-[#D9D5CE] bg-[#FBFAF9] px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4 cursor-pointer hover:opacity-95 transition"
                     onClick={() => navigate(`/post/${p.postId}`)}
                   >
                     <div className="min-w-0">
@@ -332,15 +332,15 @@ export default function HomePage(): JSX.Element {
                         {p.dday}
                       </span>
 
-                      <div className="mt-3 text-[22px] sm:text-[26px] font-bold text-[#25221D] leading-[120%] truncate">
+                      <div className="mt-3 text-[20px] sm:text-[22px] font-semibold text-[#25221D] leading-[120%] truncate">
                         {p.title}
                       </div>
-                      <div className="mt-2 text-[14px] text-[#342F28]">
+                      <div className="mt-2 text-[14px] text-[#342F28] font-semibold">
                         <span>{p.categoryLabel}</span>
                         {p.role ? <span className="text-[#342F28]">{` · ${p.role}`}</span> : null}
                       </div>
                     </div>
-                    <div className="shrink-0 flex w-[24px] h-[24px] p-[10px] justify-center items-center gap-[10px] text-[#25221D]">
+                    <div className="shrink-0 flex w-[24px] h-[24px] justify-center items-center text-[#25221D]">
                       <span className="text-[24px] leading-none">›</span>
                     </div>
                   </article>
@@ -397,17 +397,17 @@ export default function HomePage(): JSX.Element {
                           onClick={() => handleSendMessageToUser(u.userId)}
                         >
                           <img className="w-5 h-5" alt="" src={send} aria-hidden="true" />
-                          <span className="font-pretendard text-[18px] font-normal leading-[27px] text-[#1BA07A]">
+                          <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#1BA07A]">
                             쪽지보내기
                           </span>
                         </button>
                         <button
                           type="button"
-                          className="h-10 rounded-[10px] bg-[#EFEEEB] border border-[#ECE7DF] hover:opacity-90 inline-flex items-center justify-center"
+                          className="h-10 rounded-[10px] bg-[#EFEEEB] hover:opacity-90 inline-flex items-center justify-center"
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => navigate(`/profile/${u.userId}`)}
                         >
-                          <span className="font-pretendard text-[18px] font-normal leading-[27px] text-[#1BA07A]">
+                          <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#7C7160]">
                             프로필 보러가기
                           </span>
                         </button>
