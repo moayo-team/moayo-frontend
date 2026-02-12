@@ -290,7 +290,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
 
     //다운로드/이동 핸들러
     const handleIconClick = async (item: any) => {
-console.log("handleIconClick 호출:", item);
+        console.log("handleIconClick 호출:", item);
         let targetUrl = "";
         const isFileType = item.itemType === 'file' || item.type === 'file';
         if (isFileType) {
@@ -316,13 +316,13 @@ console.log("handleIconClick 호출:", item);
             // targetUrl이 절대 경로인지 확인
             const cleanPath = targetUrl.startsWith("/") ? targetUrl : `/${targetUrl}`;
             const fullUrl = targetUrl.startsWith('http') ? targetUrl : encodeURI(`${baseUrl}${cleanPath}`);
-                    console.log("파일 fullUrl:", fullUrl);
+            console.log("파일 fullUrl:", fullUrl);
 
             window.open(fullUrl, '_blank', 'noopener,noreferrer');
         } else {
             // 링크(Github 등)인 경우
             const linkUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
-                    console.log("링크 linkUrl:", linkUrl);
+            console.log("링크 linkUrl:", linkUrl);
 
             window.open(linkUrl, '_blank', 'noopener,noreferrer');
         }
@@ -604,7 +604,7 @@ console.log("handleIconClick 호출:", item);
                                             ) : (
                                                 (item.type === 'file' || item.type === 'link') && (
                                                     <button
-                                                        onClick={() => !canEdit && handleIconClick(item)}
+                                                        onClick={() => handleIconClick(item)}
                                                         className={`${canEdit ? "cursor-default opacity-30" : "cursor-pointer"} p-1 transition-opacity`}
                                                     >
                                                         <Paperclip size={18} className="text-[#5F5749]" />
