@@ -619,7 +619,8 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                 </button>
 
                             ) : (
-                                <div className="relative flex flex-col items-start w-full max-w-[720px] px-[20px] py-[30px] 
+
+                                <div className="flex flex-col items-start w-full max-w-[720px] px-[20px] py-[30px] 
                                     shadow-sm animate-in fade-in zoom-in-95 gap-[16px]
                                     bg-[#FBFAF9] rounded-[20px] md:rounded-[30px]">
                                     <button
@@ -832,7 +833,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                     <div className="flex flex-col md:flex-row gap-[12px] items-center text-center">
                                         <img
                                             src={MascotIcon}
-                                            className="w-[40px] lg:w-[50px] h-auto"
+                                            className="w-[100px] h-[80px] object-contain"
                                         />
                                         <span className="text-[#7C7160] font-pretendard text-[14px] lg:text-[16px] font-medium ">
                                             {data.name}님의 관심사를 알려주세요!
