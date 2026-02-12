@@ -8,7 +8,6 @@ import TagSelectModal from "./TagSelectModal";
 import MascotIcon from "../../assets/white.svg"
 import type { ProfileFormData } from "../../types/profileForm";
 import type { InterestTag, ProfileDocument } from "../../types/profile";
-import axios from "axios";
 //import MinLayoutContainer from './layouts/MinWidthLayout';
 
 interface ProfileDetailsProps {
@@ -263,9 +262,13 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
             fullLinkUrl = tempValue.toLowerCase().startsWith('http')
                 ? tempValue
                 : `https://${tempValue}`;
-            displayValueForServer = tempValue
+            displayValueForServer = tempValue.length > 20
+                ? tempValue.substring(0, 17) + "..."
+                : tempValue;
         } else if (isFile) {
-            displayValueForServer = selectedFile.name;
+            displayValueForServer = selectedFile.name.length > 20
+                ? selectedFile.name.substring(0, 17) + "..."
+                : selectedFile.name;
         }
 
         // 리스트에 들어갈 객체 구성
@@ -273,9 +276,9 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
             id: `new_${Date.now()}`,
             type: activeType,
             label: tempLabel,
-            value: isFile ? selectedFile.name : displayValueForServer,
+            value: displayValueForServer,
             // ERD 필수 컬럼들 매핑 준비
-            linkUrl: activeType === "link" ? fullLinkUrl : null,
+            linkUrl: activeType === "link" ? fullLinkUrl : "",
             fileName: isFile ? selectedFile.name : null,
             fileType: isFile ? selectedFile.type : null,
             fileSize: isFile ? selectedFile.size : null,
@@ -292,62 +295,30 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
         uploadManager.setSelectedFiles([]);
     };
 
-    // 파일을 인증 토큰과 함께 여는 함수 추가
-    const openFileWithAuth = async (fileUrl: string) => {
-        const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
-        const cleanPath = fileUrl.startsWith("/") ? fileUrl : `/${fileUrl}`;
-        const fullUrl = `${baseUrl}${cleanPath}`;
 
-        const newWindow = window.open("", "_blank");
-
-        try {
-            const response = await axios.get(fullUrl, {
-                responseType: "blob",
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-                },
-            });
-
-            const contentType = response.headers["content-type"];
-
-            // JSON 에러 응답 처리
-            if (contentType?.includes("application/json")) {
-                const text = await response.data.text();
-                const err = JSON.parse(text);
-                alert(err.message || "파일을 불러올 수 없습니다.");
-                newWindow?.close();
-                return;
-            }
-
-            const blobUrl = URL.createObjectURL(response.data);
-
-            if (newWindow) {
-                newWindow.location.href = blobUrl;
-            }
-        } catch (error: any) {
-            newWindow?.close();
-            alert("파일을 열 수 없습니다.");
-        }
-    };
     //다운로드/이동 핸들러
     const handleIconClick = async (item: any) => {
-        const isFileType = item.type === 'file' || item.itemType === 'file';
-        const targetUrl =
-            item.linkUrl ||
-            item.url ||
-            item.value;
+
+        const targetUrl = item.linkUrl || item.value;
+        const isFileType = item.itemType === 'file' || item.type === 'file';
+
         if (!targetUrl) {
             alert("URL을 찾을 수 없습니다.");
             return;
         }
 
+        const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
+        const cleanPath = targetUrl.startsWith("/") ? targetUrl : `/${targetUrl}`;
+        const fullUrl = targetUrl.startsWith('http') ? targetUrl : encodeURI(`${baseUrl}${cleanPath}`);
+
         if (isFileType) {
-            // 파일인 경우 인증 토큰과 함께 요청
-            await openFileWithAuth(targetUrl);
-        } else {
-            // 링크인 경우 기존 방식 유지
-            const fullUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+            //  토큰 없이 그냥 새 창에서 주소로 바로 접속
             window.open(fullUrl, '_blank', 'noopener,noreferrer');
+        } else {
+            // 링크(Github 등)인 경우
+            const linkUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+            window.open(linkUrl, '_blank', 'noopener,noreferrer');
         }
     };
 
@@ -697,7 +668,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                                 <div className="flex items-center self-stretch gap-[8px] h-[48px]">
                                                     <div className="flex w-[70px] h-full justify-center items-center rounded-[10px] bg-[#E9FCF7] shrink-0">
                                                         <input
-                                                            value={tempLabel}
+
                                                             maxLength={10}
                                                             onChange={(e) => {
                                                                 const val = e.target.value;
