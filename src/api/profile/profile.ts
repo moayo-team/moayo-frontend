@@ -133,15 +133,14 @@ export const createIndexItem = async (
     console.log("📝 [1. JSON 데이터]:", jsonString);
 
     formData.append("data", JSON.stringify(detailData));
-console.log("📝 [1. JSON 데이터]:", detailData);
+
     if (file) {
         console.log("📎 [2. 파일 정보]:", {
             name: file.name,
             type: file.type,
             size: `${(file.size / 1024).toFixed(2)} KB`,
             isActualFile: file instanceof File
-        }); 
-        formData.append("file", file);
+        }); formData.append("file", file);
     } else {
         console.log("📎 [2. 파일 정보]: 첨부된 파일 없음");
     }
