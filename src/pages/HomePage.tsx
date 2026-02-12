@@ -234,17 +234,16 @@ export default function HomePage(): JSX.Element {
       </section>
 
       <section className="pt-10 pb-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_520px] gap-8 lg:gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_360px] gap-6 lg:gap-8">
           <aside className="w-full">
             <h2 className="text-[16px] font-semibold text-[#342F28] mb-3">프로필</h2>
 
-            <div className="p-5">
-              <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-[#FBFAF9] rounded-[10px] flex flex-col">
+            <div className="p-3">
+              <div className="h-auto sm:h-[190px] items-center justify-center gap-2 px-3 py-4 bg-[#FBFAF9] rounded-[10px] flex flex-col">
                 <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
-                  <img
-                    className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] rounded-[10px] ${
-                      isMyDefaultImage ? "object-contain p-2" : "object-cover"
-                    }`}
+                  <img className={`w-[88px] sm:w-[104px] h-[88px] sm:h-[104px] rounded-[10px] ${
+                    isMyDefaultImage ? "object-contain p-2" : "object-cover"
+                  }`} 
                     alt={`${myName} profile`}
                     src={myAvatar}
                     onError={(e) => {
@@ -436,10 +435,10 @@ export default function HomePage(): JSX.Element {
                     const isDefault = userAvatar === defaultImage;
 
                     return (
-                      <div key={u.userId} className="rounded-[10px] border border-[#ECE7DF] bg-white p-4">
+                      <div key={u.userId} className="rounded-[10px] border border-[#ECE7DF] bg-white p-3">
                         <div className="flex flex-col items-center gap-3">
                           <img
-                            className={`w-[120px] h-[120px] rounded-[10px] ${
+                            className={`w-[72px] h-[72px] rounded-[10px] ${
                               isDefault ? "object-contain p-2" : "object-cover"
                             }`}
                             alt="profile"

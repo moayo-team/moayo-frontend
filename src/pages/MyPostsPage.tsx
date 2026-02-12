@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { NavigationBar } from '../components/Navbar';
 import { useAuth } from '../hooks/useAuth';
 import { usePosts, useDeletePost } from '../hooks/usePosts';
 import { useHomeStore } from '../store/homeStore';
@@ -175,7 +174,6 @@ export const MyPostsPage = (): JSX.Element => {
   if (!isLoggedIn) {
     return (
       <div className="relative w-full min-h-screen bg-white">
-        <NavigationBar />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <h2 className="text-2xl font-heading-h2-300 mb-4">로그인이 필요합니다</h2>
@@ -245,218 +243,208 @@ export const MyPostsPage = (): JSX.Element => {
     });
   }, [isLoggedIn, user?.user?.id, fetchHome]);
   return (
-    <div className="relative w-full min-h-screen bg-white pb-20">
-      <NavigationBar />
-      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-          {/* Sidebar - Left Column */}
-          <aside className="w-full lg:w-[280px] flex-shrink-0 order-2 lg:order-1 pt-20">
-            <div className="flex flex-col gap-[15px]">
-              <section className="inline-flex flex-col items-start gap-4 relative w-full">
-                <div className="flex flex-col w-full items-start gap-4 relative">
-                  <article className="flex flex-col items-center justify-center gap-2.5 px-5 py-[27px] relative self-stretch w-full bg-[#fbfaf9] rounded-[10px]">
-                    <div className="inline-flex flex-col items-center gap-3 relative">
-                      <img
-                        className={`w-[120px] h-[121px] rounded-[10px] ${
-                          resolvedProfileImage === profile_photo ? "object-contain p-2" : "object-cover"
-                        }`}
-                        alt={`Profile picture of ${user?.user?.name || '사용자'}`}
-                        src={resolvedProfileImage}
-                        onError={(e) => {
-                          e.currentTarget.src = profile_photo;
-                        }}
-                      />
+    <div className="w-full pt-8">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        {/* Sidebar - Left Column */}
+        <aside className="w-full lg:w-[280px] flex-shrink-0 order-2 lg:order-1">
+          <div className="flex flex-col gap-[15px]">
+            <section className="inline-flex flex-col items-start gap-4 relative w-full">
+              <div className="flex flex-col w-full items-start gap-4 relative">
+                <article className="flex flex-col items-center justify-center gap-2.5 px-5 py-[27px] relative self-stretch w-full bg-[#fbfaf9] rounded-[10px]">
+                  <div className="inline-flex flex-col items-center gap-3 relative">
+                    <img
+                      className={`w-[120px] h-[121px] rounded-[10px] ${
+                        resolvedProfileImage === profile_photo ? "object-contain p-2" : "object-cover"
+                      }`}
+                      alt={`Profile picture of ${user?.user?.name || '사용자'}`}
+                      src={resolvedProfileImage}
+                      onError={(e) => {
+                        e.currentTarget.src = profile_photo;
+                      }}
+                    />
 
-                      <div className="inline-flex flex-col items-center gap-1.5 relative">
-                        <h3 className="self-stretch mt-[-1.03px] [font-family:'Pretendard-Bold',Helvetica] font-bold text-warm-gray-scalegray-scale-900 text-[24.6px] text-center leading-[32.0px] relative tracking-[0]">
-                          {user?.user?.name || '사용자'}
-                        </h3>
-                      </div>
+                    <div className="inline-flex flex-col items-center gap-1.5 relative">
+                      <h3 className="self-stretch mt-[-1.03px] [font-family:'Pretendard-Bold',Helvetica] font-bold text-warm-gray-scalegray-scale-900 text-[24.6px] text-center leading-[32.0px] relative tracking-[0]">
+                        {user?.user?.name || '사용자'}
+                      </h3>
                     </div>
-                  </article>
+                  </div>
+                </article>
 
-                  <nav className="flex items-center gap-1 self-stretch w-full relative">
-                    <button
-                      className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative flex-1 grow bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
-                      aria-label="쪽지"
-                      onClick={() => navigate('/message')}
-                      type="button"
-                    >
-                      <img className="relative w-6 h-6" alt="message" src={grayplane} />
-                      <span className="w-fit font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
-                        쪽지
-                      </span>
-                      {unreadCount > 0 && (
-                        <span className="font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
-                          {unreadCount > 99 ? "99+" : unreadCount}
-                        </span>
-                      )}
-                    </button>
-                  </nav>
-
+                <nav className="flex items-center gap-1 self-stretch w-full relative">
                   <button
-                    onClick={() => navigate('/board')}
-                    className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative self-stretch w-full bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
+                    className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative flex-1 grow bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
+                    aria-label="쪽지"
+                    onClick={() => navigate('/message')}
                     type="button"
-                    aria-label="게시판으로 돌아가기"
                   >
-                    <img className="relative w-5 h-5" alt="menu icon" src={menu} />
-                    <span className="w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
-                      게시판으로 돌아가기
+                    <img className="relative w-6 h-6" alt="message" src={grayplane} />
+                    <span className="w-fit font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                      쪽지
                     </span>
+                    {unreadCount > 0 && (
+                      <span className="font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
                   </button>
+                </nav>
+
+                <button
+                  onClick={() => navigate('/board')}
+                  className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative self-stretch w-full bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
+                  type="button"
+                  aria-label="게시판으로 돌아가기"
+                >
+                  <img className="relative w-5 h-5" alt="menu icon" src={menu} />
+                  <span className="w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
+                    게시판으로 돌아가기
+                  </span>
+                </button>
+              </div>
+            </section>
+          </div>
+        </aside>
+
+        <main className="flex-1 order-1 lg:order-2 min-w-0">
+          <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <h1 className="relative w-fit font-heading-h1-200 font-[number:var(--heading-h1-200-font-weight)] text-black text-2xl sm:text-[length:var(--heading-h1-200-font-size)] tracking-[var(--heading-h1-200-letter-spacing)] leading-[var(--heading-h1-200-line-height)] whitespace-nowrap [font-style:var(--heading-h1-200-font-style)]">
+              내가 쓴 게시글
+            </h1>
+
+            <button
+              className="all-[unset] box-border w-full sm:w-[143px] p-3 sm:p-[15px] bg-primaryprimary-300 rounded-[10px] flex items-center justify-center gap-2.5 relative cursor-pointer hover:bg-primaryprimary-400 focus:outline-none focus:ring-2 focus:ring-primaryprimary-500 focus:ring-offset-2 transition-colors"
+              onClick={handleAddPost}
+              type="button"
+              aria-label="게시글 추가"
+            >
+              <span className="relative w-fit mt-[-1.00px] font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                게시글 추가
+              </span>
+            </button>
+          </header>
+
+          {isPending && (
+            <div className="flex justify-center items-center min-h-[400px]">
+              <div className="text-lg font-heading-h2-300 text-gray-scalegray-scale-500">
+                게시글을 불러오는 중...
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="flex justify-center items-center min-h-[400px]">
+              <div className="text-lg font-heading-h2-300 text-red-600">
+                오류: {error.message}
+              </div>
+            </div>
+          )}
+
+          {!isPending && !error && posts.length === 0 && (
+            <div className="flex justify-center items-center min-h-[400px]">
+              <div className="text-center">
+                <div className="text-lg font-heading-h2-300 text-gray-scalegray-scale-500 mb-4">
+                  작성한 게시글이 없습니다
+                </div>
+                <button
+                  onClick={handleAddPost}
+                  className="px-6 py-3 bg-primaryprimary-300 rounded-[10px] font-heading-h3-200 text-gray-scalegray-scale-900 hover:bg-primaryprimary-400 transition-colors"
+                >
+                  첫 게시글 작성하기
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!isPending && !error && posts.length > 0 && (
+            <>
+              <section className="w-full pt-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 sm:gap-x-5 lg:gap-x-[19px] gap-y-[40px]">
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      authorNameFallback={user?.user?.name}
+                      onDelete={handleDelete}
+                      onEdit={handleEdit}
+                      isDeleting={deletePostMutation.isPending}
+                    />
+                  ))}
                 </div>
               </section>
-            </div>
-          </aside>
 
-          {/* Main Content - Right Column */}
-          <main className="flex-1 order-1 lg:order-2">
-            {/* Header */}
-            <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <h1 className="relative w-fit font-heading-h1-200 font-[number:var(--heading-h1-200-font-weight)] text-black text-2xl sm:text-[length:var(--heading-h1-200-font-size)] tracking-[var(--heading-h1-200-letter-spacing)] leading-[var(--heading-h1-200-line-height)] whitespace-nowrap [font-style:var(--heading-h1-200-font-style)]">
-                내가 쓴 게시글
-              </h1>
-
-              <button
-                className="all-[unset] box-border w-full sm:w-[143px] p-3 sm:p-[15px] bg-primaryprimary-300 rounded-[10px] flex items-center justify-center gap-2.5 relative cursor-pointer hover:bg-primaryprimary-400 focus:outline-none focus:ring-2 focus:ring-primaryprimary-500 focus:ring-offset-2 transition-colors"
-                onClick={handleAddPost}
-                type="button"
-                aria-label="게시글 추가"
-              >
-                <span className="relative w-fit mt-[-1.00px] font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
-                  게시글 추가
-                </span>
-              </button>
-            </header>
-
-            {/* Loading State */}
-            {isPending && (
-              <div className="flex justify-center items-center min-h-[400px]">
-                <div className="text-lg font-heading-h2-300 text-gray-scalegray-scale-500">
-                  게시글을 불러오는 중...
-                </div>
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && (
-              <div className="flex justify-center items-center min-h-[400px]">
-                <div className="text-lg font-heading-h2-300 text-red-600">
-                  오류: {error.message}
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!isPending && !error && posts.length === 0 && (
-              <div className="flex justify-center items-center min-h-[400px]">
-                <div className="text-center">
-                  <div className="text-lg font-heading-h2-300 text-gray-scalegray-scale-500 mb-4">
-                    작성한 게시글이 없습니다
-                  </div>
+              {totalPages > 0 && (
+                <nav
+                  className="flex justify-center items-center mt-8 sm:mt-12"
+                  role="navigation"
+                  aria-label="Pagination"
+                >
                   <button
-                    onClick={handleAddPost}
-                    className="px-6 py-3 bg-primaryprimary-300 rounded-[10px] font-heading-h3-200 text-gray-scalegray-scale-900 hover:bg-primaryprimary-400 transition-colors"
+                    className="items-start p-1.5 inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                    aria-label="Previous page"
+                    type="button"
                   >
-                    첫 게시글 작성하기
+                    <img
+                      className="relative w-3 h-3"
+                      alt="Left"
+                      src={leftarr}
+                    />
                   </button>
-                </div>
-              </div>
-            )}
 
-            {/* Posts List */}
-            {!isPending && !error && posts.length > 0 && (
-              <>
-                <section className="w-full max-w-[1023px] mx-auto pt-6 mb-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 sm:gap-x-5 lg:gap-x-[19px] gap-y-[40px]">
-                    {posts.map((post) => (
-                      <PostCard
-                        key={post.id}
-                        post={post}
-                        authorNameFallback={user?.user?.name}
-                        onDelete={handleDelete}
-                        onEdit={handleEdit}
-                        isDeleting={deletePostMutation.isPending}
-                      />
-                    ))}
-                  </div>
-                </section>
-
-                {/* Pagination */}
-                {totalPages > 0 && (
-                  <nav
-                    className="flex justify-center items-center mt-8 sm:mt-12"
-                    role="navigation"
-                    aria-label="Pagination"
-                  >
+                  {paginationPages.map((page) => (
                     <button
-                      className="items-start p-1.5 inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={handlePreviousPage}
-                      disabled={currentPage === 1}
-                      aria-label="Previous page"
+                      key={page}
+                      className={`${currentPage === page
+                          ? "inline-flex flex-col items-center gap-2.5 px-2 py-px relative flex-[0_0_auto] rounded-sm overflow-hidden border border-solid border-[#26e1ac]"
+                          : "flex-col items-center gap-2.5 px-2 py-px inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors"
+                        }`}
+                      onClick={() => handlePageChange(page)}
+                      aria-label={`Page ${page}`}
+                      aria-current={currentPage === page ? "page" : undefined}
                       type="button"
                     >
-                      <img
-                        className="relative w-3 h-3"
-                        alt="Left"
-                        src={leftarr}
-                      />
-                    </button>
-
-                    {paginationPages.map((page) => (
-                      <button
-                        key={page}
-                        className={`${currentPage === page
-                            ? "inline-flex flex-col items-center gap-2.5 px-2 py-px relative flex-[0_0_auto] rounded-sm overflow-hidden border border-solid border-[#26e1ac]"
-                            : "flex-col items-center gap-2.5 px-2 py-px inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors"
-                          }`}
-                        onClick={() => handlePageChange(page)}
-                        aria-label={`Page ${page}`}
-                        aria-current={currentPage === page ? "page" : undefined}
-                        type="button"
+                      <div
+                        className={`relative ${currentPage === page ? "w-2" : "w-fit"
+                          } mt-[-1.00px] ${currentPage === page
+                            ? "font-body-medium font-[number:var(--body-medium-font-weight)] text-primaryprimary-500 text-[length:var(--body-medium-font-size)]"
+                            : "font-body-regular font-[number:var(--body-regular-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-regular-font-size)]"
+                          } text-center tracking-[${currentPage === page
+                            ? "var(--body-medium-letter-spacing)"
+                            : "var(--body-regular-letter-spacing)"
+                          }] leading-[${currentPage === page
+                            ? "var(--body-medium-line-height)"
+                            : "var(--body-regular-line-height)"
+                          }] ${currentPage === page ? "" : "whitespace-nowrap"
+                          } [font-style:${currentPage === page
+                            ? "var(--body-medium-font-style)"
+                            : "var(--body-regular-font-style)"
+                          }]`}
                       >
-                        <div
-                          className={`relative ${currentPage === page ? "w-2" : "w-fit"
-                            } mt-[-1.00px] ${currentPage === page
-                              ? "font-body-medium font-[number:var(--body-medium-font-weight)] text-primaryprimary-500 text-[length:var(--body-medium-font-size)]"
-                              : "font-body-regular font-[number:var(--body-regular-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-regular-font-size)]"
-                            } text-center tracking-[${currentPage === page
-                              ? "var(--body-medium-letter-spacing)"
-                              : "var(--body-regular-letter-spacing)"
-                            }] leading-[${currentPage === page
-                              ? "var(--body-medium-line-height)"
-                              : "var(--body-regular-line-height)"
-                            }] ${currentPage === page ? "" : "whitespace-nowrap"
-                            } [font-style:${currentPage === page
-                              ? "var(--body-medium-font-style)"
-                              : "var(--body-regular-font-style)"
-                            }]`}
-                        >
-                          {page}
-                        </div>
-                      </button>
-                    ))}
-
-                    <button
-                      className="items-start p-1.5 inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={handleNextPage}
-                      disabled={currentPage === totalPages}
-                      aria-label="Next page"
-                      type="button"
-                    >
-                      <img
-                        className="relative w-3 h-3"
-                        alt="Right"
-                        src={rightarr}
-                      />
+                        {page}
+                      </div>
                     </button>
-                  </nav>
-                )}
-              </>
-            )}
-          </main>
-        </div>
+                  ))}
+
+                  <button
+                    className="items-start p-1.5 inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next page"
+                    type="button"
+                  >
+                    <img
+                      className="relative w-3 h-3"
+                      alt="Right"
+                      src={rightarr}
+                    />
+                  </button>
+                </nav>
+              )}
+            </>
+          )}
+        </main>
       </div>
     </div>
   );
