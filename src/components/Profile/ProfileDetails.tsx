@@ -5,7 +5,7 @@ import { formatPhoneNumber } from "../../utils/format";
 import { useUploadManager } from "../../hooks/useUploadManager";
 import SchoolVerifyModal from "./SchoolVerifyModal";
 import TagSelectModal from "./TagSelectModal";
-import MascotIcon from "../../assets/white.svg"
+import MascotIcon from "../../assets/white2.png"
 import type { ProfileFormData } from "../../types/profileForm";
 import type { InterestTag } from "../../types/profile";
 //import MinLayoutContainer from './layouts/MinWidthLayout';

@@ -156,10 +156,11 @@ export default function MessagePage() {
   return (
     <div className="bg-white">
       <main className="w-full">
-        <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full py-6">
           <h1 className="text-[22px] sm:text-[26px] xl:text-[28px] font-bold leading-[1.3] mb-4 sm:mb-6">
             쪽지함 목록
           </h1>
+
           <div
             className="
               flex flex-col md:flex-row gap-4 md:gap-6
@@ -170,14 +171,14 @@ export default function MessagePage() {
             <aside
               className="
                 order-2 md:order-1
-                w-full
-                md:w-[360px] lg:w-[403px]
+                w-full md:w-[320px] lg:w-[340px] xl:w-[360px]
+                flex-shrink-0
                 h-full
                 rounded-[10px] border border-[#ADA395] bg-white overflow-hidden
                 flex flex-col
               "
             >
-              <div className="h-full overflow-y-auto p-4 sm:p-6 xl:p-[31px_24px]">
+              <div className="h-full overflow-y-auto p-4 sm:p-6">
                 <ThreadList
                   threads={roomSummaries}
                   selectedRoomId={selectedRoomId}
@@ -189,12 +190,9 @@ export default function MessagePage() {
             <section
               className="
                 order-1 md:order-2
-                w-full
-                h-full
-                md:flex-1
+                w-full h-full flex-1
                 rounded-[10px] border border-[#ADA395] bg-white overflow-hidden
                 flex flex-col
-                xl:w-[904px] xl:flex-none
               "
             >
               <div className="h-full">
