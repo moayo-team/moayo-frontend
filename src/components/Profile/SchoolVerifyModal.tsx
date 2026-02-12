@@ -1,13 +1,13 @@
 import { X, FileText, Loader2 } from "lucide-react";
 import { useUploadManager } from "../../hooks/useUploadManager";
 import { deleteProfileDocument, getProfileDocuments, uploadProfileDocument } from "../../api/profile/profile";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ProfileDocument } from "../../types/profile";
-import { getExperienceFiles } from "../../api/profile/experiences";
+//import { getExperienceFiles } from "../../api/profile/experiences";
 //import { apiClient } from "../../api/client";
 import axios from "axios";
 //import { useExperienceFiles } from "../../hooks/useProfileQueries";
-import { useQueries } from "@tanstack/react-query";
+//import { useQueries } from "@tanstack/react-query";
 
 interface ModalProps {
     isOpen: boolean;
@@ -15,12 +15,11 @@ interface ModalProps {
     onClose: () => void;
     onComplete: (files: File[]) => void;
     currentProfileImage?: string;
-    experienceIds: number[];
     documents?: ProfileDocument[];
     isMyProfile?: boolean;
 }
 
-const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProfileImage, experienceIds, documents = [], isMyProfile = true }: ModalProps) => {
+const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProfileImage, documents = [], isMyProfile = true }: ModalProps) => {
     const {
         selectedFiles,
         handleFileUpload,
@@ -29,25 +28,6 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
         setSelectedFiles
     } = useUploadManager({ maxFiles: 3 });
 
-    const experienceFilesQueries = useQueries({
-        queries: experienceIds.map(id => ({
-            queryKey: ["experienceFiles", id],
-            queryFn: () => getExperienceFiles(id),
-            enabled: isOpen && isMyProfile && !!id, 
-        }))
-    });
-
-    const experienceFileIds = useMemo(() => {
-        const set = new Set<number>();
-        experienceFilesQueries.forEach(q => {
-            if (q.data?.result) {
-                q.data.result.forEach((file: any) => {
-                if (file.fileId) set.add(Number(file.fileId));
-            });
-        }
-        });
-        return set;
-    }, [experienceFilesQueries]);
     const [isUploading, setIsUploading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [uploadedDocuments, setUploadedDocuments] = useState<ProfileDocument[]>([]);

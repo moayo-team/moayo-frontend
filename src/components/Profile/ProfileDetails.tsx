@@ -303,7 +303,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
         let fullUrl: string;
 
         if (item.type === 'file') {
-            if (targetUrl.startsWith('http')) {
+            if (targetUrl.startsWith('https')) {
                 fullUrl = targetUrl;
             } else {
                 const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
@@ -317,7 +317,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
             }
         } else {
             // 링크: http 프로토콜 추가
-            fullUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+            fullUrl = targetUrl.startsWith('https') ? targetUrl : `https://${targetUrl}`;
         }
 
         window.open(fullUrl, '_blank', 'noopener,noreferrer');
@@ -546,7 +546,6 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                         onComplete={handleVerifyComplete}
                         currentProfileImage={data.imageUrl}
                         documents={data.documents}
-                        experienceIds={experienceIds}
                         isMyProfile={!isReadOnly}
                     />
 
