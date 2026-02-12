@@ -12,7 +12,6 @@ import { useOtherUserProfile } from '../hooks/useOtherUserProfile';
 import { useHomeStore } from '../store/homeStore';
 import type { JSX } from 'react';
 import like from '../assets/like.svg';
-import send from '../assets/send.svg';
 import menu from '../assets/menu.svg';
 import 'react-quill-new/dist/quill.snow.css';
 import profile_photo from '../assets/default_profile.svg'
@@ -254,6 +253,7 @@ export const PostDetailPage = (): JSX.Element => {
 
           {/* Main Content - Right Column */}
           <main className="flex-1 order-1 lg:order-2">
+            
             <article className="w-full">
               {/* Author Profile Section */}
               <div className="flex w-full items-start justify-center gap-[100px] px-5 py-2.5 bg-gray-scale30 rounded-[5px] shadow-[0px_0px_4px_#0000004c] mb-6">
@@ -401,7 +401,7 @@ export const PostDetailPage = (): JSX.Element => {
                     <img
                       className="relative w-5 h-5"
                       alt="Send message"
-                      src={send}
+                      src={grayplane}
                     />
                     <div className="inline-flex items-center gap-[9px] relative flex-[0_0_auto]">
                       <span className="w-fit mt-[-1.00px] font-body-b2-200 font-[number:var(--body-b2-200-font-weight)] text-gray-scalegray-scale-300 text-[length:var(--body-b2-200-font-size)] leading-[var(--body-b2-200-line-height)] whitespace-nowrap relative tracking-[var(--body-b2-200-letter-spacing)] [font-style:var(--body-b2-200-font-style)]">
