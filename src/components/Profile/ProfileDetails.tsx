@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import defaultImage from "../../assets/default_profile.svg"
-import { FileText, ImageIcon, Paperclip, Pencil, Plus, X } from "lucide-react";
+import { FileText, Paperclip, Pencil, Plus, X } from "lucide-react";
 import { formatPhoneNumber } from "../../utils/format";
 import { useUploadManager } from "../../hooks/useUploadManager";
 import SchoolVerifyModal from "./SchoolVerifyModal";
@@ -38,14 +38,14 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
 
     // 학력 인증 상태 확인
     //const schoolData = data.details.find((d: any) => d.id === "school");
-//    const isVerified = schoolData?.isVerified || false;
+    //    const isVerified = schoolData?.isVerified || false;
 
     const additionalDetails = data.additionalDetails || [];
     const tags = data.tags || [];
-//    const documents = data.documents || [];
-    
+    //    const documents = data.documents || [];
+
     //추가 정보 생성을 위한 상태
-//    const showPlusButton = isEditing && !isDetailsEmpty && (additionalDetails.length || 0) < 4;
+    //    const showPlusButton = isEditing && !isDetailsEmpty && (additionalDetails.length || 0) < 4;
     const [showAddOptions, setShowAddOptions] = useState(false);
     const [activeType, setActiveType] = useState<'file' | 'link' | 'text' | null>(null);
 
@@ -53,7 +53,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
     const [tempLabel, setTempLabel] = useState("");
     const [tempValue, setTempValue] = useState("");
     const [isUploading, _setIsUploading] = useState(false);
- //   const [isAddingFile, setIsAddingFile] = useState(false);
+    //   const [isAddingFile, setIsAddingFile] = useState(false);
 
     // 프로필 사진 업도르 전용 훅 
     const profileUpload = useUploadManager({
@@ -416,7 +416,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
         <>
             <div className="flex flex-col lg:flex-row w-full gap-[24px]">
                 {/**프로필사진, 이름 */}
-                <div className="flex flex-col items-center w-full lg:w-[200px] shrink-0">
+                <div className="flex flex-col gap-[10px] items-center w-full lg:w-[200px] shrink-0">
                     <div
                         onDragOver={handleProfileDragOver}
                         onDragLeave={handleProfileDragLeave}
@@ -427,12 +427,12 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                         className={`relative flex justify-center items-center bg-[#FBFAF9]
                          ${isEditing ? "cursor-pointer" : "cursor-default"}`}
                     >
-                        <div className="w-[140px] h-[140px] lg:w-[160px] lg:h-[160px] rounded-[10px] overflow-hidden">
+                        <div className="w-[160px] h-[180px] lg:w-[180px] lg:h-[200px] rounded-[10px] overflow-hidden flex justify-center items-center">
                             <img
                                 src={getFullImageUrl(data.profileImage)}
                                 alt="프로필 이미지"
-                                className={`w-full h-full rounded-[10px]
-                                    ${!data.profileImage ? "object-contain p-2" : "object-cover"}
+                                className={`rounded-[10px]
+                                    ${!data.profileImage ? "w-[100px] h-[80px] object-contain p-2" : "w-[140px] h-[140px] object-cover"}
                                 `}
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
@@ -447,11 +447,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                             <div className="absolute bottom-0 right-1 lg:right-2 flex w-[36px] h-[36px] 
                                     justify-center items-center rounded-full z-20 shadow-md
                                     bg-[#EFEEEB] border border-[#C2BBB0] text-[#C2BBB0]">
-                                {isDetailsEmpty && !data.profileImage ? (
-                                    <ImageIcon size={16} />
-                                ) : (
-                                    <Pencil size={16} />
-                                )}
+
                             </div>
                         )}
                         <input
@@ -472,11 +468,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                             text-center self-stretch text-[#25221D] font-pretendard text-[20px] lg:text-[24px] font-bold leading-[130%] tracking-[-0.01em]
                             w-full max-w-[120px] ${!canEdit ? "cursor-default" : "cursor-text"}`}
                         />
-                        {canEdit && (
-                            <div className="ml-1 shrink-0">
-                                <Pencil size={18} color="#C2BBB0" />
-                            </div>
-                        )}
+
                     </div>
                 </div>
                 {/**정보 */}
@@ -493,7 +485,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                 <div className="flex w-[70px] lg:w-[85px] h-[50px] lg:h-[56px] justify-center items-center
                                     rounded-l-[10px] bg-[#E9FCF7]"
                                 >
-                                    <span className="text-center text-[#423C33] font-pretendard text-[14px] lg:text-[16px] font-medium leading-[140%]">
+                                    <span className="text-center text-[#423C33] font-pretendard text-[14px] lg:text-[16px] font-normal leading-[140%]">
                                         {item.label}
                                     </span>
                                 </div>
@@ -511,7 +503,12 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                         placeholder={item.id === "school" || item.id === "major" ? "필수 입력 항목입니다." : "입력해주세요."}
                                         className={`w-full h-full outline-none font-pretendard text-[15px] lg:text-[16px]
                                             placeholder:text-[#978B78] text-[#342F28] font-medium leading-[130%] bg-transparent
-                                            ${!canEdit ? "cursor-default" : "cursor-text"}`}
+                                            ${!canEdit ? "cursor-default" : "cursor-text"}
+                                            ${item.id === "school" && (!data.documents || data.documents.length === 0)
+                                                ? "text-[#978B78]" // 학교인데 증빙 서류가 없으면 이 색상 적용
+                                                : "text-[#342F28]" // 그 외(증빙 완료 또는 타 필드) 기본 색상
+                                            }
+                                            `}
                                     />
 
                                     {item.id === "school" ? (
@@ -522,12 +519,19 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                                     // 수정 모드일 때만 클릭 가능하게 설정
                                                     onDoubleClick={() => setIsModalOpen(true)}
                                                     className={`flex py-[4px] px-[8px] items-center gap-[4px] rounded-[8px] transition-colors shrink-0
-                                                bg-[#E9FCF7] text-[#1BA07A]  cursor-pointer hover:opacity-80
+                                                    cursor-pointer hover:opacity-80
+                                                    ${data.documents && data.documents.length > 0
+                                                            ? "bg-[#E9FCF7] text-[#1BA07A]" // 파일 있을 때: 민트색 테마
+                                                            : "bg-[#EFEEEB] text-[#5F5749]" // 파일 없을 때: 회색 테마 
+                                                        }
                                                 `}
                                                 >
                                                     <Paperclip size={18} />
                                                     <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em] text-[#1BA07A]">
-                                                        첨부파일
+                                                        {data.documents && data.documents.length > 0
+                                                            ? "첨부파일 확인"
+                                                            : "학력 파일 증빙 전"
+                                                        }
                                                     </span>
                                                 </button>
                                                 {isEditing && <Pencil size={16} color="#C2BBB0" className="shrink-0" />}
@@ -613,7 +617,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                 <button
                                     onClick={() => setShowAddOptions(true)}
                                     className="flex w-full h-[48px] justify-center items-center
-                                    rounded-[10px] bg-[#EFEEEB] text-[#978B78] border border-[#D9D5CE] cursor-pointer"
+                                    rounded-[10px] bg-[#FBFAF9] text-[#978B78] border border-[#D9D5CE] cursor-pointer"
                                 >
                                     <Plus size={20} className="aspect-ratio shrink-0" color="#C2BBB0" />
                                 </button>
@@ -719,10 +723,10 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                                                 <div className="flex justify-center items-center gap-[8px] bg-white">
                                                                     <FileText size={28} color="#978B78" />
                                                                     <div className="flex flex-col items-center gap-2">
-                                                                        <span className="self-stretch text-center text-[#978B78] font-pretendard text-[14px] font-medium leading-[140%] whitespace-nowrap">
-                                                                            파일을 첨부해주세요(**추가확인필요**)
+                                                                        <span className=" text-center text-[#978B78] font-pretendard text-[14px] font-medium leading-[140%] whitespace-nowrap">
+                                                                            파일을 첨부해주세요
                                                                         </span>
-                                                                        <span className="self-stretch text-center text-[#978B78] font-pretendard text-[12px] font-normal leading-[150%]">
+                                                                        <span className=" text-center text-[#978B78] font-pretendard text-[12px] font-normal leading-[150%]">
                                                                             (증빙서류, 포트폴리오)
                                                                         </span>
                                                                     </div>
@@ -785,9 +789,9 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                             onClick={() => {
                                 if (canEdit) setIsTagModalOpen(true);
                             }}
-                            className={`flex w-full justify-center min-h-[auto]
+                            className={`flex w-full justify-center min-h-[auto] 
                                 ${isEditing
-                                    ? "cursor-pointer border border-dashed border-[#D9D5CE] bg-[#F9FFFD] rounded-[15px] p-[16px]"
+                                    ? "cursor-pointer border-none p-0"
                                     : "cursor-default border-none p-0"
                                 }
                             ${data.tags && data.tags.length > 0
@@ -825,17 +829,15 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                     ))}
                                 </div>
                             ) : (
-                                isReadOnly && (
-                                    <div className="flex flex-col md:flex-row gap-[12px] items-center text-center">
-                                        <img
-                                            src={MascotIcon}
-                                            className="w-[40px] lg:w-[50px] h-auto"
-                                        />
-                                        <span className="text-[#7C7160] font-pretendard text-[14px] lg:text-[16px] font-medium ">
-                                            {data.name}님의 관심사를 알려주세요!
-                                        </span>
-                                    </div>
-                                )
+                                <div className="flex flex-col md:flex-row gap-[12px] items-center text-center">
+                                    <img
+                                        src={MascotIcon}
+                                        className="w-[40px] lg:w-[50px] h-auto"
+                                    />
+                                    <span className="text-[#7C7160] font-pretendard text-[14px] lg:text-[16px] font-medium ">
+                                        {data.name}님의 관심사를 알려주세요!
+                                    </span>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -852,7 +854,6 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                             <span className="text-[#423C33] font-pretendard text-[18px] lg:text-[20px] font-semibold leading0[130%]">
                                 자기소개
                             </span>
-                            {canEdit && <Pencil size={18} color="#C2BBB0" />}
                         </div>
                         <div className="relative w-full">
                             <textarea
