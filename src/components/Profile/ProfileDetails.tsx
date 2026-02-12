@@ -263,9 +263,9 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
             fullLinkUrl = tempValue.toLowerCase().startsWith('http')
                 ? tempValue
                 : `https://${tempValue}`;
-            displayValueForServer = tempValue.length > 20 ? tempValue.substring(0, 20) : tempValue;
+            displayValueForServer = tempValue
         } else if (isFile) {
-            displayValueForServer = uploadManager.selectedFiles[0]?.name.substring(0, 20);
+            displayValueForServer = selectedFile.name;
         }
 
         // 리스트에 들어갈 객체 구성
@@ -332,9 +332,10 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
     //다운로드/이동 핸들러
     const handleIconClick = async (item: any) => {
         const isFileType = item.type === 'file' || item.itemType === 'file';
-        const targetUrl = isFileType
-            ? item.linkUrl   // 서버에서 내려준 파일 경로
-            : item.linkUrl;
+        const targetUrl =
+            item.linkUrl ||
+            item.url ||
+            item.value;
         if (!targetUrl) {
             alert("URL을 찾을 수 없습니다.");
             return;
@@ -687,6 +688,8 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                                 <div className="flex items-center self-stretch gap-[8px] h-[48px]">
                                                     <div className="flex w-[70px] h-full justify-center items-center rounded-[10px] bg-[#E9FCF7] shrink-0">
                                                         <input
+                                                            value={tempLabel}
+                                                            maxLength={10}
                                                             onChange={(e) => {
                                                                 const val = e.target.value;
                                                                 if (uploadManager.isInputValidByType(val, 'text', 'left')) {
@@ -700,6 +703,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                                         />
                                                     </div>
                                                     <input
+                                                        maxLength={20}
                                                         value={tempValue}
                                                         onChange={(e) => {
                                                             const val = e.target.value;
