@@ -335,7 +335,7 @@ export default function HomePage(): JSX.Element {
                       <div className="mt-3 text-[20px] sm:text-[22px] font-semibold text-[#25221D] leading-[120%] truncate">
                         {p.title}
                       </div>
-                      <div className="mt-2 text-[14px] text-[#342F28] font-semibold">
+                      <div className="mt-2 text-[14px] text-[#342F28]">
                         <span>{p.categoryLabel}</span>
                         {p.role ? <span className="text-[#342F28]">{` · ${p.role}`}</span> : null}
                       </div>
