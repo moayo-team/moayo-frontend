@@ -416,7 +416,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
         <>
             <div className="flex flex-col lg:flex-row w-full gap-[24px]">
                 {/**프로필사진, 이름 */}
-                <div className="flex flex-col gap-[10px] items-center w-full lg:w-[200px] shrink-0">
+                <div className="flex flex-col gap-[10px] items-center w-full lg:w-[220px] shrink-0">
                     <div
                         onDragOver={handleProfileDragOver}
                         onDragLeave={handleProfileDragLeave}
@@ -427,7 +427,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                         className={`relative flex justify-center items-center bg-[#FBFAF9]
                          ${isEditing ? "cursor-pointer" : "cursor-default"}`}
                     >
-                        <div className="w-[160px] h-[180px] lg:w-[180px] lg:h-[200px] rounded-[10px] overflow-hidden flex justify-center items-center">
+                        <div className="w-[180px] h-[200px] lg:w-[200px] lg:h-[220px] rounded-[10px] overflow-hidden flex justify-center items-center">
                             <img
                                 src={getFullImageUrl(data.profileImage)}
                                 alt="프로필 이미지"
@@ -521,14 +521,13 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                                 `}
                                                 >
                                                     <Paperclip size={18} />
-                                                    <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em] text-[#1BA07A]">
+                                                    <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em]">
                                                         {data.documents && data.documents.length > 0
                                                             ? "첨부파일 확인"
                                                             : "학력 파일 증빙 전"
                                                         }
                                                     </span>
                                                 </button>
-                                                {isEditing && <Pencil size={16} color="#C2BBB0" className="shrink-0" />}
                                             </div>
                                         )
                                     ) : (
