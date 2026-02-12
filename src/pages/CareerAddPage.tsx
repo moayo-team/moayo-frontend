@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CircleCheck, FileText, Mic, X } from "lucide-react";
+import { CircleCheck, FileText, Pencil, X } from "lucide-react";
 
 import { useUploadManager, type LinkItem } from "../hooks/useUploadManager";
 
@@ -34,8 +34,8 @@ type ApiEnvelope<T> = {
 
 type CreateExperienceResult =
   | {
-      id?: number;
-    }
+    id?: number;
+  }
   | number;
 
 const CareerAddPage = (): JSX.Element => {
@@ -188,9 +188,9 @@ const CareerAddPage = (): JSX.Element => {
         });
       }
 
-      setSelectedFiles((prev: any) => [...prev, ...uploadedFiles]);
+      setSelectedFiles(prev => [...prev, ...uploadedFiles]);
+
     } catch (error: any) {
-      console.error("❌ 파일 업로드 실패:", error);
       const errorMsg = error.response?.data?.message || error.message || "알 수 없는 오류";
       alert(`파일 업로드 실패:\n${errorMsg}`);
     }
@@ -353,7 +353,10 @@ const CareerAddPage = (): JSX.Element => {
         isPublic: newCareer.isPublic
       };
 
-      const res = await apiClient.post<ApiEnvelope<CreateExperienceResult>>("/api/v1/experiences", payload);
+      const res = await apiClient.post<ApiEnvelope<CreateExperienceResult>>(
+        "/api/v1/experiences",
+        payload
+      );
 
       if (!res.data?.isSuccess) {
         alert(res.data?.message ?? "이력 저장에 실패했습니다.");
@@ -365,8 +368,8 @@ const CareerAddPage = (): JSX.Element => {
         typeof result === "number"
           ? result
           : typeof result === "object" && result && typeof (result as any).id === "number"
-          ? (result as any).id
-          : null;
+            ? (result as any).id
+            : null;
 
       if (!createdId) {
         console.error("Create experience response result=", res.data);
@@ -376,6 +379,7 @@ const CareerAddPage = (): JSX.Element => {
 
       if (selectedFiles.length > 0) {
         try {
+
           await Promise.all(
             (selectedFiles as any[]).map((file) =>
               postExperienceFile(createdId, {
@@ -385,7 +389,6 @@ const CareerAddPage = (): JSX.Element => {
             )
           );
         } catch (error) {
-          console.error("❌ 파일 연결 중 오류:", error);
           alert("이력 정보는 저장되었으나, 파일 연결에 실패했습니다.");
         }
       }
@@ -396,7 +399,6 @@ const CareerAddPage = (): JSX.Element => {
             links.map((link: LinkItem) => addExperienceLink(createdId, { title: "", url: link.url }))
           );
         } catch (error) {
-          console.error("❌ 링크 등록 중 오류:", error);
           alert("이력은 저장되었으나 일부 링크 등록에 실패했습니다.");
         }
       }
@@ -406,7 +408,6 @@ const CareerAddPage = (): JSX.Element => {
 
       navigate("/profile");
     } catch (error) {
-      console.error("등록 중 오류:", error);
       alert("등록 중 오류가 발생했습니다.");
     }
   };
@@ -451,7 +452,7 @@ const CareerAddPage = (): JSX.Element => {
                       <span className="flex-1 font-pretendard text-[#1BA07A] text-[14px] sm:text-[16px] font-medium leading-[130%]">
                         {userName}님이 했던 경험을 자유롭게 서술해주세요. 모아요 AI가 정리해드려요!
                       </span>
-                      <Mic size={20} className="text-[#1BA07A] shrink-0" />
+                      <Pencil size={20} className="text-[#1BA07A] shrink-0" />
                     </div>
                   ) : (
                     <div className="flex w-full gap-3 w-full animate-fadeIn">
@@ -465,7 +466,7 @@ const CareerAddPage = (): JSX.Element => {
                         onChange={handleTextareaChange}
                         onClick={(e) => e.stopPropagation()}
                       />
-                      <Mic size={20} className="text-[#1BA07A] shrink-0 pt-1" />
+                      <Pencil size={20} className="text-[#1BA07A] shrink-0 pt-1" />
                     </div>
                   )}
                 </div>
@@ -585,7 +586,7 @@ const CareerAddPage = (): JSX.Element => {
                   onDrop={handleDrop}
                   onClick={handleBoxClick}
                   className="flex items-center justify-center h-[60px] sm:h-[80px] gap-[8px]
-                    rounded-[20px] boder boder-[#ADA395] bg-[#EFEEEB] cursor-pointer"
+                    rounded-[20px] border border-[#ADA395] bg-[#EFEEEB] cursor-pointer"
                 >
                   <div className="flex items-center justify-center gap-[8px] pointer-events-none">
                     <FileText size={20} className="text-[#978B78] mb-1" />

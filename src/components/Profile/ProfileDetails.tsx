@@ -182,19 +182,8 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                     { type: file.type || 'image/jpeg' }
                                 );
 
-                                console.log("🗜️ 압축 시도:", {
-                                    quality: quality,
-                                    original: (file.size / 1024).toFixed(2) + 'KB',
-                                    compressed: (compressedFile.size / 1024).toFixed(2) + 'KB',
-                                    targetMB: maxSizeMB
-                                });
-
                                 // 목표 크기보다 작으면 성공
                                 if (compressedFile.size <= maxSizeMB * 1024 * 1024) {
-                                    console.log("✅ 압축 성공:", {
-                                        finalSize: (compressedFile.size / 1024).toFixed(2) + 'KB',
-                                        compressionRatio: ((compressedFile.size / file.size) * 100).toFixed(1) + '%'
-                                    });
                                     resolve(compressedFile);
                                 } else if (quality > 0.5) {
                                     // 아직 크면 품질을 더 낮춰서 재시도
@@ -237,9 +226,8 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
         const maxSize = 10 * 1024 * 1024; // 10MB
 
         let finalFile = file;
-        // 1MB 초과 시 자동 압축
+        // 10MB 초과 시 자동 압축
         if (file.size > maxSize) {
-            console.log("⚠️ 이미지 크기 초과, 압축 시작:", (file.size / 1024).toFixed(2) + 'KB');
 
             try {
                 finalFile = await compressImage(file, 1);
@@ -256,11 +244,6 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
         //onDataChange("profileFile", finalFile);
         onDataChange("profileFile", finalFile);
 
-        console.log("📸 프로필 사진 변경:", {
-            name: file.name,
-            type: file.type,
-            sizeKB: (file.size / 1024).toFixed(2) + 'KB'
-        });
     };
 
     const handleConfirmAddDetail = async () => {
@@ -294,7 +277,6 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
             fileSize: isFile ? selectedFile.size : null,
             fileObj: isFile ? selectedFile : null,
         };
-        console.log("🔍 newField 확인:", newField);
 
         onDataChange("additionalDetails", [...(data.additionalDetails || []), newField]);
 
@@ -399,8 +381,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
         }
     }, [uploadManager.selectedFiles]);
 
-    const handleVerifyComplete = (files: File[]) => {
-        console.log("업로드 완료:", files);
+    const handleVerifyComplete = (_files: File[]) => {
         onDataChange("school_verified", true);
     };
 
