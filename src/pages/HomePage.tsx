@@ -9,7 +9,7 @@ import defaultImage from "../assets/default_profile.svg";
 import tablerPencil from "../assets/tabler_pencil.svg";
 
 import { useAuth } from "../hooks/useAuth";
-import { CircleCheck, Mic } from "lucide-react";
+import { CircleCheck } from "lucide-react";
 import { useHomeStore } from "../store/homeStore";
 import { apiClient } from "../api/client";
 
@@ -181,7 +181,11 @@ export default function HomePage(): JSX.Element {
                     <span className="flex-1 text-[#1BA07A] text-[14px] sm:text-[16px] font-medium leading-[130%]">
                       {myName}님이 했던 경험을 자유롭게 서술해주세요. 모아요 AI가 정리해드려요!
                     </span>
-                    <Mic size={20} className="text-[#1BA07A] shrink-0" />
+                    <img
+                      src={tablerPencil}
+                      alt="edit"
+                      className="shrink-0 w-5 h-5"
+                    />
                   </div>
                 ) : (
                   <div className="flex w-full gap-3">
@@ -320,27 +324,25 @@ export default function HomePage(): JSX.Element {
                 imminentPosts.slice(0, 3).map((p) => (
                   <article
                     key={p.postId}
-                    className="w-full rounded-[14px] bg-[#FBFAF9] p-4 sm:p-5 flex items-center gap-4 cursor-pointer hover:opacity-95 transition"
+                    className="w-full rounded-[14px] border border-[#D9D5CE] bg-[#FBFAF9] px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4 cursor-pointer hover:opacity-95 transition"
                     onClick={() => navigate(`/post/${p.postId}`)}
                   >
-                    <div className="w-[86px] h-[86px] rounded-[14px] bg-[#E9E6E1] shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="text-[16px] sm:text-[18px] font-semibold text-[#2E2A25] truncate">
-                            {p.title}
-                          </div>
-                          <div className="mt-1 text-[13px] sm:text-[14px] text-[#6F6A61]">
-                            <span>{p.categoryLabel}</span>
-                            {p.role ? <span className="text-[#342F28]">{` · ${p.role}`}</span> : null}
-                          </div>
-                        </div>
-                        <span className="shrink-0 rounded-[10px] bg-[#EFEEEB] px-3 py-1 text-[12px] font-semibold text-[#6F6A61]">
-                          {p.dday}
-                        </span>
+                    <div className="min-w-0">
+                      <span className="inline-flex items-center rounded-[8px] bg-[#EFEEEB] px-2.5 py-1 text-[12px] font-semibold text-[#5F5749]">
+                        {p.dday}
+                      </span>
+
+                      <div className="mt-3 text-[22px] sm:text-[26px] font-bold text-[#25221D] leading-[120%] truncate">
+                        {p.title}
+                      </div>
+                      <div className="mt-2 text-[14px] text-[#342F28]">
+                        <span>{p.categoryLabel}</span>
+                        {p.role ? <span className="text-[#342F28]">{` · ${p.role}`}</span> : null}
                       </div>
                     </div>
-                    <div className="shrink-0 flex w-[24px] h-[24px] p-[10px] justify-center items-center gap-[10px] text-[#25221D] leading-none">›</div>
+                    <div className="shrink-0 flex w-[24px] h-[24px] p-[10px] justify-center items-center gap-[10px] text-[#25221D]">
+                      <span className="text-[24px] leading-none">›</span>
+                    </div>
                   </article>
                 ))
               )}
@@ -395,19 +397,22 @@ export default function HomePage(): JSX.Element {
                           onClick={() => handleSendMessageToUser(u.userId)}
                         >
                           <img className="w-5 h-5" alt="" src={send} aria-hidden="true" />
-                          <span className="text-[14px] leading-none">쪽지보내기</span>
+                          <span className="font-pretendard text-[18px] font-normal leading-[27px] text-[#1BA07A]">
+                            쪽지보내기
+                          </span>
                         </button>
                         <button
                           type="button"
-                          className="h-10 rounded-[10px] bg-[#EFEEEB] border border-[#ECE7DF] text-[#7C7160] hover:opacity-90"
+                          className="h-10 rounded-[10px] bg-[#EFEEEB] border border-[#ECE7DF] hover:opacity-90 inline-flex items-center justify-center"
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => navigate(`/profile/${u.userId}`)}
                         >
-                          프로필 보러가기
+                          <span className="font-pretendard text-[18px] font-normal leading-[27px] text-[#1BA07A]">
+                            프로필 보러가기
+                          </span>
                         </button>
                       </div>
-
-                      <p className="mt-3 text-[11px] text-[#5F5749] leading-4">
+                      <p className="mt-3 font-pretendard text-[10px] font-normal text-[#5F5749] leading-[15px] tracking-[-0.1px]">
                         {u.matchReason ?? ""}
                       </p>
                     </div>
