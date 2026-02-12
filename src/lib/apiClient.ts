@@ -1,12 +1,15 @@
 import axios from "axios";
 
+const FALLBACK_BASE_URL =
+  typeof window !== "undefined" ? window.location.origin : "";
+
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+  import.meta.env.VITE_API_BASE_URL ?? FALLBACK_BASE_URL;
 
 const ENV_TOKEN = import.meta.env.VITE_MOAYO_ACCESS_TOKEN as string | undefined;
 
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_BASE_URL || undefined,
   withCredentials: false,
 });
 

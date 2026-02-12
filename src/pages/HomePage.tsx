@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import type { JSX, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -25,10 +25,10 @@ export default function HomePage(): JSX.Element {
   const [isAnalysing, _setIsAnalysing] = useState(false);
   const [isToastVisible, _setIsToastVisible] = useState(false);
 
-  const homeLoading = useHomeStore((s) => s.loading);
-  const homeError = useHomeStore((s) => s.error);
-  const homeData = useHomeStore((s) => s.data);
-  const fetchHome = useHomeStore((s) => s.fetchHome);
+  const homeLoading = useHomeStore((s: { loading: any; }) => s.loading);
+  const homeError = useHomeStore((s: { error: any; }) => s.error);
+  const homeData = useHomeStore((s: { data: any; }) => s.data);
+  const fetchHome = useHomeStore((s: { fetchHome: any; }) => s.fetchHome);
 
   const myName = useMemo(() => user?.user?.name ?? "사용자", [user]);
 
@@ -321,7 +321,7 @@ export default function HomePage(): JSX.Element {
                   마감 임박 게시글이 없습니다.
                 </div>
               ) : (
-                imminentPosts.slice(0, 3).map((p) => (
+                imminentPosts.slice(0, 3).map((p: { postId: Key | null | undefined; title: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; categoryLabel: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; role: any; dday: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }) => (
                   <article
                     key={p.postId}
                     className="w-full max-w-[475px] mx-auto rounded-[14px] border border-[#D9D5CE] bg-[#FBFAF9] px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4 cursor-pointer hover:opacity-95 transition"
@@ -366,7 +366,7 @@ export default function HomePage(): JSX.Element {
                   추천 유저가 없습니다.
                 </div>
               ) : (
-                recommendedUsers.slice(0, 4).map((u) => {
+                recommendedUsers.slice(0, 4).map((u: { userId: Key | null | undefined; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; bio: any; matchReason: any; }) => {
                   const userAvatar = getAvatarUrl((u as any).imageUrl);
                   const isDefault = userAvatar === defaultImage;
 
@@ -394,7 +394,7 @@ export default function HomePage(): JSX.Element {
                           type="button"
                           className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[10px] bg-[#E9FCF7] border border-[#BFEDE1] text-[#1BA07A] font-semibold"
                           onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => handleSendMessageToUser(u.userId)}
+                          onClick={() => handleSendMessageToUser(Number(u.userId))}
                         >
                           <img className="w-5 h-5" alt="" src={send} aria-hidden="true" />
                           <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#1BA07A]">
