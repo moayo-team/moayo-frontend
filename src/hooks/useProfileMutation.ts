@@ -136,13 +136,15 @@ export const useProfileSave = () => {
                         if (!item.label || item.label.trim() === "") return;
 
                         // File 객체
-                        const fileToSend = item.fileObj instanceof File ? item.fileObj : null;
+                        const fileToSend = item.fileObj instanceof File
+                            ? item.fileObj
+                            : item.fileObj?.fileObj;
 
                         const detailData = {
                             indexKey: item.label,
-                            indexValue: item.value,
+                            indexValue: String(item.value).substring(0, 20),
                             itemType: item.type,
-                            linkUrl: item.type === "link" ? item.linkUrl : (fileToSend ? "" : item.linkUrl)
+                            linkUrl: item.type === "link" ? (item.url || item.value) : null
                         };
 
                         if (typeof item.id === "number") {
