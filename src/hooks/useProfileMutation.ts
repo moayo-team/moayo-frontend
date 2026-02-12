@@ -136,15 +136,28 @@ export const useProfileSave = () => {
                         if (!item.label || item.label.trim() === "") return;
 
                         // File 객체
-                        const fileToSend = item.fileObj instanceof File
-                            ? item.fileObj
-                            : item.fileObj?.fileObj;
-
+                        // const fileToSend = item.fileObj instanceof File
+                        //     ? item.fileObj
+                        //     : item.fileObj?.fileObj;
+                        let fileToSend: File | undefined;
+                        if (item.type === "file") {
+                            if (item.fileObj instanceof File) {
+                                fileToSend = item.fileObj;
+                            } else if (item.fileObj?.fileObj instanceof File) {
+                                fileToSend = item.fileObj.fileObj;
+                            } else {
+                                console.warn(`⚠️ 파일 항목인데 실제 File이 없습니다. label: ${item.label}`);
+                            }
+                        }
+                        if (fileToSend === undefined && item.type === "file") {
+    alert(`파일 항목 "${item.label}"이(가) 선택되지 않았습니다. 저장할 수 없습니다.`);
+    return;
+}
                         const detailData = {
                             indexKey: item.label,
                             indexValue: String(item.value).substring(0, 20),
                             itemType: item.type,
-                            linkUrl: item.type === "link" ? (item.url || item.value) : null
+                            linkUrl: item.type === "link" ? (item.url || item.value) : ""
                         };
 
                         if (typeof item.id === "number") {
