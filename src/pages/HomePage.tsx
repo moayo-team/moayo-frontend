@@ -1,5 +1,12 @@
-import type { JSX, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import type {
+  JSX,
+  JSXElementConstructor,
+  Key,
+  ReactElement,
+  ReactNode,
+  ReactPortal
+} from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import menu from "../assets/UnorderedList.svg";
@@ -145,7 +152,7 @@ export default function HomePage(): JSX.Element {
   }
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20">
+    <div className="pt-8 pb-20">
       <section className="pt-6">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-[22px] font-bold text-[#342F28]">모아요 AI</h1>
@@ -216,8 +223,7 @@ export default function HomePage(): JSX.Element {
                     className={[
                       "bg-[#6EEBC7] px-4 py-2 rounded-[10px] text-[13px] sm:text-[14px] text-[#25221D] font-medium transition-colors shadow-sm",
                       "hover:bg-[#5BD9B5]",
-                      (isAnalysing || !aiText.trim()) &&
-                        "opacity-60 cursor-not-allowed hover:bg-[#6EEBC7]"
+                      (isAnalysing || !aiText.trim()) && "opacity-60 cursor-not-allowed hover:bg-[#6EEBC7]"
                     ].join(" ")}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -234,15 +240,15 @@ export default function HomePage(): JSX.Element {
       </section>
 
       <section className="pt-10 pb-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_520px] gap-8 lg:gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_360px] gap-6 lg:gap-8">
           <aside className="w-full">
             <h2 className="text-[16px] font-semibold text-[#342F28] mb-3">프로필</h2>
 
-            <div className="p-5">
-              <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-[#FBFAF9] rounded-[10px] flex flex-col">
+            <div className="p-3">
+              <div className="h-auto sm:h-[175px] items-center justify-center gap-2 px-3 py-4 bg-[#FBFAF9] rounded-[10px] flex flex-col">
                 <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
                   <img
-                    className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] rounded-[10px] ${
+                    className={`w-[84px] sm:w-[96px] h-[84px] sm:h-[96px] rounded-[10px] ${
                       isMyDefaultImage ? "object-contain p-2" : "object-cover"
                     }`}
                     alt={`${myName} profile`}
@@ -266,11 +272,11 @@ export default function HomePage(): JSX.Element {
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-col gap-2">
+              <div className="mt-5 flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => navigate("/message")}
-                  className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
+                  className="all-[unset] box-border px-3 py-2 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                   aria-label="쪽지"
                 >
                   <img className="relative w-5 h-5" alt="" src={send_brown} aria-hidden="true" />
@@ -288,7 +294,7 @@ export default function HomePage(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => navigate("/board")}
-                  className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
+                  className="all-[unset] box-border px-3 py-2 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                 >
                   <img className="relative w-5 h-5" alt="" src={menu} aria-hidden="true" />
                   <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
@@ -431,15 +437,41 @@ export default function HomePage(): JSX.Element {
                   추천 유저가 없습니다.
                 </div>
               ) : (
-                recommendedUsers.slice(0, 4).map((u: { userId: Key | null | undefined; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; bio: any; matchReason: any; }) => {
+                recommendedUsers.slice(0, 4).map(
+                  (u: {
+                    userId: Key | null | undefined;
+                    name:
+                      | string
+                      | number
+                      | bigint
+                      | boolean
+                      | ReactElement<unknown, string | JSXElementConstructor<any>>
+                      | Iterable<ReactNode>
+                      | ReactPortal
+                      | Promise<
+                          | string
+                          | number
+                          | bigint
+                          | boolean
+                          | ReactPortal
+                          | ReactElement<unknown, string | JSXElementConstructor<any>>
+                          | Iterable<ReactNode>
+                          | null
+                          | undefined
+                        >
+                      | null
+                      | undefined;
+                    bio: any;
+                    matchReason: any;
+                  }) => {
                     const userAvatar = getAvatarUrl((u as any).imageUrl);
                     const isDefault = userAvatar === defaultImage;
 
                     return (
-                      <div key={u.userId} className="rounded-[10px] border border-[#ECE7DF] bg-white p-4">
+                      <div key={u.userId} className="rounded-[10px] border border-[#ECE7DF] bg-white p-3">
                         <div className="flex flex-col items-center gap-3">
                           <img
-                            className={`w-[120px] h-[120px] rounded-[10px] ${
+                            className={`w-[72px] h-[72px] rounded-[10px] ${
                               isDefault ? "object-contain p-2" : "object-cover"
                             }`}
                             alt="profile"
@@ -462,8 +494,8 @@ export default function HomePage(): JSX.Element {
                             onClick={() => handleSendMessageToUser(Number(u.userId))}
                           >
                             <img className="w-5 h-5" alt="" src={send} aria-hidden="true" />
-                            <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#1BA07A]">
-                              쪽지보내기
+                            <span className="font-pretendard text-[14px] font-normal leading-[22px] text-[#1BA07A]">
+                              쪽지
                             </span>
                           </button>
                           <button
@@ -481,8 +513,8 @@ export default function HomePage(): JSX.Element {
                               navigate("/profile", { state: { userId: otherId } });
                             }}
                           >
-                            <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#7C7160]">
-                              프로필 보러가기
+                            <span className="font-pretendard text-[14px] font-normal leading-[22px] text-[#7C7160]">
+                              프로필
                             </span>
                           </button>
                         </div>
