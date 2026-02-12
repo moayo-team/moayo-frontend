@@ -480,7 +480,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                     </div>
                 </div>
                 {/**정보 */}
-                <div className="flex flex-col w-full lg:max-w-[440px] gap-[12px] items-start">
+                <div className="flex flex-col w-full lg:max-w-[400px] gap-[12px] items-start">
                     {/**디폴트 정보 */}
                     {fieldConfig.map((item) => {
                         // 편집 모드가 아닌데 값이 없으면 렌더링 스킵
@@ -773,7 +773,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                 </div>
 
                 {/**태그, 자기소개 */}
-                <div className="flex flex-col gap-[24px] w-full xl:flex-1">
+                <div className="flex flex-col gap-[24px] w-full xl:flex-1 xl:max-w-[560px]">
                     {/* 관심 태그 섹션 */}
                     <div className="flex flex-col gap-[8px] w-full">
                         <span className="text-[#423C33] font-pretendard text-[18px] lg:text-[20px] font-semibold leading-[130%]">
@@ -785,7 +785,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                             onClick={() => {
                                 if (canEdit) setIsTagModalOpen(true);
                             }}
-                            className={`flex w-full justify-center min-h-[118px] lg:min-h-[130px]
+                            className={`flex w-full justify-center min-h-[96px] lg:min-h-[110px]
                                 ${isEditing
                                     ? "cursor-pointer border border-dashed border-[#D9D5CE] bg-[#F9FFFD] rounded-[15px] p-[16px]"
                                     : "cursor-default border-none p-0"
