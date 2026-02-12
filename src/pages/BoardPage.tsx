@@ -85,7 +85,7 @@ export const BoardPage = (): JSX.Element => {
 
   return (
     <div
-      className="relative w-full min-h-screen bg-white pb-20"
+      className="w-full pb-20"
       data-model-id="927:9601"
     >
       <NavigationBar />

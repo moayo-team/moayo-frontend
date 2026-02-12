@@ -619,10 +619,18 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                 </button>
 
                             ) : (
-                                <div className="flex flex-col items-start w-full max-w-[720px] px-[20px] py-[30px] 
+                                <div className="relative flex flex-col items-start w-full max-w-[720px] px-[20px] py-[30px] 
                                     shadow-sm animate-in fade-in zoom-in-95 gap-[16px]
                                     bg-[#FBFAF9] rounded-[20px] md:rounded-[30px]">
-                                    <p className="font-pretendard text-[18px] font-semibold text-[#342F28] text-center">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAddOptions(false)}
+                                        aria-label="닫기"
+                                        className="absolute top-[16px] right-[16px] p-2 rounded-full hover:bg-black/5 transition"
+                                        >
+                                        <X size={20} className="text-[#7C7160]" />
+                                    </button>
+                                    <p className="font-pretendard text-[18px] font-semibold text-[#342F28] text-left">
                                         추가하고 싶은 정보를 선택하세요.
                                     </p>
                                     <div className="flex gap-[8px] justify-start w-full">
@@ -720,7 +728,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                                                     <FileText size={28} color="#978B78" />
                                                                     <div className="flex flex-col items-center gap-2">
                                                                         <span className="self-stretch text-center text-[#978B78] font-pretendard text-[14px] font-medium leading-[140%] whitespace-nowrap">
-                                                                            파일을 첨부해주세요(**추가확인필요**)
+                                                                            파일을 첨부해주세요
                                                                         </span>
                                                                         <span className="self-stretch text-center text-[#978B78] font-pretendard text-[12px] font-normal leading-[150%]">
                                                                             (증빙서류, 포트폴리오)
@@ -761,11 +769,6 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                             </div>
                                         </div>
                                     )}
-                                    <button
-                                        onClick={() => setShowAddOptions(false)}
-                                        className="text-[#25221D] text-[13px] underline">
-                                        취소
-                                    </button>
                                 </div>
                             )}
                         </div>
@@ -829,7 +832,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                     <div className="flex flex-col md:flex-row gap-[12px] items-center text-center">
                                         <img
                                             src={MascotIcon}
-                                            className="w-[100px] h-[80px] object-contain"
+                                            className="w-[40px] lg:w-[50px] h-auto"
                                         />
                                         <span className="text-[#7C7160] font-pretendard text-[14px] lg:text-[16px] font-medium ">
                                             {data.name}님의 관심사를 알려주세요!
