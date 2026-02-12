@@ -163,22 +163,21 @@ export default function MessagePage() {
           <div
             className="
               flex flex-col md:flex-row gap-4 md:gap-6
-              h-[calc(100vh-170px)]
-              min-h-[560px]
-              max-h-[860px]
+              h-[calc(100vh-170px)] min-h-[560px]
+              xl:h-[620px]
             "
           >
             <aside
               className="
                 order-2 md:order-1
-                w-full md:w-[360px] lg:w-[403px]
+                w-full
+                md:w-[360px] lg:w-[403px]
                 h-full
-                rounded-[10px] border border-[#ADA395] bg-white
-                overflow-hidden
+                rounded-[10px] border border-[#ADA395] bg-white overflow-hidden
                 flex flex-col
               "
             >
-              <div className="p-4 sm:p-6 xl:p-[31px_24px] h-full overflow-y-auto">
+              <div className="h-full overflow-y-auto p-4 sm:p-6 xl:p-[31px_24px]">
                 <ThreadList
                   threads={roomSummaries}
                   selectedRoomId={selectedRoomId}
@@ -186,15 +185,16 @@ export default function MessagePage() {
                 />
               </div>
             </aside>
+
             <section
               className="
                 order-1 md:order-2
                 w-full
                 h-full
                 md:flex-1
-                rounded-[10px] border border-[#ADA395] bg-white
-                overflow-hidden
+                rounded-[10px] border border-[#ADA395] bg-white overflow-hidden
                 flex flex-col
+                xl:w-[904px] xl:flex-none
               "
             >
               <div className="h-full">
