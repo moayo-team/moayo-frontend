@@ -129,18 +129,20 @@ export const createIndexItem = async (
 ): Promise<CreateIndexItemResponse> => {
     const formData = new FormData();
 
-    const jsonString = JSON.stringify(detailData);
+    //const jsonString = JSON.stringify(detailData);
     //console.log("📝 [1. JSON 데이터]:", jsonString);
 
     formData.append("data", JSON.stringify(detailData));
 
-    // if (file) {
-    //     console.log("📎 [2. 파일 정보]:", {
-    //         name: file.name,
-    //         type: file.type,
-    //         size: `${(file.size / 1024).toFixed(2)} KB`,
-    //         isActualFile: file instanceof File
-    //     }); formData.append("file", file);
+    if (file) {
+        // console.log("📎 [2. 파일 정보]:", {
+        //     name: file.name,
+        //     type: file.type,
+        //     size: `${(file.size / 1024).toFixed(2)} KB`,
+        //     isActualFile: file instanceof File
+        // });
+     formData.append("file", file);
+    }
     // } else {
     //     console.log("📎 [2. 파일 정보]: 첨부된 파일 없음");
     // }
