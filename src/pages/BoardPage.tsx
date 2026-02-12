@@ -5,8 +5,11 @@ import { JobFilter } from '../components/Board/JobFilter';
 import { useFilters } from '../hooks/useFilters';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
+import { useHomeStore } from '../store/homeStore';
 import type { JSX } from 'react';
+import { useEffect } from 'react';
 import menu from '../assets/menu.svg';
+import grayplane from "../assets/grayplane.png"
 import remove from '../assets/delete.svg';
 import leftarr from '../assets/leftarr.svg';
 import rightarr from '../assets/rightarr.svg';
@@ -26,6 +29,10 @@ export const BoardPage = (): JSX.Element => {
   const { data } = usePosts({ tags: selectedJobFilters, page: currentPage, pageSize: 10 });
   const totalPages = data?.totalPages || 5;
 
+  const homeData = useHomeStore((s) => s.data);
+  const fetchHome = useHomeStore((s) => s.fetchHome);
+  const unreadCount = homeData?.notifications?.unreadCount ?? 0;
+
   const profileImageUrl = user?.profile?.imageUrl;
   const resolvedProfileImage =
     profileImageUrl && profileImageUrl !== 'default_url'
@@ -33,6 +40,18 @@ export const BoardPage = (): JSX.Element => {
         ? profileImageUrl
         : `${import.meta.env.VITE_API_BASE_URL}${profileImageUrl}`)
       : profile_photo;
+
+  useEffect(() => {
+    const userId = Number(user?.user?.id);
+    if (!isLoggedIn || !Number.isFinite(userId)) return;
+
+    fetchHome({
+      userId,
+      postsLimit: 1,
+      recoLimit: 1,
+      ttlMs: 30_000,
+    });
+  }, [isLoggedIn, user?.user?.id, fetchHome]);
 
   // Generate pagination pages array
   const getPaginationPages = () => {
@@ -74,50 +93,63 @@ export const BoardPage = (): JSX.Element => {
       <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Sidebar - Left Column */}
-          <aside className="w-full lg:w-[280px] flex-shrink-0 order-2 lg:order-1">
+          <aside className="w-full lg:w-[280px] flex-shrink-0 order-2 lg:order-1 pt-20">
             <div className="flex flex-col gap-[15px]">
               {isLoggedIn ? (
-                <>
-                  <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-gray-scale30 rounded-[10px] flex flex-col">
-                    <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
-                      <img
-                        className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] rounded-[10px]
-                          ${resolvedProfileImage === profile_photo ? "object-contain " : "object-cover"}
-                        `}
-                        alt={`Profile picture of ${user?.user?.name || '사용자'}`}
-                        src={resolvedProfileImage}
-                        onError={(e) => {
-                          e.currentTarget.src = profile_photo;
-                        }}
-                      />
-                      <div className="flex flex-col w-full items-center gap-0.5">
-                        <h2 className="relative mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
-                          {user?.user?.name || '사용자'}
-                        </h2>
-                        {user?.profile?.major && (
-                          <div className="flex items-center justify-center gap-[11px]">
-                            <p className="relative w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap [font-style:var(--body-b2-300-font-style)]">
-                              {user.profile.major}
-                            </p>
-                          </div>
-                        )}
+                <section className="inline-flex flex-col items-start gap-4 relative w-full">
+
+                  <div className="flex flex-col w-full items-start gap-4 relative">
+                    <article className="flex flex-col items-center justify-center gap-2.5 px-5 py-[27px] relative self-stretch w-full bg-[#fbfaf9] rounded-[10px]">
+                      <div className="inline-flex flex-col items-center gap-3 relative">
+                        <img
+                          className={`w-[120px] h-[121px] rounded-[10px] ${
+                            resolvedProfileImage === profile_photo ? "object-contain p-2" : "object-cover"
+                          }`}
+                          alt={`Profile picture of ${user?.user?.name || '사용자'}`}
+                          src={resolvedProfileImage}
+                          onError={(e) => {
+                            e.currentTarget.src = profile_photo;
+                          }}
+                        />
+
+                        <div className="inline-flex flex-col items-center gap-1.5 relative">
+                          <h3 className="self-stretch mt-[-1.03px] [font-family:'Pretendard-Bold',Helvetica] font-bold text-warm-gray-scalegray-scale-900 text-[24.6px] text-center leading-[32.0px] relative tracking-[0]">
+                            {user?.user?.name || '사용자'}
+                          </h3>
+                        </div>
                       </div>
-                    </div>
+                    </article>
+
+                    <nav className="flex items-center gap-1 self-stretch w-full relative">
+                      <button
+                        className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative flex-1 grow bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
+                        aria-label="쪽지"
+                        onClick={() => navigate('/message')}
+                      >
+                        <img className="relative w-6 h-6" alt="message" src={grayplane} />
+                        <span className="w-fit font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                          쪽지
+                        </span>
+                        {unreadCount > 0 && (
+                          <span className="font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                            {unreadCount > 99 ? "99+" : unreadCount}
+                          </span>
+                        )}
+                      </button>
+                    </nav>
+
+                    <button
+                      onClick={() => navigate('/my-posts')}
+                      className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative self-stretch w-full bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
+                      aria-label="내가 쓴 게시글"
+                    >
+                      <img className="relative w-5 h-5" alt="menu icon" src={menu} />
+                      <span className="w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
+                        내가 쓴 게시글
+                      </span>
+                    </button>
                   </div>
-                  <button
-                    onClick={() => navigate('/my-posts')}
-                    className="all-[unset] box-border px-[15px] py-2.5 w-full bg-gray-scale30 rounded-[5px] flex items-center justify-center gap-2.5 hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
-                  >
-                    <img
-                      className="relative w-5 h-5"
-                      alt="menu icon"
-                      src={menu}
-                    />
-                    <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
-                      내가 쓴 게시글
-                    </span>
-                  </button>
-                </>
+                </section>
               ) : (
                 <button
                   onClick={login}

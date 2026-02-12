@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import type { JSX, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -13,7 +13,6 @@ import { CircleCheck } from "lucide-react";
 import { useHomeStore } from "../store/homeStore";
 import { apiClient } from "../api/client";
 
-
 export default function HomePage(): JSX.Element {
   const navigate = useNavigate();
   const { isLoggedIn, user } = useAuth();
@@ -25,19 +24,19 @@ export default function HomePage(): JSX.Element {
   const [isAnalysing, _setIsAnalysing] = useState(false);
   const [isToastVisible, _setIsToastVisible] = useState(false);
 
-  const homeLoading = useHomeStore((s) => s.loading);
-  const homeError = useHomeStore((s) => s.error);
-  const homeData = useHomeStore((s) => s.data);
-  const fetchHome = useHomeStore((s) => s.fetchHome);
+  const homeLoading = useHomeStore((s: { loading: any }) => s.loading);
+  const homeError = useHomeStore((s: { error: any }) => s.error);
+  const homeData = useHomeStore((s: { data: any }) => s.data);
+  const fetchHome = useHomeStore((s: { fetchHome: any }) => s.fetchHome);
+
+  const unreadCount = homeData?.notifications?.unreadCount ?? 0;
 
   const myName = useMemo(() => user?.user?.name ?? "사용자", [user]);
 
   const getAvatarUrl = (url?: string | null) => {
     if (url && typeof url === "string" && url.trim().length > 0) {
-      // 절대 URL / blob은 그대로
       if (url.startsWith("http") || url.startsWith("blob:")) return url;
 
-      // 상대경로면 baseUrl 붙이기 (슬래시 중복 방지)
       const base = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
       const path = url.startsWith("/") ? url : `/${url}`;
       return `${base}${path}`;
@@ -80,6 +79,7 @@ export default function HomePage(): JSX.Element {
     setAiText("");
     setIsAIInputOpen(false);
   };
+
   const handleSendMessageToUser = async (targetUserId: number) => {
     if (!isLoggedIn) {
       alert("로그인이 필요한 서비스입니다.");
@@ -130,9 +130,7 @@ export default function HomePage(): JSX.Element {
         <div className="h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)] flex items-center justify-center">
           <div className="text-center px-6 -translate-y-8 sm:-translate-y-14">
             <h2 className="text-2xl font-heading-h2-300 mb-4">로그인이 필요합니다</h2>
-            <p className="text-gray-scalegray-scale-500 mb-6">
-              내가 쓴 게시글을 보려면 로그인해주세요.
-            </p>
+            <p className="text-gray-scalegray-scale-500 mb-6">내가 쓴 게시글을 보려면 로그인해주세요.</p>
             <button
               type="button"
               onClick={() => navigate("/login")}
@@ -181,11 +179,7 @@ export default function HomePage(): JSX.Element {
                     <span className="flex-1 text-[#1BA07A] text-[14px] sm:text-[16px] font-medium leading-[130%]">
                       {myName}님이 했던 경험을 자유롭게 서술해주세요. 모아요 AI가 정리해드려요!
                     </span>
-                    <img
-                      src={tablerPencil}
-                      alt="edit"
-                      className="shrink-0 w-5 h-5"
-                    />
+                    <img src={tablerPencil} alt="edit" className="shrink-0 w-5 h-5" />
                   </div>
                 ) : (
                   <div className="flex w-full gap-3">
@@ -198,11 +192,7 @@ export default function HomePage(): JSX.Element {
                       onChange={handleTextareaChange}
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <img
-                      src={tablerPencil}
-                      alt="edit"
-                      className="shrink-0 pt-1 w-5 h-5"
-                    />
+                    <img src={tablerPencil} alt="edit" className="shrink-0 pt-1 w-5 h-5" />
                   </div>
                 )}
               </div>
@@ -281,11 +271,18 @@ export default function HomePage(): JSX.Element {
                   type="button"
                   onClick={() => navigate("/message")}
                   className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
+                  aria-label="쪽지"
                 >
                   <img className="relative w-5 h-5" alt="" src={send_brown} aria-hidden="true" />
                   <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                     쪽지
                   </span>
+
+                  {unreadCount > 0 && (
+                    <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </button>
 
                 <button
@@ -295,7 +292,7 @@ export default function HomePage(): JSX.Element {
                 >
                   <img className="relative w-5 h-5" alt="" src={menu} aria-hidden="true" />
                   <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
-                    게시판으로 돌아가기
+                    내가 쓴 게시글
                   </span>
                 </button>
               </div>
@@ -321,30 +318,98 @@ export default function HomePage(): JSX.Element {
                   마감 임박 게시글이 없습니다.
                 </div>
               ) : (
-                imminentPosts.slice(0, 3).map((p) => (
-                  <article
-                    key={p.postId}
-                    className="w-full max-w-[475px] mx-auto rounded-[14px] border border-[#D9D5CE] bg-[#FBFAF9] px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4 cursor-pointer hover:opacity-95 transition"
-                    onClick={() => navigate(`/post/${p.postId}`)}
-                  >
-                    <div className="min-w-0">
-                      <span className="inline-flex items-center rounded-[8px] bg-[#EFEEEB] px-2.5 py-1 text-[12px] font-semibold text-[#5F5749]">
-                        {p.dday}
-                      </span>
+                imminentPosts.slice(0, 3).map(
+                  (p: {
+                    postId: Key | null | undefined;
+                    title:
+                      | string
+                      | number
+                      | bigint
+                      | boolean
+                      | ReactElement<unknown, string | JSXElementConstructor<any>>
+                      | Iterable<ReactNode>
+                      | ReactPortal
+                      | Promise<
+                          | string
+                          | number
+                          | bigint
+                          | boolean
+                          | ReactPortal
+                          | ReactElement<unknown, string | JSXElementConstructor<any>>
+                          | Iterable<ReactNode>
+                          | null
+                          | undefined
+                        >
+                      | null
+                      | undefined;
+                    categoryLabel:
+                      | string
+                      | number
+                      | bigint
+                      | boolean
+                      | ReactElement<unknown, string | JSXElementConstructor<any>>
+                      | Iterable<ReactNode>
+                      | ReactPortal
+                      | Promise<
+                          | string
+                          | number
+                          | bigint
+                          | boolean
+                          | ReactPortal
+                          | ReactElement<unknown, string | JSXElementConstructor<any>>
+                          | Iterable<ReactNode>
+                          | null
+                          | undefined
+                        >
+                      | null
+                      | undefined;
+                    role: any;
+                    dday:
+                      | string
+                      | number
+                      | bigint
+                      | boolean
+                      | ReactElement<unknown, string | JSXElementConstructor<any>>
+                      | Iterable<ReactNode>
+                      | ReactPortal
+                      | Promise<
+                          | string
+                          | number
+                          | bigint
+                          | boolean
+                          | ReactPortal
+                          | ReactElement<unknown, string | JSXElementConstructor<any>>
+                          | Iterable<ReactNode>
+                          | null
+                          | undefined
+                        >
+                      | null
+                      | undefined;
+                  }) => (
+                    <article
+                      key={p.postId}
+                      className="w-full max-w-[475px] mx-auto rounded-[14px] border border-[#D9D5CE] bg-[#FBFAF9] px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4 cursor-pointer hover:opacity-95 transition"
+                      onClick={() => navigate(`/post/${p.postId}`)}
+                    >
+                      <div className="min-w-0">
+                        <span className="inline-flex items-center rounded-[8px] bg-[#EFEEEB] px-2.5 py-1 text-[12px] font-semibold text-[#5F5749]">
+                          {p.dday}
+                        </span>
 
-                      <div className="mt-3 text-[20px] sm:text-[22px] font-semibold text-[#25221D] leading-[120%] truncate">
-                        {p.title}
+                        <div className="mt-3 text-[20px] sm:text-[22px] font-semibold text-[#25221D] leading-[120%] truncate">
+                          {p.title}
+                        </div>
+                        <div className="mt-2 text-[14px] text-[#342F28]">
+                          <span>{p.categoryLabel}</span>
+                          {p.role ? <span className="text-[#342F28]">{` · ${p.role}`}</span> : null}
+                        </div>
                       </div>
-                      <div className="mt-2 text-[14px] text-[#342F28]">
-                        <span>{p.categoryLabel}</span>
-                        {p.role ? <span className="text-[#342F28]">{` · ${p.role}`}</span> : null}
+                      <div className="shrink-0 flex w-[24px] h-[24px] justify-center items-center text-[#25221D]">
+                        <span className="text-[24px] leading-none">›</span>
                       </div>
-                    </div>
-                    <div className="shrink-0 flex w-[24px] h-[24px] justify-center items-center text-[#25221D]">
-                      <span className="text-[24px] leading-none">›</span>
-                    </div>
-                  </article>
-                ))
+                    </article>
+                  )
+                )
               )}
             </div>
           </main>
@@ -366,58 +431,59 @@ export default function HomePage(): JSX.Element {
                   추천 유저가 없습니다.
                 </div>
               ) : (
-                recommendedUsers.slice(0, 4).map((u) => {
-                  const userAvatar = getAvatarUrl((u as any).imageUrl);
-                  const isDefault = userAvatar === defaultImage;
+                recommendedUsers.slice(0, 4).map((u: { userId: Key | null | undefined; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; bio: any; matchReason: any; }) => {
+                    const userAvatar = getAvatarUrl((u as any).imageUrl);
+                    const isDefault = userAvatar === defaultImage;
 
-                  return (
-                    <div key={u.userId} className="rounded-[10px] border border-[#ECE7DF] bg-white p-4">
-                      <div className="flex flex-col items-center gap-3">
-                        <img
-                          className={`w-[120px] h-[120px] rounded-[10px] ${
-                            isDefault ? "object-contain p-2" : "object-cover"
-                          }`}
-                          alt="profile"
-                          src={userAvatar}
-                          onError={(e) => {
-                            e.currentTarget.src = defaultImage;
-                          }}
-                        />
-                        <div className="text-center">
-                          <div className="font-semibold text-[#342F28]">{u.name}</div>
-                          <div className="text-[12px] text-[#7A7368]">{u.bio ?? ""}</div>
+                    return (
+                      <div key={u.userId} className="rounded-[10px] border border-[#ECE7DF] bg-white p-4">
+                        <div className="flex flex-col items-center gap-3">
+                          <img
+                            className={`w-[120px] h-[120px] rounded-[10px] ${
+                              isDefault ? "object-contain p-2" : "object-cover"
+                            }`}
+                            alt="profile"
+                            src={userAvatar}
+                            onError={(e) => {
+                              e.currentTarget.src = defaultImage;
+                            }}
+                          />
+                          <div className="text-center">
+                            <div className="font-semibold text-[#342F28]">{u.name}</div>
+                            <div className="text-[12px] text-[#7A7368]">{u.bio ?? ""}</div>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="mt-4 flex flex-col gap-2">
-                        <button
-                          type="button"
-                          className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[10px] bg-[#E9FCF7] border border-[#BFEDE1] text-[#1BA07A] font-semibold"
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => handleSendMessageToUser(u.userId)}
-                        >
-                          <img className="w-5 h-5" alt="" src={send} aria-hidden="true" />
-                          <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#1BA07A]">
-                            쪽지보내기
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          className="h-10 rounded-[10px] bg-[#EFEEEB] hover:opacity-90 inline-flex items-center justify-center"
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => navigate(`/profile/${u.userId}`)}
-                        >
-                          <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#7C7160]">
-                            프로필 보러가기
-                          </span>
-                        </button>
+                        <div className="mt-4 flex flex-col gap-2">
+                          <button
+                            type="button"
+                            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[5px] bg-[#E9FCF7] text-[#1BA07A] font-semibold"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleSendMessageToUser(Number(u.userId))}
+                          >
+                            <img className="w-5 h-5" alt="" src={send} aria-hidden="true" />
+                            <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#1BA07A]">
+                              쪽지보내기
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            className="h-10 rounded-[5px] bg-[#EFEEEB] hover:opacity-90 inline-flex items-center justify-center"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => navigate(`/profile/${u.userId}`)}
+                          >
+                            <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#7C7160]">
+                              프로필 보러가기
+                            </span>
+                          </button>
+                        </div>
+                        <p className="mt-3 font-pretendard text-[10px] font-normal text-[#5F5749] leading-[15px] tracking-[-0.1px]">
+                          {u.matchReason ?? ""}
+                        </p>
                       </div>
-                      <p className="mt-3 font-pretendard text-[10px] font-normal text-[#5F5749] leading-[15px] tracking-[-0.1px]">
-                        {u.matchReason ?? ""}
-                      </p>
-                    </div>
-                  );
-                })
+                    );
+                  }
+                )
               )}
             </div>
           </aside>
