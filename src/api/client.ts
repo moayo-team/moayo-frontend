@@ -11,6 +11,9 @@ export const apiClient = axios.create({
   timeout: 5000,
 });
 
+await apiClient.post("/api/v1/experiences/ai/summary", { timeout: 15000 });
+
+
 const refreshClient = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
