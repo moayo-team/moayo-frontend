@@ -1,5 +1,5 @@
 import { apiClient } from "../client";
-import type { BaseResponse, DraftRequest } from "../../types/career";
+import type { BaseResponse, CreateAIPrompt } from "../../types/career";
 import type { CreateExperienceRequest } from "../../types/career";
 
 export async function createExperienceSession(): Promise<BaseResponse<number>> {
@@ -17,10 +17,11 @@ export async function createExperienceSession(): Promise<BaseResponse<number>> {
   return res.data;
 }
 
-export async function createAIDraft(body: DraftRequest) {
+export async function createAIDraft(body: CreateAIPrompt) {
   const res = await apiClient.post<BaseResponse<any>>(
-    ` /api/v1/experiences/ai/summary`,
-    body
+    `/api/v1/experiences/ai/summary`,
+    body,
+    { timeout: 15000 }
   );
   return res.data;
 }
