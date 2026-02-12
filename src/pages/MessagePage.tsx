@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import ThreadList from "../components/messages/threadList";
 import ChatPanel from "../components/messages/chatPanel";
 import { useChatRoom } from "../hooks/useChatRoom";
-import { useChatThreadListPolling } from "../hooks/useChatThreadListPolling";
+import { useChatRooms } from "../hooks/useChatRooms";
 import { apiClient } from "../lib/apiClient";
 import type { ChatRoomSummary, ChatMessage } from "../types/message";
 
@@ -13,12 +13,9 @@ export default function MessagePage() {
   const initialRoomId = (location.state as { roomId?: number } | null)?.roomId;
   const initialRoomAppliedRef = useRef(false);
 
-  const { threads: polledRooms, loading, error } = useChatThreadListPolling({
-    intervalMs: 1500
-  });
-
-  const [roomSummaries, setRoomSummaries] = useState<ChatRoomSummary[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+
+  const { rooms: roomSummaries, loading, error, setRooms } = useChatRooms(selectedRoomId);
 
   useEffect(() => {
     if (initialRoomAppliedRef.current) return;
@@ -27,52 +24,6 @@ export default function MessagePage() {
     setSelectedRoomId(Number(initialRoomId));
     initialRoomAppliedRef.current = true;
   }, [initialRoomId]);
-
-  useEffect(() => {
-    if (!polledRooms.length) return;
-
-    setRoomSummaries((prev) => {
-      if (!prev.length) return polledRooms;
-
-      const prevMap = new Map<number, ChatRoomSummary>(
-        prev.map((r) => [r.roomId, r])
-      );
-
-      const next: ChatRoomSummary[] = [];
-
-      for (const item of polledRooms) {
-        const prevItem = prevMap.get(item.roomId);
-
-        if (!prevItem) {
-          next.push(item);
-          continue;
-        }
-
-        if (item.roomId === selectedRoomId) {
-          next.push({ ...prevItem, hasUnread: false });
-          continue;
-        }
-
-        const messageChanged =
-          prevItem.lastMessageCreatedAt !== item.lastMessageCreatedAt ||
-          prevItem.lastMessageContent !== item.lastMessageContent ||
-          prevItem.hasUnread !== item.hasUnread;
-
-        if (!messageChanged) {
-          next.push(prevItem);
-        } else {
-          next.push({
-            ...prevItem,
-            lastMessageContent: item.lastMessageContent,
-            lastMessageCreatedAt: item.lastMessageCreatedAt,
-            hasUnread: item.hasUnread
-          });
-        }
-      }
-
-      return next;
-    });
-  }, [polledRooms, selectedRoomId]);
 
   useEffect(() => {
     if (selectedRoomId == null && roomSummaries.length > 0) {
@@ -85,21 +36,18 @@ export default function MessagePage() {
     [roomSummaries, selectedRoomId]
   );
 
-  const { connected, sending, meId, messages, input, setInput, send } =
-    useChatRoom({
-      roomId: selectedRoomId,
-      currentUserId: currentUserId || undefined
-    });
+  const { connected, sending, meId, messages, input, setInput, send } = useChatRoom({
+    roomId: selectedRoomId,
+    currentUserId: currentUserId || undefined
+  });
 
   const myId = meId ?? currentUserId ?? 0;
 
   const handleSelectRoom = (roomId: number) => {
     setSelectedRoomId(roomId);
 
-    setRoomSummaries((prev) =>
-      prev.map((room) =>
-        room.roomId === roomId ? { ...room, hasUnread: false } : room
-      )
+    setRooms((prev) =>
+      prev.map((room) => (room.roomId === roomId ? { ...room, hasUnread: false } : room))
     );
 
     apiClient.patch(`/api/v1/chat/rooms/${roomId}/read`).catch((e) => {
@@ -115,9 +63,10 @@ export default function MessagePage() {
     const lastRoomId = Number(
       (last as any).chatRoomId ?? (last as any).roomId ?? (last as any).chatRoomID
     );
+
     if (Number.isFinite(lastRoomId) && lastRoomId !== selectedRoomId) return;
 
-    setRoomSummaries((prev) =>
+    setRooms((prev) =>
       prev.map((room) =>
         room.roomId === selectedRoomId
           ? {
@@ -133,22 +82,28 @@ export default function MessagePage() {
     apiClient.patch(`/api/v1/chat/rooms/${selectedRoomId}/read`).catch((e) => {
       console.error("[CHAT] read on message change error", e);
     });
-  }, [messages, selectedRoomId]);
+  }, [messages, selectedRoomId, setRooms]);
 
   if (loading && roomSummaries.length === 0) {
     return (
-      <div className="bg-white p-6">
-        <div className="text-sm text-gray-500">쪽지함 목록 불러오는 중…</div>
+      <div className="bg-white">
+        <main className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 py-8">
+          <div className="rounded-[12px] border border-[#ECE7DF] bg-[#FBFAF9] p-5 text-sm text-[#7A7368]">
+            쪽지함 목록 불러오는 중…
+          </div>
+        </main>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-white p-6">
-        <div className="text-sm text-red-600">
-          쪽지함 목록 로드 실패: {String(error)}
-        </div>
+      <div className="bg-white">
+        <main className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 py-8">
+          <div className="rounded-[12px] border border-[#F3C6C6] bg-[#FFF5F5] p-5 text-sm text-[#D14B4B]">
+            쪽지함 목록 로드 실패: {String(error)}
+          </div>
+        </main>
       </div>
     );
   }
@@ -156,29 +111,37 @@ export default function MessagePage() {
   return (
     <div className="bg-white">
       <main className="w-full">
-        <div className="w-full py-6">
-          <h1 className="text-[22px] sm:text-[26px] xl:text-[28px] font-bold leading-[1.3] mb-4 sm:mb-6">
-            쪽지함 목록
-          </h1>
+        <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-end justify-between mb-5 sm:mb-6">
+            <h1 className="text-[22px] sm:text-[26px] xl:text-[28px] font-bold leading-[1.3] text-[#25221D]">
+              쪽지함
+            </h1>
+            <span className="text-[12px] sm:text-[13px] text-[#7A7368]">
+              대화방을 선택해 메시지를 확인하세요
+            </span>
+          </div>
 
           <div
             className="
-              flex flex-col md:flex-row gap-4 md:gap-6
-              h-[calc(100vh-170px)] min-h-[560px]
-              xl:h-[620px]
+              grid grid-cols-1 md:grid-cols-[380px_1fr] gap-4 md:gap-6
+              h-[calc(100vh-190px)] min-h-[600px]
+              xl:h-[680px]
             "
           >
             <aside
               className="
                 order-2 md:order-1
-                w-full md:w-[320px] lg:w-[340px] xl:w-[360px]
-                flex-shrink-0
                 h-full
-                rounded-[10px] border border-[#ADA395] bg-white overflow-hidden
+                rounded-[12px] border border-[#ECE7DF] bg-[#FBFAF9]
+                overflow-hidden
                 flex flex-col
               "
             >
-              <div className="h-full overflow-y-auto p-4 sm:p-6">
+              <div className="px-5 py-4 border-b border-[#ECE7DF] bg-white">
+                <div className="text-[14px] font-semibold text-[#342F28]">대화 목록</div>
+              </div>
+
+              <div className="h-full overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
                 <ThreadList
                   threads={roomSummaries}
                   selectedRoomId={selectedRoomId}
@@ -190,8 +153,9 @@ export default function MessagePage() {
             <section
               className="
                 order-1 md:order-2
-                w-full h-full flex-1
-                rounded-[10px] border border-[#ADA395] bg-white overflow-hidden
+                h-full
+                rounded-[12px] border border-[#ECE7DF] bg-white
+                overflow-hidden
                 flex flex-col
               "
             >
