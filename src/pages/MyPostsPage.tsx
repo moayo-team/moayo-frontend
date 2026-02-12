@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NavigationBar } from '../components/Navbar';
 import { useAuth } from '../hooks/useAuth';
 import { usePosts, useDeletePost } from '../hooks/usePosts';
+import { useHomeStore } from '../store/homeStore';
 import { Badge } from '../components/common/Badge';
 import { DeleteConfirmationModal } from '../components/common/DeleteConfirmationModal';
 // formatDateRange is not used here because we prefer server-provided dday; keep utils for other pages
@@ -10,6 +11,7 @@ import type { JSX } from 'react';
 import leftarr from '../assets/leftarr.svg';
 import rightarr from '../assets/rightarr.svg';
 import menu from '../assets/menu.svg';
+import grayplane from '../assets/grayplane.png';
 import profile_photo from '../assets/default_profile.svg'
 
 interface PostCardProps {
@@ -119,6 +121,9 @@ const PostCard = ({ post, authorNameFallback, onDelete, onEdit, isDeleting }: Po
 export const MyPostsPage = (): JSX.Element => {
   const navigate = useNavigate();
   const { isLoggedIn, user } = useAuth();
+  const homeData = useHomeStore((s) => s.data);
+  const fetchHome = useHomeStore((s) => s.fetchHome);
+  const unreadCount = homeData?.notifications?.unreadCount ?? 0;
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
@@ -220,67 +225,88 @@ export const MyPostsPage = (): JSX.Element => {
   const posts = data?.posts || [];
   const totalPages = data?.totalPages || 1;
 
-  const getFullImageUrl = (url?: string | null) => {
-    if (!url || url === 'default_url') return profile_photo;
-    if (url.startsWith('blob:') || url.startsWith('http')) return url;
+  const profileImageUrl = user?.profile?.imageUrl;
+  const resolvedProfileImage =
+    profileImageUrl && profileImageUrl !== 'default_url'
+      ? (profileImageUrl.startsWith('http')
+        ? profileImageUrl
+        : `${import.meta.env.VITE_API_BASE_URL}${profileImageUrl}`)
+      : profile_photo;
 
-    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
-    const cleanPath = url.startsWith('/') ? url : `/${url}`;
-    return `${baseUrl}${cleanPath}`;
-  };
+  useEffect(() => {
+    const userId = Number(user?.user?.id);
+    if (!isLoggedIn || !Number.isFinite(userId)) return;
+
+    fetchHome({
+      userId,
+      postsLimit: 1,
+      recoLimit: 1,
+      ttlMs: 30_000,
+    });
+  }, [isLoggedIn, user?.user?.id, fetchHome]);
   return (
     <div className="relative w-full min-h-screen bg-white pb-20">
       <NavigationBar />
       <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Sidebar - Left Column */}
-          <aside className="w-full lg:w-[280px] flex-shrink-0 order-2 lg:order-1">
+          <aside className="w-full lg:w-[280px] flex-shrink-0 order-2 lg:order-1 pt-20">
             <div className="flex flex-col gap-[15px]">
-              <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-gray-scale30 rounded-[10px] flex flex-col">
-                <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
-                  <img
-                    className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] relative rounded-[10px] border border-gray-100 transition-all
-                      ${user?.profile?.imageUrl && user.profile.imageUrl !== 'default_url'
-                                          ? "object-cover"   
-                                          : "object-contain"
-                                        }
-                    `}
-                    alt={`Profile picture of ${user?.user?.name || '사용자'}`}
-                    src={getFullImageUrl(user?.profile?.imageUrl)}
-                    onError={(e) => {
-                      e.currentTarget.src = profile_photo;
-                    }}
-                  />
-                  <div className="flex flex-col w-full items-center gap-0.5">
-                    <h2 className="relative mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
-                      {user?.user?.name || '사용자'}
-                    </h2>
-                    {user?.profile?.major && (
-                      <div className="flex items-center justify-center gap-[11px]">
-                        <p className="relative w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap [font-style:var(--body-b2-300-font-style)]">
-                          {user.profile.major}
-                        </p>
+              <section className="inline-flex flex-col items-start gap-4 relative w-full">
+                <div className="flex flex-col w-full items-start gap-4 relative">
+                  <article className="flex flex-col items-center justify-center gap-2.5 px-5 py-[27px] relative self-stretch w-full bg-[#fbfaf9] rounded-[10px]">
+                    <div className="inline-flex flex-col items-center gap-3 relative">
+                      <img
+                        className={`w-[120px] h-[121px] rounded-[10px] ${
+                          resolvedProfileImage === profile_photo ? "object-contain p-2" : "object-cover"
+                        }`}
+                        alt={`Profile picture of ${user?.user?.name || '사용자'}`}
+                        src={resolvedProfileImage}
+                        onError={(e) => {
+                          e.currentTarget.src = profile_photo;
+                        }}
+                      />
+
+                      <div className="inline-flex flex-col items-center gap-1.5 relative">
+                        <h3 className="self-stretch mt-[-1.03px] [font-family:'Pretendard-Bold',Helvetica] font-bold text-warm-gray-scalegray-scale-900 text-[24.6px] text-center leading-[32.0px] relative tracking-[0]">
+                          {user?.user?.name || '사용자'}
+                        </h3>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  </article>
+
+                  <nav className="flex items-center gap-1 self-stretch w-full relative">
+                    <button
+                      className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative flex-1 grow bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
+                      aria-label="쪽지"
+                      onClick={() => navigate('/message')}
+                      type="button"
+                    >
+                      <img className="relative w-6 h-6" alt="message" src={grayplane} />
+                      <span className="w-fit font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                        쪽지
+                      </span>
+                      {unreadCount > 0 && (
+                        <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-primaryprimary-300 text-gray-scalegray-scale-900 text-[12px] font-semibold flex items-center justify-center">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
+                    </button>
+                  </nav>
+
+                  <button
+                    onClick={() => navigate('/board')}
+                    className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative self-stretch w-full bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
+                    type="button"
+                    aria-label="게시판으로 돌아가기"
+                  >
+                    <img className="relative w-5 h-5" alt="menu icon" src={menu} />
+                    <span className="w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
+                      게시판으로 돌아가기
+                    </span>
+                  </button>
                 </div>
-              </div>
-              <button
-                onClick={() => navigate('/board')}
-                className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-gray-scale30 rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
-                type="button"
-                aria-label="게시판으로 돌아가기"
-              >
-                <img
-                  className="relative w-5 h-5"
-                  alt=""
-                  src={menu}
-                  aria-hidden="true"
-                />
-                <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
-                  게시판으로 돌아가기
-                </span>
-              </button>
+              </section>
             </div>
           </aside>
 

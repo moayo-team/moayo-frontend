@@ -23,9 +23,10 @@ type UseChatRoomOptions = {
 export function useChatRoom({
 	roomId,
 	currentUserId,
-	wsUrl = `${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080"}${
-		import.meta.env.VITE_WS_ENDPOINT ?? "/ws-chat"
-	}`,
+	wsUrl = `${
+		import.meta.env.VITE_API_BASE_URL ??
+		(typeof window !== "undefined" ? window.location.origin : "")
+	}${import.meta.env.VITE_WS_ENDPOINT ?? "/ws-chat"}`,
 	accessToken =
 		localStorage.getItem("accessToken") ??
 		(import.meta.env.VITE_MOAYO_ACCESS_TOKEN as string | undefined)
