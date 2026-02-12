@@ -84,6 +84,7 @@ const ProfilePage = () => {
         { id: "email", label: "이메일", value: user.email ?? "" },
         { id: "phone", label: "전화번호", value: user.phoneNumber ?? "" },
       ],
+      documents: documents ?? [],
     };
 
     setProfileData(formData);

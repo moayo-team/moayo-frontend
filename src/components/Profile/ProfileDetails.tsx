@@ -263,9 +263,9 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
             fullLinkUrl = tempValue.toLowerCase().startsWith('http')
                 ? tempValue
                 : `https://${tempValue}`;
-            displayValueForServer = tempValue.length > 20 ? tempValue.substring(0, 20) : tempValue;
+            displayValueForServer = tempValue
         } else if (isFile) {
-            displayValueForServer = uploadManager.selectedFiles[0]?.name.substring(0, 20);
+            displayValueForServer = selectedFile.name;
         }
 
         // 리스트에 들어갈 객체 구성
@@ -332,9 +332,10 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
     //다운로드/이동 핸들러
     const handleIconClick = async (item: any) => {
         const isFileType = item.type === 'file' || item.itemType === 'file';
-        const targetUrl = isFileType
-            ? item.linkUrl   // 서버에서 내려준 파일 경로
-            : item.linkUrl;
+        const targetUrl =
+            item.linkUrl ||
+            item.url ||
+            item.value;
         if (!targetUrl) {
             alert("URL을 찾을 수 없습니다.");
             return;
@@ -432,6 +433,15 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
             onDataChange(id, newValue);
         }
     };
+
+    // 프로필 이미지 URL과 다른 파일이 하나라도 있는지 확인
+    const hasSchoolDocs = data.documents?.some(doc => {
+        // 1. 프로필 이미지가 비어있다면 모든 문서를 학력 서류로 간주
+        if (!data.imageUrl) return true;
+
+        // 2. 파일의 URL과 현재 프로필 이미지 URL이 다르면 '학력 서류'로 판단
+        return String(doc.fileUrl) !== String(data.imageUrl);
+    }) || false;
 
     const getFullImageUrl = (url: string) => {
         if (!url) return defaultImage;
@@ -542,7 +552,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                                     onDoubleClick={() => setIsModalOpen(true)}
                                                     className={`flex py-[4px] px-[8px] items-center gap-[4px] rounded-[8px] transition-colors shrink-0
                                                     cursor-pointer hover:opacity-80
-                                                    ${data.documents && data.documents.length > 0
+                                                    ${hasSchoolDocs
                                                             ? "bg-[#E9FCF7] text-[#1BA07A]" // 파일 있을 때: 민트색 테마
                                                             : "bg-[#EFEEEB] text-[#5F5749]" // 파일 없을 때: 회색 테마 
                                                         }
@@ -550,7 +560,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                                 >
                                                     <Paperclip size={18} />
                                                     <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em]">
-                                                        {data.documents && data.documents.length > 0
+                                                        {hasSchoolDocs
                                                             ? "첨부파일 확인"
                                                             : "학력 파일 증빙 전"
                                                         }
@@ -687,6 +697,8 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                                 <div className="flex items-center self-stretch gap-[8px] h-[48px]">
                                                     <div className="flex w-[70px] h-full justify-center items-center rounded-[10px] bg-[#E9FCF7] shrink-0">
                                                         <input
+                                                            value={tempLabel}
+                                                            maxLength={10}
                                                             onChange={(e) => {
                                                                 const val = e.target.value;
                                                                 if (uploadManager.isInputValidByType(val, 'text', 'left')) {
@@ -700,6 +712,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                                         />
                                                     </div>
                                                     <input
+                                                        maxLength={20}
                                                         value={tempValue}
                                                         onChange={(e) => {
                                                             const val = e.target.value;

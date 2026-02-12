@@ -143,7 +143,7 @@ export const useProfileSave = () => {
                         const detailData = {
                             indexKey: item.label,
                             indexValue: item.type === "link"
-                                ? item.linkUrl
+                                ? item.value
                                 : item.value,
                             itemType: item.type,
                             linkUrl: item.type === "link"
