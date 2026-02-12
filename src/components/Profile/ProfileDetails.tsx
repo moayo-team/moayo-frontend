@@ -8,6 +8,7 @@ import TagSelectModal from "./TagSelectModal";
 import MascotIcon from "../../assets/white2.png"
 import type { ProfileFormData } from "../../types/profileForm";
 import type { InterestTag } from "../../types/profile";
+import axios from "axios";
 //import MinLayoutContainer from './layouts/MinWidthLayout';
 
 interface ProfileDetailsProps {
@@ -258,7 +259,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
 
         let displayValueForServer = tempValue;
         if (isLink && tempValue.length > 20) {
-            displayValueForServer = tempLabel.substring(0, 20);
+            displayValueForServer = tempValue.substring(0, 20);
         } else if (isFile) {
             displayValueForServer = uploadManager.selectedFiles[0]?.name.substring(0, 20);
         }
@@ -287,40 +288,63 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
         uploadManager.setSelectedFiles([]);
     };
 
-    //다운로드/이동 핸들러
-    const handleIconClick = (item: any) => {
+    // 파일을 인증 토큰과 함께 여는 함수 추가
+    const openFileWithAuth = async (fileUrl: string) => {
+        const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+        const cleanPath = fileUrl.startsWith("/") ? fileUrl : `/${fileUrl}`;
+        const fullUrl = `${baseUrl}${cleanPath}`;
 
-        const targetUrl = item.type === 'file'
-            ? (item.linkUrl || item.fileUrl || item.url || item.value)
-            : (item.linkUrl || item.url || item.value);
+        const newWindow = window.open("", "_blank");
 
-        if (!targetUrl) {
-            alert("URL을 찾을 수 없습니다.");
-            return;
-        }
+        try {
+            const response = await axios.get(fullUrl, {
+                responseType: "blob",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+                },
+            });
 
-        let fullUrl: string;
+            const contentType = response.headers["content-type"];
 
-        if (item.type === 'file') {
-            if (targetUrl.startsWith('https')) {
-                fullUrl = targetUrl;
-            } else {
-                const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
-                const cleanPath = targetUrl.startsWith('/') ? targetUrl : `/${targetUrl}`;
-                fullUrl = `${baseUrl}${cleanPath}`;
+            // JSON 에러 응답 처리
+            if (contentType?.includes("application/json")) {
+                const text = await response.data.text();
+                const err = JSON.parse(text);
+                alert(err.message || "파일을 불러올 수 없습니다.");
+                newWindow?.close();
+                return;
             }
 
-            // PDF 툴바 숨김
-            if (fullUrl.toLowerCase().endsWith('.pdf')) {
-                fullUrl += '#toolbar=0';
-            }
-        } else {
-            // 링크: http 프로토콜 추가
-            fullUrl = targetUrl.startsWith('https') ? targetUrl : `https://${targetUrl}`;
-        }
+            const blobUrl = URL.createObjectURL(response.data);
 
-        window.open(fullUrl, '_blank', 'noopener,noreferrer');
+            if (newWindow) {
+                newWindow.location.href = blobUrl;
+            }
+        } catch (error: any) {
+            newWindow?.close();
+            alert("파일을 열 수 없습니다.");
+        }
     };
+    //다운로드/이동 핸들러
+    const handleIconClick = async (item: any) => {
+    const targetUrl = item.type === 'file'
+        ? (item.linkUrl || item.fileUrl || item.url || item.value)
+        : (item.linkUrl || item.url || item.value);
+
+    if (!targetUrl) {
+        alert("URL을 찾을 수 없습니다.");
+        return;
+    }
+
+    if (item.type === 'file') {
+        // 파일인 경우 인증 토큰과 함께 요청
+        await openFileWithAuth(targetUrl);
+    } else {
+        // 링크인 경우 기존 방식 유지
+        const fullUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+        window.open(fullUrl, '_blank', 'noopener,noreferrer');
+    }
+};
 
     //기존 리스트 수정/삭제 로직
     const updateCustomField = (id: number | string, key: "label" | "value", val: string) => {
@@ -442,7 +466,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                 }}
                             />
                         </div>
-                        
+
                         <input
                             type="file"
                             ref={profileUpload.fileInputRef}
@@ -623,7 +647,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                         onClick={() => setShowAddOptions(false)}
                                         aria-label="닫기"
                                         className="absolute top-[16px] right-[16px] p-2 rounded-full hover:bg-black/5 transition"
-                                        >
+                                    >
                                         <X size={20} className="text-[#7C7160]" />
                                     </button>
                                     <p className="font-pretendard text-[18px] font-semibold text-[#342F28] text-left">
@@ -790,7 +814,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                     : "cursor-default"
                                 }
                                 ${data.tags && data.tags.length > 0
-                                    ? "justify-start items-start border-none"
+                                    ? "justify-start items-start border-0"
                                     : "justify-center items-center rounded-[10px] border-dashed border-[#D9D5CE] border-2"
                                 }`}
                         >
