@@ -3,8 +3,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import menu from "../assets/UnorderedList.svg";
-import Send from "../assets/Send.svg";
-import Send_brown from "../assets/Send_brown.svg";
+import send from "../assets/send.svg";
+import send_brown from "../assets/send_brown.svg";
 import defaultImage from "../assets/default_profile.svg";
 import tablerPencil from "../assets/tabler_pencil.svg";
 
@@ -278,7 +278,7 @@ export default function HomePage(): JSX.Element {
                   onClick={() => navigate("/message")}
                   className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                 >
-                  <img className="relative w-5 h-5" alt="" src={Send_brown} aria-hidden="true" />
+                  <img className="relative w-5 h-5" alt="" src={send_brown} aria-hidden="true" />
                   <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                     쪽지
                   </span>
@@ -394,7 +394,7 @@ export default function HomePage(): JSX.Element {
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleSendMessageToUser(u.userId)}
                         >
-                          <img className="w-5 h-5" alt="" src={Send} aria-hidden="true" />
+                          <img className="w-5 h-5" alt="" src={send} aria-hidden="true" />
                           <span className="text-[14px] leading-none">쪽지보내기</span>
                         </button>
                         <button
