@@ -100,19 +100,12 @@ export const updateIndexItem = async (
 ): Promise<BaseResponse<null>> => {
     const formData = new FormData();
 
-    const jsonBlob = new Blob([JSON.stringify({
-        indexKey: detailData.indexKey,
-        indexValue: detailData.indexValue,
-        itemType: detailData.itemType,
-        linkUrl: detailData.linkUrl || ""
-    })], { type: "application/json" });
+    // JSON 객체를 문자열로 변환
+    formData.append("data", JSON.stringify(detailData));
 
-    formData.append("data", jsonBlob);
-
-    if (file instanceof File) {
+    if (file) {
         formData.append("file", file);
-        console.log("📎 [UPDATE] 새로운 파일 첨부됨:", file.name);
-    } 
+    }
 
     console.log("📤 [UPDATE] FormData 내용:");
     for (let pair of formData.entries()) {
@@ -130,7 +123,6 @@ export const updateIndexItem = async (
 
     return response.data;
 };
-
 export const createIndexItem = async (
     detailData: IndexItemDetailData,
     file?: File | null

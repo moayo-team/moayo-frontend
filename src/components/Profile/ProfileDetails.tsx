@@ -257,18 +257,10 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
         if (isFile && !selectedFile) return alert("파일을 선택해주세요.");
 
         let displayValueForServer = tempValue;
-        let fullLinkUrl = tempValue;
-        if (isLink) {
-            fullLinkUrl = tempValue.toLowerCase().startsWith('http')
-                ? tempValue
-                : `https://${tempValue}`;
-            displayValueForServer = tempValue.length > 20
-                ? tempValue.substring(0, 17) + "..."
-                : tempValue;
+        if (isLink && tempValue.length > 20) {
+            displayValueForServer = tempLabel.substring(0, 20);
         } else if (isFile) {
-            displayValueForServer = selectedFile.name.length > 20
-                ? selectedFile.name.substring(0, 17) + "..."
-                : selectedFile.name;
+            displayValueForServer = uploadManager.selectedFiles[0]?.name.substring(0, 20);
         }
 
         // 리스트에 들어갈 객체 구성
@@ -276,9 +268,9 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
             id: `new_${Date.now()}`,
             type: activeType,
             label: tempLabel,
-            value: displayValueForServer,
+            value: isFile ? selectedFile.name : displayValueForServer,
             // ERD 필수 컬럼들 매핑 준비
-            linkUrl: activeType === "link" ? fullLinkUrl : "",
+            linkUrl: activeType === "link" ? tempValue : null,
             fileName: isFile ? selectedFile.name : null,
             fileType: isFile ? selectedFile.type : null,
             fileSize: isFile ? selectedFile.size : null,
