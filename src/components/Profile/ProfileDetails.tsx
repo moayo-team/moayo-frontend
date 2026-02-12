@@ -15,7 +15,6 @@ interface ProfileDetailsProps {
     isReadOnly: boolean;
     isDetailsEmpty: boolean;
     data: ProfileFormData;
-    experienceIds: number[];
     onDataChange: (
         id:
             | keyof ProfileFormData
@@ -30,7 +29,7 @@ interface ProfileDetailsProps {
     ) => void;
 }
 
-const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienceIds, onDataChange }: ProfileDetailsProps) => {
+const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataChange }: ProfileDetailsProps) => {
     const canEdit = isEditing && !isReadOnly;
 
     const [isModalOpen, setIsModalOpen] = useState(false);
