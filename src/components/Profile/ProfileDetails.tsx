@@ -434,6 +434,15 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
         }
     };
 
+    // 프로필 이미지 URL과 다른 파일이 하나라도 있는지 확인
+    const hasSchoolDocs = data.documents?.some(doc => {
+        // 1. 프로필 이미지가 비어있다면 모든 문서를 학력 서류로 간주
+        if (!data.imageUrl) return true;
+
+        // 2. 파일의 URL과 현재 프로필 이미지 URL이 다르면 '학력 서류'로 판단
+        return String(doc.fileUrl) !== String(data.imageUrl);
+    }) || false;
+
     const getFullImageUrl = (url: string) => {
         if (!url) return defaultImage;
         if (url.startsWith('blob:')) return url;
@@ -543,7 +552,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                                     onDoubleClick={() => setIsModalOpen(true)}
                                                     className={`flex py-[4px] px-[8px] items-center gap-[4px] rounded-[8px] transition-colors shrink-0
                                                     cursor-pointer hover:opacity-80
-                                                    ${data.documents && data.documents.length > 0
+                                                    ${hasSchoolDocs
                                                             ? "bg-[#E9FCF7] text-[#1BA07A]" // 파일 있을 때: 민트색 테마
                                                             : "bg-[#EFEEEB] text-[#5F5749]" // 파일 없을 때: 회색 테마 
                                                         }
@@ -551,7 +560,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                                 >
                                                     <Paperclip size={18} />
                                                     <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em]">
-                                                        {data.documents && data.documents.length > 0
+                                                        {hasSchoolDocs
                                                             ? "첨부파일 확인"
                                                             : "학력 파일 증빙 전"
                                                         }
