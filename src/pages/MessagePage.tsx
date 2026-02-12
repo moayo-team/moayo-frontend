@@ -116,9 +116,6 @@ export default function MessagePage() {
             <h1 className="text-[22px] sm:text-[26px] xl:text-[28px] font-bold leading-[1.3] text-[#25221D]">
               쪽지함
             </h1>
-            <span className="text-[12px] sm:text-[13px] text-[#7A7368]">
-              대화방을 선택해 메시지를 확인하세요
-            </span>
           </div>
 
           <div
