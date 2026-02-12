@@ -13,7 +13,7 @@ interface ModalProps {
     isOpen: boolean;
     isEditing: boolean;
     onClose: () => void;
-    onComplete: (files: File[]) => void;
+    onComplete: (files: ProfileDocument[]) => void;
     currentProfileImage?: string;
     documents?: ProfileDocument[];
     isMyProfile?: boolean;
@@ -93,7 +93,6 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
             if (response.isSuccess) {
                 const updatedDocs = uploadedDocuments.filter(doc => doc.id !== documentId);
                 setUploadedDocuments(updatedDocs);
-                alert("파일이 삭제되었습니다.");
             }
         } catch (error) {
             alert("삭제 중 오류가 발생했습니다.");
@@ -121,10 +120,9 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
             const allSuccess = results.every(res => res.isSuccess);
 
             if (allSuccess) {
-                alert(`${selectedFiles.length}개의 파일이 성공적으로 등록되었습니다.`);
                 await fetchAndFilterDocuments();
                 setSelectedFiles([]);
-                onComplete([]);
+                onComplete(uploadedDocuments);
             } else {
                 alert("일부 파일 업로드에 실패했습니다. 목록을 확인해 주세요.");
                 await fetchAndFilterDocuments();
