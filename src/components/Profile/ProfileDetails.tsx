@@ -785,7 +785,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                             onClick={() => {
                                 if (canEdit) setIsTagModalOpen(true);
                             }}
-                            className={`flex w-full justify-center min-h-[160px] lg:min-h-[220px]
+                            className={`flex w-full justify-center min-h-[118px] lg:min-h-[130px]
                                 ${isEditing
                                     ? "cursor-pointer border border-dashed border-[#D9D5CE] bg-[#F9FFFD] rounded-[15px] p-[16px]"
                                     : "cursor-default border-none p-0"
@@ -861,9 +861,9 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                 maxLength={500}
                                 onChange={(e) => onDataChange("introduction", e.target.value)}
                                 placeholder="자기소개는 필수 입력 입니다."
-                                className={`flex flex-col items-start gap-[10px] shrink-0 w-full h-[220px] lg:h-[300px] px-[15px] py-[20px]
+                                className={`flex flex-col items-start gap-[10px] shrink-0 w-full h-[140px] lg:h-[180px] px-[15px] py-[20px]
                                 bg-transparent rounded-[10px] border-[#D9D5CE] border placeholder:text-[#D9D5CE] text-[#342F28]
-                                outline-none resize-none font-pretendard text-[16px] md:text-[18px]
+                                outline-none resize-none font-pretendard text-[12px] md:text-[16px]
                                 ${isEditing ? "cursor-text" : "cursor-default"}`}
                             />
                             {canEdit && (
