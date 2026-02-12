@@ -291,9 +291,17 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
     //다운로드/이동 핸들러
     const handleIconClick = async (item: any) => {
 
-        const targetUrl = item.linkUrl || item.value;
+        let targetUrl = "";
         const isFileType = item.itemType === 'file' || item.type === 'file';
-
+        if (isFileType) {
+            // 파일인 경우: fileUrl 또는 value
+            targetUrl = item.fileUrl || item.value;
+        } else if (item.itemType === 'link' || item.type === 'link') {
+            // 링크인 경우: 항상 linkUrl 사용
+            targetUrl = item.linkUrl || item.value;
+        } else {
+            targetUrl = item.value;
+        }
         if (!targetUrl) {
             alert("URL을 찾을 수 없습니다.");
             return;
@@ -301,11 +309,10 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
 
         const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 
-        const cleanPath = targetUrl.startsWith("/") ? targetUrl : `/${targetUrl}`;
-        const fullUrl = targetUrl.startsWith('http') ? targetUrl : encodeURI(`${baseUrl}${cleanPath}`);
-
         if (isFileType) {
-            //  토큰 없이 그냥 새 창에서 주소로 바로 접속
+            // targetUrl이 절대 경로인지 확인
+            const cleanPath = targetUrl.startsWith("/") ? targetUrl : `/${targetUrl}`;
+            const fullUrl = targetUrl.startsWith('http') ? targetUrl : encodeURI(`${baseUrl}${cleanPath}`);
             window.open(fullUrl, '_blank', 'noopener,noreferrer');
         } else {
             // 링크(Github 등)인 경우
