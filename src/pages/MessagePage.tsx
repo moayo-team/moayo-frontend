@@ -13,12 +13,10 @@ export default function MessagePage() {
   const initialRoomId = (location.state as { roomId?: number } | null)?.roomId;
   const initialRoomAppliedRef = useRef(false);
 
-  // 1) 채팅방 목록 polling (1.5초 간격 예시)
   const { threads: polledRooms, loading, error } = useChatThreadListPolling({
     intervalMs: 1500
   });
 
-  // 2) 실제 UI에서 쓸 채팅방 목록 상태
   const [roomSummaries, setRoomSummaries] = useState<ChatRoomSummary[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
@@ -30,8 +28,6 @@ export default function MessagePage() {
     initialRoomAppliedRef.current = true;
   }, [initialRoomId]);
 
-  // 2-1) polling 결과를 roomSummaries에 diff 반영
-  //      - 선택된 방은 polling으로 덮어쓰지 않고 항상 hasUnread=false 유지
   useEffect(() => {
     if (!polledRooms.length) return;
 
@@ -78,7 +74,6 @@ export default function MessagePage() {
     });
   }, [polledRooms, selectedRoomId]);
 
-  // 3) 첫 진입 시 첫 번째 방 자동 선택
   useEffect(() => {
     if (selectedRoomId == null && roomSummaries.length > 0) {
       setSelectedRoomId(roomSummaries[0].roomId);
@@ -90,7 +85,6 @@ export default function MessagePage() {
     [roomSummaries, selectedRoomId]
   );
 
-  // 4) 현재 선택한 방의 메시지들 (STOMP + 과거 메시지)
   const { connected, sending, meId, messages, input, setInput, send } =
     useChatRoom({
       roomId: selectedRoomId,
@@ -99,7 +93,6 @@ export default function MessagePage() {
 
   const myId = meId ?? currentUserId ?? 0;
 
-  // 5) 방 선택: optimistic unread 제거 + 서버 read patch
   const handleSelectRoom = (roomId: number) => {
     setSelectedRoomId(roomId);
 
@@ -114,7 +107,6 @@ export default function MessagePage() {
     });
   };
 
-  // 6) 선택된 방에서 messages가 변할 때, 최근메시지/시간 반영 + read patch
   useEffect(() => {
     if (!selectedRoomId) return;
     if (!messages.length) return;
@@ -168,13 +160,21 @@ export default function MessagePage() {
           <h1 className="text-[22px] sm:text-[26px] xl:text-[28px] font-bold leading-[1.3] mb-4 sm:mb-6">
             쪽지함 목록
           </h1>
-          <div className="flex flex-col md:flex-row gap-4 md:gap-6 h-[620px]">
+          <div
+            className="
+              flex flex-col md:flex-row gap-4 md:gap-6
+              h-[calc(100vh-170px)]
+              min-h-[560px]
+              max-h-[860px]
+            "
+          >
             <aside
               className="
                 order-2 md:order-1
                 w-full md:w-[360px] lg:w-[403px]
                 h-full
-                rounded-[10px] border border-[#ADA395] bg-white overflow-hidden
+                rounded-[10px] border border-[#ADA395] bg-white
+                overflow-hidden
                 flex flex-col
               "
             >
@@ -192,7 +192,8 @@ export default function MessagePage() {
                 w-full
                 h-full
                 md:flex-1
-                rounded-[10px] border border-[#ADA395] bg-white overflow-hidden
+                rounded-[10px] border border-[#ADA395] bg-white
+                overflow-hidden
                 flex flex-col
               "
             >
