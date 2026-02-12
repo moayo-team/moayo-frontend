@@ -157,7 +157,7 @@ export const useProfileSave = () => {
                             indexKey: item.label,
                             indexValue: String(item.value).substring(0, 20),
                             itemType: item.type,
-                            linkUrl: item.type === "link" ? (item.linkUrl || item.value) : (item.fileObj?.fileUrl || "")
+                            linkUrl: item.type === "link" ? (item.linkUrl || item.value) : (item.fileObj?.fileUrl || item.fileUrl || "")
                         };
 
                         if (typeof item.id === "number") {

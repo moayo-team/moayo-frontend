@@ -18,6 +18,11 @@ export interface AdditionalDetailItem {
     label: string;
     value: string;
     type: AdditionalItemType;
+    linkUrl?: string | null;  // ✅ 추가!
+    fileUrl?: string | null;  // ✅ 추가!
+    fileName?: string | null;
+    fileType?: string | null;
+    fileSize?: number | null;
     fileObj?: File | null;
 }
 
