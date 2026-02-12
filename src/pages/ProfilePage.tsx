@@ -261,7 +261,7 @@ const ProfilePage = () => {
         isReadOnly={isViewingOtherUser}
         isDetailsEmpty={isDetailsEmpty}
         data={profileData}
-        experienceIds={allCareers.map((c) => c.id)}
+        //experienceIds={allCareers.map((c) => c.id)}
         onDataChange={handleProfileChange}
         onModeChange={handleModeChange}
       />

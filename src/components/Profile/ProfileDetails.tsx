@@ -15,7 +15,6 @@ interface ProfileDetailsProps {
     isReadOnly: boolean;
     isDetailsEmpty: boolean;
     data: ProfileFormData;
-    experienceIds: number[];
     onDataChange: (
         id:
             | keyof ProfileFormData
@@ -30,7 +29,7 @@ interface ProfileDetailsProps {
     ) => void;
 }
 
-const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienceIds, onDataChange }: ProfileDetailsProps) => {
+const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataChange }: ProfileDetailsProps) => {
     const canEdit = isEditing && !isReadOnly;
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -303,7 +302,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
         let fullUrl: string;
 
         if (item.type === 'file') {
-            if (targetUrl.startsWith('http')) {
+            if (targetUrl.startsWith('https')) {
                 fullUrl = targetUrl;
             } else {
                 const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
@@ -317,7 +316,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
             }
         } else {
             // 링크: http 프로토콜 추가
-            fullUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+            fullUrl = targetUrl.startsWith('https') ? targetUrl : `https://${targetUrl}`;
         }
 
         window.open(fullUrl, '_blank', 'noopener,noreferrer');
@@ -546,7 +545,6 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                         onComplete={handleVerifyComplete}
                         currentProfileImage={data.imageUrl}
                         documents={data.documents}
-                        experienceIds={experienceIds}
                         isMyProfile={!isReadOnly}
                     />
 
@@ -786,13 +784,13 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                             onClick={() => {
                                 if (canEdit) setIsTagModalOpen(true);
                             }}
-                            className={`flex w-full justify-center min-h-[96px] lg:min-h-[110px] border-none p-0
+                            className={`flex w-full justify-center min-h-[96px] lg:min-h-[110px]  p-0
                                 ${isEditing
                                     ? "cursor-pointer"
                                     : "cursor-default"
                                 }
                                 ${data.tags && data.tags.length > 0
-                                    ? "justify-start items-start"
+                                    ? "justify-start items-start border-none"
                                     : "justify-center items-center rounded-[10px] border-dashed border-[#D9D5CE] border-2"
                                 }`}
                         >

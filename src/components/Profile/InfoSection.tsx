@@ -7,7 +7,6 @@ interface InfoSectionProps {
     isReadOnly?: boolean;
     isDetailsEmpty: boolean;
     data: ProfileFormData;
-    experienceIds: number[];
     onDataChange: (
         id:
             | keyof ProfileFormData
@@ -21,7 +20,7 @@ interface InfoSectionProps {
     onModeChange: () => void;
 }
 
-const InfoSection = ({ isEditing, isReadOnly = false, isDetailsEmpty, data, experienceIds, onDataChange, onModeChange }: InfoSectionProps) => {
+const InfoSection = ({ isEditing, isReadOnly = false, isDetailsEmpty, data, onDataChange, onModeChange }: InfoSectionProps) => {
 
     //  버튼 텍스트 결정 로직
     const getButtonText = () => {
@@ -76,7 +75,6 @@ const InfoSection = ({ isEditing, isReadOnly = false, isDetailsEmpty, data, expe
                         isReadOnly={isReadOnly}
                         isDetailsEmpty={isDetailsEmpty}
                         data={data}
-                        experienceIds={experienceIds}
                         onDataChange={onDataChange}
                     />
                 </div>
