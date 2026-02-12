@@ -1,13 +1,6 @@
 {
   "rewrites": [
-<<<<<<< HEAD
     { "source": "/api/:path*", "destination": " https://moayo-backend.p-e.kr/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
-=======
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
->>>>>>> 39a14235d4f2d05871ab90a847cf52a844f2ff55
   ]
 }
