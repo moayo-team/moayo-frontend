@@ -829,7 +829,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                     <div className="flex flex-col md:flex-row gap-[12px] items-center text-center">
                                         <img
                                             src={MascotIcon}
-                                            className="w-[40px] lg:w-[50px] h-auto"
+                                            className="w-[100px] h-[80px] object-contain"
                                         />
                                         <span className="text-[#7C7160] font-pretendard text-[14px] lg:text-[16px] font-medium ">
                                             {data.name}님의 관심사를 알려주세요!
