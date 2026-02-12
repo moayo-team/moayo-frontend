@@ -62,6 +62,8 @@ const ProfilePage = () => {
         label: i.indexKey,
         value: i.indexValue,
         type: i.itemType,
+        linkUrl: i.linkUrl,  // ✅ 추가!
+      fileUrl: i.linkUrl, 
         fileObj: null,
       })) ?? [];
 
@@ -104,6 +106,8 @@ const ProfilePage = () => {
         label: i.indexKey,
         value: i.indexValue,
         type: i.itemType,
+        linkUrl: i.linkUrl,  // ✅ 추가!
+      fileUrl: i.linkUrl, 
         fileObj: null,
       })) ?? [];
 

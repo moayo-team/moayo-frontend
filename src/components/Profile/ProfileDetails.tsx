@@ -295,7 +295,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
         const isFileType = item.itemType === 'file' || item.type === 'file';
         if (isFileType) {
             // 파일인 경우: fileUrl 또는 value
-            targetUrl = item.linkUrl || item.value;
+            targetUrl = item.linkUrl || item.fileUrl || item.value;
             console.log("파일 타입, targetUrl:", targetUrl);
         } else if (item.itemType === 'link' || item.type === 'link') {
             // 링크인 경우: 항상 linkUrl 사용
