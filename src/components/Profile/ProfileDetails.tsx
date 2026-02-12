@@ -619,13 +619,13 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                 </button>
 
                             ) : (
-                                <div className="flex flex-col items-center w-full max-w-[720px] px-[20px] py-[30px] 
+                                <div className="flex flex-col items-start w-full max-w-[720px] px-[20px] py-[30px] 
                                     shadow-sm animate-in fade-in zoom-in-95 gap-[16px]
                                     bg-[#FBFAF9] rounded-[20px] md:rounded-[30px]">
                                     <p className="font-pretendard text-[18px] font-semibold text-[#342F28] text-center">
                                         추가하고 싶은 정보를 선택하세요.
                                     </p>
-                                    <div className="flex gap-[8px] justify-center w-full">
+                                    <div className="flex gap-[8px] justify-start w-full">
                                         {ADD_OPTIONS.map((option) => {
                                             const isSelected = activeType === option.type;
 
@@ -716,7 +716,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                                                     />
                                                                 </div>
                                                             ) : (
-                                                                <div className="flex justify-center items-center gap-[8px] bg-white">
+                                                                <div className="flex justify-start items-center gap-[8px] bg-white w-full px-4">
                                                                     <FileText size={28} color="#978B78" />
                                                                     <div className="flex flex-col items-center gap-2">
                                                                         <span className="self-stretch text-center text-[#978B78] font-pretendard text-[14px] font-medium leading-[140%] whitespace-nowrap">
