@@ -8,7 +8,6 @@ import TagSelectModal from "./TagSelectModal";
 import MascotIcon from "../../assets/white.svg"
 import type { ProfileFormData } from "../../types/profileForm";
 import type { InterestTag, ProfileDocument } from "../../types/profile";
-import axios from "axios";
 //import MinLayoutContainer from './layouts/MinWidthLayout';
 
 interface ProfileDetailsProps {
