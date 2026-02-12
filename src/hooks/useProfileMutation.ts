@@ -142,9 +142,13 @@ export const useProfileSave = () => {
 
                         const detailData = {
                             indexKey: item.label,
-                            indexValue: String(item.value).substring(0, 20),
+                            indexValue: item.type === "link"
+                                ? item.linkUrl
+                                : item.value,
                             itemType: item.type,
-                            linkUrl: item.type === "link" ? (item.url || item.value) : null
+                            linkUrl: item.type === "link"
+                                ? item.linkUrl
+                                : null
                         };
 
                         if (typeof item.id === "number") {

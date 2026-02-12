@@ -5,9 +5,9 @@ import { formatPhoneNumber } from "../../utils/format";
 import { useUploadManager } from "../../hooks/useUploadManager";
 import SchoolVerifyModal from "./SchoolVerifyModal";
 import TagSelectModal from "./TagSelectModal";
-import MascotIcon from "../../assets/white2.png"
+import MascotIcon from "../../assets/white1.svg"
 import type { ProfileFormData } from "../../types/profileForm";
-import type { InterestTag } from "../../types/profile";
+import type { InterestTag, ProfileDocument } from "../../types/profile";
 import axios from "axios";
 //import MinLayoutContainer from './layouts/MinWidthLayout';
 
@@ -258,8 +258,12 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
         if (isFile && !selectedFile) return alert("파일을 선택해주세요.");
 
         let displayValueForServer = tempValue;
-        if (isLink && tempValue.length > 20) {
-            displayValueForServer = tempValue.substring(0, 20);
+        let fullLinkUrl = tempValue;
+        if (isLink) {
+            fullLinkUrl = tempValue.toLowerCase().startsWith('http')
+                ? tempValue
+                : `https://${tempValue}`;
+            displayValueForServer = tempValue.length > 20 ? tempValue.substring(0, 20) : tempValue;
         } else if (isFile) {
             displayValueForServer = uploadManager.selectedFiles[0]?.name.substring(0, 20);
         }
@@ -271,7 +275,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
             label: tempLabel,
             value: isFile ? selectedFile.name : displayValueForServer,
             // ERD 필수 컬럼들 매핑 준비
-            linkUrl: activeType === "link" ? tempValue : null,
+            linkUrl: activeType === "link" ? fullLinkUrl : null,
             fileName: isFile ? selectedFile.name : null,
             fileType: isFile ? selectedFile.type : null,
             fileSize: isFile ? selectedFile.size : null,
@@ -327,24 +331,24 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
     };
     //다운로드/이동 핸들러
     const handleIconClick = async (item: any) => {
-    const targetUrl = item.type === 'file'
-        ? (item.linkUrl || item.fileUrl || item.url || item.value)
-        : (item.linkUrl || item.url || item.value);
+        const isFileType = item.type === 'file' || item.itemType === 'file';
+        const targetUrl = isFileType
+            ? item.linkUrl   // 서버에서 내려준 파일 경로
+            : item.linkUrl;
+        if (!targetUrl) {
+            alert("URL을 찾을 수 없습니다.");
+            return;
+        }
 
-    if (!targetUrl) {
-        alert("URL을 찾을 수 없습니다.");
-        return;
-    }
-
-    if (item.type === 'file') {
-        // 파일인 경우 인증 토큰과 함께 요청
-        await openFileWithAuth(targetUrl);
-    } else {
-        // 링크인 경우 기존 방식 유지
-        const fullUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
-        window.open(fullUrl, '_blank', 'noopener,noreferrer');
-    }
-};
+        if (isFileType) {
+            // 파일인 경우 인증 토큰과 함께 요청
+            await openFileWithAuth(targetUrl);
+        } else {
+            // 링크인 경우 기존 방식 유지
+            const fullUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+            window.open(fullUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
 
     //기존 리스트 수정/삭제 로직
     const updateCustomField = (id: number | string, key: "label" | "value", val: string) => {
@@ -352,10 +356,11 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
             if (item.id !== id) return item;
 
             if (key === 'value' && item.type === 'link') {
+                const fullUrl = val.startsWith('http') ? val : `https://${val}`;
                 return {
                     ...item,
                     value: val,
-                    linkUrl: val,
+                    linkUrl: fullUrl,
                     url: val
                 };
             }
@@ -404,7 +409,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
         }
     }, [uploadManager.selectedFiles]);
 
-    const handleVerifyComplete = (_files: File[]) => {
+    const handleVerifyComplete = (_files: ProfileDocument[]) => {
         onDataChange("school_verified", true);
     };
 
@@ -815,7 +820,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                 }
                                 ${data.tags && data.tags.length > 0
                                     ? "justify-start items-start border-0"
-                                    : "justify-center items-center rounded-[10px] border-dashed border-[#D9D5CE] border-2"
+                                    : "justify-center items-center rounded-[10px] border-dashed border-[#D9D5CE] border-2 p-8"
                                 }`}
                         >
                             {data.tags && data.tags.length > 0 ? (
