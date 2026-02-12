@@ -215,8 +215,8 @@ const ProfilePage = () => {
             await refreshUser();
             setIsEditing(false);
           },
-          onError: (error) => {
-            console.error("💥 저장 실패:", error);
+          onError: (_error) => {
+            alert("프로필 저장에 실패했습니다. 다시 시도해 주세요.");
           }
 
         }
@@ -248,7 +248,6 @@ const ProfilePage = () => {
 
   if (resolvedIsLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
   if (resolvedIsError) return <div className="text-center p-10">데이터를 불러오는 중 오류가 발생했습니다.</div>;
-  if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
   if (!profileData) return <div className="text-center p-10">프로필 정보를 불러올 수 없습니다.</div>;
 
   return (

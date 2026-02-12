@@ -392,7 +392,7 @@ export default function HomePage(): JSX.Element {
                       <div className="mt-4 flex flex-col gap-2">
                         <button
                           type="button"
-                          className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[10px] bg-[#E9FCF7] border border-[#BFEDE1] text-[#1BA07A] font-semibold"
+                          className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[5px] bg-[#E9FCF7] text-[#1BA07A] font-semibold"
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleSendMessageToUser(u.userId)}
                         >
@@ -403,7 +403,7 @@ export default function HomePage(): JSX.Element {
                         </button>
                         <button
                           type="button"
-                          className="h-10 rounded-[10px] bg-[#EFEEEB] hover:opacity-90 inline-flex items-center justify-center"
+                          className="h-10 rounded-[5px] bg-[#EFEEEB] hover:opacity-90 inline-flex items-center justify-center"
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => navigate(`/profile/${u.userId}`)}
                         >
