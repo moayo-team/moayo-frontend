@@ -290,17 +290,20 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
 
     //다운로드/이동 핸들러
     const handleIconClick = async (item: any) => {
-
+console.log("handleIconClick 호출:", item);
         let targetUrl = "";
         const isFileType = item.itemType === 'file' || item.type === 'file';
         if (isFileType) {
             // 파일인 경우: fileUrl 또는 value
             targetUrl = item.fileUrl || item.value;
+            console.log("파일 타입, targetUrl:", targetUrl);
         } else if (item.itemType === 'link' || item.type === 'link') {
             // 링크인 경우: 항상 linkUrl 사용
             targetUrl = item.linkUrl || item.value;
+            console.log("링크 타입, targetUrl:", targetUrl);
         } else {
             targetUrl = item.value;
+            console.log("기타 타입, targetUrl:", targetUrl);
         }
         if (!targetUrl) {
             alert("URL을 찾을 수 없습니다.");
@@ -313,10 +316,14 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
             // targetUrl이 절대 경로인지 확인
             const cleanPath = targetUrl.startsWith("/") ? targetUrl : `/${targetUrl}`;
             const fullUrl = targetUrl.startsWith('http') ? targetUrl : encodeURI(`${baseUrl}${cleanPath}`);
+                    console.log("파일 fullUrl:", fullUrl);
+
             window.open(fullUrl, '_blank', 'noopener,noreferrer');
         } else {
             // 링크(Github 등)인 경우
             const linkUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+                    console.log("링크 linkUrl:", linkUrl);
+
             window.open(linkUrl, '_blank', 'noopener,noreferrer');
         }
     };
