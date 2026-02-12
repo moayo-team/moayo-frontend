@@ -470,7 +470,16 @@ export default function HomePage(): JSX.Element {
                             type="button"
                             className="h-10 rounded-[5px] bg-[#EFEEEB] hover:opacity-90 inline-flex items-center justify-center"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => navigate(`/profile/${u.userId}`)}
+                            onClick={() => {
+                              const otherId = Number(u.userId);
+
+                              if (!Number.isFinite(otherId) || otherId <= 0) {
+                                alert("상대 사용자 정보를 찾을 수 없습니다.");
+                                return;
+                              }
+
+                              navigate("/profile", { state: { userId: otherId } });
+                            }}
                           >
                             <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#7C7160]">
                               프로필 보러가기
