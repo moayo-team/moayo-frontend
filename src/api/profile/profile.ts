@@ -191,7 +191,7 @@ export const deleteIndexItem = async (itemId: number): Promise<DeleteIndexItemRe
     return response.data;
 };
 
-/**첨부파일 업로드 (프사/ 학력파일/ 이력 파일)*/
+/**첨부파일 업로드 (프사/ 학력파일)*/
 export const uploadProfileDocument = async (file: File): Promise<UploadDocumentResponse> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -208,12 +208,12 @@ export const uploadProfileDocument = async (file: File): Promise<UploadDocumentR
     return response.data;
 };
 
-/**첨부 파일 조회 (프사/ 학력파일/ 이력 파일)*/
+/**첨부 파일 조회 (프사/ 학력파일/)*/
 export const getProfileDocuments = async (): Promise<documentListResponse> => {
     const res = await apiClient.get<documentListResponse>("/api/v1/profiles/me/documents");
     return res.data;
 };
-/**첨부 파일 삭제 (프사/ 학력파일/ 이력 파일)*/
+/**첨부 파일 삭제 (프사/ 학력파일)*/
 export const deleteProfileDocument = async (
     documentId: number
 ): Promise<DeleteDocumentResponse> => {
