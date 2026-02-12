@@ -17,10 +17,11 @@ export async function createExperienceSession(): Promise<BaseResponse<number>> {
   return res.data;
 }
 
-export async function createAIDraft(experienceId: number, body: DraftRequest) {
+export async function createAIDraft(body: DraftRequest) {
   const res = await apiClient.post<BaseResponse<any>>(
-    `/api/v1/experiences/${experienceId}/ai/draft`,
-    body
+    `/api/v1/experiences/ai/summary`,
+    body,
+    { timeout: 15000 }
   );
   return res.data;
 }
@@ -36,6 +37,7 @@ export type PatchExperienceBody = Partial<{
   isPublic: boolean;
 }>;
 
+{/*
 export async function patchExperience(experienceId: number, body: PatchExperienceBody) {
   const res = await apiClient.patch<BaseResponse<any>>(
     `/api/v1/experiences/${experienceId}`,
@@ -43,3 +45,4 @@ export async function patchExperience(experienceId: number, body: PatchExperienc
   );
   return res.data;
 }
+ */}
