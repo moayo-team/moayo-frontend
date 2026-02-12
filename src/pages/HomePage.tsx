@@ -495,7 +495,7 @@ export default function HomePage(): JSX.Element {
                           >
                             <img className="w-5 h-5" alt="" src={send} aria-hidden="true" />
                             <span className="font-pretendard text-[14px] font-normal leading-[22px] text-[#1BA07A]">
-                              쪽지
+                              쪽지보내기
                             </span>
                           </button>
                           <button
@@ -514,7 +514,7 @@ export default function HomePage(): JSX.Element {
                             }}
                           >
                             <span className="font-pretendard text-[14px] font-normal leading-[22px] text-[#7C7160]">
-                              프로필
+                              프로필 보러가기
                             </span>
                           </button>
                         </div>
