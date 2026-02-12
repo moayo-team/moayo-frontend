@@ -145,7 +145,7 @@ export default function HomePage(): JSX.Element {
   }
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20">
+    <div className="pt-8 pb-20">
       <section className="pt-6">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-[22px] font-bold text-[#342F28]">모아요 AI</h1>
