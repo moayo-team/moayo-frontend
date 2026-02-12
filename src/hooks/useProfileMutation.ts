@@ -145,14 +145,10 @@ export const useProfileSave = () => {
                                 fileToSend = item.fileObj;
                             } else if (item.fileObj?.fileObj instanceof File) {
                                 fileToSend = item.fileObj.fileObj;
-                            } else {
-                                console.warn(`⚠️ 파일 항목인데 실제 File이 없습니다. label: ${item.label}`);
                             }
+                            // ✅ 기존 파일인 경우: fileToSend가 undefined여도 괜찮음
                         }
-                        if (fileToSend === undefined && item.type === "file") {
-    alert(`파일 항목 "${item.label}"이(가) 선택되지 않았습니다. 저장할 수 없습니다.`);
-    return;
-}
+
                         const detailData = {
                             indexKey: item.label,
                             indexValue: String(item.value).substring(0, 20),
