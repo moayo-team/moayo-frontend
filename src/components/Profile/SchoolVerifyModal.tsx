@@ -90,9 +90,9 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
 
         const filtered = allDocs.filter(doc => {
             const isNotProfileImg = String(doc.fileUrl) !== String(currentProfileImage);
-            const isNotExpFile = !experienceFileIds.has(Number(doc.id));
             
-            return isNotProfileImg && isNotExpFile;
+            
+            return isNotProfileImg;
         });
 
         setUploadedDocuments(filtered);
@@ -103,7 +103,7 @@ const SchoolVerifyModal = ({ isOpen, isEditing, onClose, onComplete, currentProf
         if (isOpen) {
             fetchAndFilterDocuments();
         }
-    }, [isOpen, isMyProfile, documents]);
+    }, [isOpen]);
 
     // 서버 파일 삭제
     const handleDeleteServerFile = async (documentId: number) => {

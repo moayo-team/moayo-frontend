@@ -786,13 +786,13 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                             onClick={() => {
                                 if (canEdit) setIsTagModalOpen(true);
                             }}
-                            className={`flex w-full justify-center min-h-[96px] lg:min-h-[110px] border-none p-0
+                            className={`flex w-full justify-center min-h-[96px] lg:min-h-[110px]  p-0
                                 ${isEditing
                                     ? "cursor-pointer"
                                     : "cursor-default"
                                 }
                                 ${data.tags && data.tags.length > 0
-                                    ? "justify-start items-start"
+                                    ? "justify-start items-start border-none"
                                     : "justify-center items-center rounded-[10px] border-dashed border-[#D9D5CE] border-2"
                                 }`}
                         >
