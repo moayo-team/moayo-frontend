@@ -352,7 +352,7 @@ const CareerAddPage = (): JSX.Element => {
         summary: newCareer.intro,
         isPublic: newCareer.isPublic
       };
-      
+
       const res = await apiClient.post<ApiEnvelope<CreateExperienceResult>>(
         "/api/v1/experiences",
         payload

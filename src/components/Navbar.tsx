@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useState, type JSX } from 'react';
-import logo from '../assets/pavicon.png';
+import smalllogo from '../assets/pavicon.svg';
 import defultProfile from "../assets/default_profile.svg"
 import { Menu, X } from 'lucide-react';
 
@@ -56,12 +56,12 @@ export const NavigationBar = (): JSX.Element => {
           className="flex items-center gap-2 sm:gap-4 hover:opacity-80 transition-opacity cursor-pointer"
         >
           <img
-            className="w-8 h-8 sm:w-10 sm:h-10 aspect-[1]"
+            className="relative w-10 h-10 aspect-[1]"
             alt="MOAYO Logo"
-            src={logo}
+            src={smalllogo}
           />
-          <div className="[font-family:'Pretendard-Bold',Helvetica] font-bold text-black text-xl sm:text-[28px] tracking-[0] leading-9 whitespace-nowrap ">
-            MOAYO!
+          <div className="relative w-fit [font-family:'SuSeongHyeJeong',Helvetica] font-normal text-[#232323] text-2xl tracking-[-0.48px] leading-[normal]">
+            MOAYO
           </div>
         </button>
 
