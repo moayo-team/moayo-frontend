@@ -8,8 +8,10 @@ export const apiClient = axios.create({
     "Content-Type": "application/json",
   },
   withCredentials: true,
-  timeout: 5000,
+  timeout: 10000,
 });
+
+
 
 const refreshClient = axios.create({
   baseURL: BASE_URL,
@@ -24,7 +26,6 @@ const normalizeToken = (raw: unknown): string | null => {
   if (raw == null) return null;
   let t = String(raw);
 
-  // JSON.stringify로 저장된 경우 대비
   try {
     if (t.startsWith('"') && t.endsWith('"')) t = JSON.parse(t);
   } catch {}
@@ -112,8 +113,7 @@ apiClient.interceptors.response.use(
 
         originalRequest.headers = originalRequest.headers ?? {};
         setAuthHeader(originalRequest.headers, newToken);
-
-        // refresh 실패면 토큰 정리
+        
         if (!newToken) {
           localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem(USER_KEY);

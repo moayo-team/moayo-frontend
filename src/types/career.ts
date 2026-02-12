@@ -29,8 +29,8 @@ export interface ExperienceSummary {
   experienceId: number;
   organization: string;
   title: string;
-  startDate: string | null; 
-  endDate: string | null;   
+  startDate: string | null;
+  endDate: string | null;
   activity: string;
   role: string;
   visible: boolean;
@@ -40,13 +40,24 @@ export type CareerListResponse = BaseResponse<ExperienceSummary>
 
 // 이력 생성 요청
 export interface CreateExperienceRequest {
-  title: string;       
-  organization: string; 
-  startDate: string;    
-  endDate: string;      
-  activity: string;     
-  role: string;         
-  summary: string;      
+  title: string;
+  organization: string;
+  startDate: string;
+  endDate: string;
+  activity: string;
+  role: string;
+  summary: string;
+}
+
+//AI 초안 작성 요청
+export interface CreateAIPrompt {
+  title: string;
+  organization: string;
+  startDate: string;
+  endDate: string;
+  participationType: string;
+  role: string;
+  draftText: string;
 }
 
 // 이력 생성 응답
@@ -64,17 +75,17 @@ export interface UpdateVisibilityRequest {
 }
 
 //이력 공개 여부 응답
-export type ExperienceVisibilityResponse= BaseResponse<null>;
+export type ExperienceVisibilityResponse = BaseResponse<null>;
 
 // 이력 수정 
 export interface UpdateExperienceRequest {
-    title: string;
-    organization: string;
-    startDate: string; 
-    endDate: string;   
-    activity: string;
-    role: string;
-    summary: string;
+  title: string;
+  organization: string;
+  startDate: string;
+  endDate: string;
+  activity: string;
+  role: string;
+  summary: string;
 }
 
 // 수정 응답 타입 
@@ -82,8 +93,8 @@ export type UpdateExperienceResponse = BaseResponse<null>;
 
 // 이력 파일 첨부 요청
 export interface AttachmentFileRequest {
-    fileId: number;
-    fileName: string;
+  fileId: number;
+  fileName: string;
 }
 
 // 파일 첨부 응답 
@@ -91,25 +102,25 @@ export type AttachmentFileResponse = BaseResponse<null>;
 
 //커스텀 파일 타입
 export interface AttachedFile {
-    id?: number;     
-    name: string;    
-    url?: string;    
-    fileObj?: File;  
-    type?: string;
+  id?: number;
+  name: string;
+  url?: string;
+  fileObj?: File;
+  type?: string;
 }
 
 // 파일 조회 응답
 export interface ExperienceFileResponse {
-    fileId: number;
-    fileName: string;
+  fileId: number;
+  fileName: string;
 }
 
 export type GetExperienceFilesResponse = BaseResponse<ExperienceFileResponse[]>;
 
 //파일 삭제 요청
 export interface DetachFileRequest {
-    experienceId: number; 
-    fileId: number;     
+  experienceId: number;
+  fileId: number;
 }
 
 //파일 삭제 응답
@@ -178,3 +189,15 @@ export type GetPublicExperienceFilesResponse = BaseResponse<PublicExperienceFile
 
 //공개 이력 상세 조회 응답
 export type GetPublicExperienceDetailsResponse = BaseResponse<ExperienceSummary>;
+
+//이력파일업로드타입
+export interface CareerFile {
+  fileId: number;
+  fileName: string;
+  contentType: string;
+  size: number;
+
+}
+//이력 파일 업로드 응답
+export type FileUploadReponse = BaseResponse<CareerFile>;
+

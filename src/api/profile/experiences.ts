@@ -1,4 +1,4 @@
-import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse, type CreateExperienceLinkRequset, type GetExperienceLinksResponse, type ExperienceLink, type GetExperienceFilesResponse, type UpdateExperienceLinkRequest, type UpdateExperienceLinkResponse, type PublicExperienceListResponse, type GetPublicExperienceLinksResponse, type GetPublicExperienceFilesResponse, type GetPublicExperienceDetailsResponse, type ExperienceSummary, } from "../../types/career";
+import { type CreateExperienceRequest, type CreateExperienceResponse, type CareerListResponse, type CareerDetailReponse, type DeleteExperienceResponse, type ExperienceVisibilityResponse, type UpdateVisibilityRequest, type UpdateExperienceResponse, type UpdateExperienceRequest, type AttachmentFileRequest, type AttachmentFileResponse, type ExperienceFileResponse, type BaseResponse, type DetachFileResponse, type CreateExperienceLinkRequset, type GetExperienceLinksResponse, type ExperienceLink, type GetExperienceFilesResponse, type UpdateExperienceLinkRequest, type UpdateExperienceLinkResponse, type PublicExperienceListResponse, type GetPublicExperienceLinksResponse, type GetPublicExperienceFilesResponse, type GetPublicExperienceDetailsResponse, type ExperienceSummary, type FileUploadReponse, } from "../../types/career";
 import { apiClient } from "../client";
 
 /** 내 이력서 목록 조회 */
@@ -96,6 +96,22 @@ export const postExperienceFile = async (
     }
 };
 
+//이력 파일 업로드 
+export const uploadFile = async (file: File): Promise<FileUploadReponse> => {
+    const formData = new FormData();
+    formData.append('file', file); // 파라미터 이름이 'file'이어야 함
+
+    const { data } = await apiClient.post<FileUploadReponse>(
+        '/api/v1/files',
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        }
+    );
+    return data;
+};
 //이력 파일 조회
 export const getExperienceFiles = async (experienceId: number): Promise<BaseResponse<ExperienceFileResponse[]>> => {
     const { data } = await apiClient.get<BaseResponse<GetExperienceFilesResponse>>(
@@ -104,6 +120,13 @@ export const getExperienceFiles = async (experienceId: number): Promise<BaseResp
     return data.result;
 };
 
+//이력 파일 다운로드
+export const downloadFileApi = async (fileId: number): Promise<Blob> => {
+    const response = await apiClient.get(`/api/v1/files/${fileId}`, {
+        responseType: 'blob', 
+    });
+    return response.data;
+};
 //이력 파일 삭제
 export const deleteExperienceFile = async (
     expId: number,

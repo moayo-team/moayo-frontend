@@ -2,12 +2,14 @@ import type { JSX, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPor
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import menu from "../assets/menu.svg";
-import plane from "../assets/plane.png";
+import menu from "../assets/UnorderedList.svg";
+import send from "../assets/send.svg";
+import send_brown from "../assets/send_brown.svg";
 import defaultImage from "../assets/default_profile.svg";
+import tablerPencil from "../assets/tabler_pencil.svg";
 
 import { useAuth } from "../hooks/useAuth";
-import { CircleCheck, Mic } from "lucide-react";
+import { CircleCheck } from "lucide-react";
 import { useHomeStore } from "../store/homeStore";
 import { apiClient } from "../api/client";
 
@@ -179,7 +181,11 @@ export default function HomePage(): JSX.Element {
                     <span className="flex-1 text-[#1BA07A] text-[14px] sm:text-[16px] font-medium leading-[130%]">
                       {myName}님이 했던 경험을 자유롭게 서술해주세요. 모아요 AI가 정리해드려요!
                     </span>
-                    <Mic size={20} className="text-[#1BA07A] shrink-0" />
+                    <img
+                      src={tablerPencil}
+                      alt="edit"
+                      className="shrink-0 w-5 h-5"
+                    />
                   </div>
                 ) : (
                   <div className="flex w-full gap-3">
@@ -192,7 +198,11 @@ export default function HomePage(): JSX.Element {
                       onChange={handleTextareaChange}
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <Mic size={20} className="text-[#1BA07A] shrink-0 pt-1" />
+                    <img
+                      src={tablerPencil}
+                      alt="edit"
+                      className="shrink-0 pt-1 w-5 h-5"
+                    />
                   </div>
                 )}
               </div>
@@ -239,7 +249,7 @@ export default function HomePage(): JSX.Element {
             <h2 className="text-[16px] font-semibold text-[#342F28] mb-3">프로필</h2>
 
             <div className="p-5">
-              <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-gray-scale30 rounded-[10px] flex flex-col">
+              <div className="h-auto sm:h-[258px] items-center justify-center gap-2.5 px-5 py-6 sm:py-[27px] bg-[#FBFAF9] rounded-[10px] flex flex-col">
                 <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
                   <img
                     className={`w-[120px] sm:w-[150px] h-[120px] sm:h-[152px] rounded-[10px] ${
@@ -270,10 +280,10 @@ export default function HomePage(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => navigate("/message")}
-                  className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-gray-scale30 rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
+                  className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                 >
-                  <img className="relative w-5 h-5" alt="" src={plane} aria-hidden="true" />
-                  <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                  <img className="relative w-5 h-5" alt="" src={send_brown} aria-hidden="true" />
+                  <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                     쪽지
                   </span>
                 </button>
@@ -281,10 +291,10 @@ export default function HomePage(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => navigate("/board")}
-                  className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-gray-scale30 rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
+                  className="all-[unset] box-border px-[15px] py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2.5 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                 >
                   <img className="relative w-5 h-5" alt="" src={menu} aria-hidden="true" />
-                  <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                  <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                     게시판으로 돌아가기
                   </span>
                 </button>
@@ -314,27 +324,25 @@ export default function HomePage(): JSX.Element {
                 imminentPosts.slice(0, 3).map((p: { postId: Key | null | undefined; title: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; categoryLabel: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; role: any; dday: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }) => (
                   <article
                     key={p.postId}
-                    className="w-full rounded-[14px] bg-[#F7F6F3] p-4 sm:p-5 flex items-center gap-4 cursor-pointer hover:opacity-95 transition"
+                    className="w-full max-w-[475px] mx-auto rounded-[14px] border border-[#D9D5CE] bg-[#FBFAF9] px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4 cursor-pointer hover:opacity-95 transition"
                     onClick={() => navigate(`/post/${p.postId}`)}
                   >
-                    <div className="w-[86px] h-[86px] rounded-[14px] bg-[#E9E6E1] shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="text-[16px] sm:text-[18px] font-semibold text-[#2E2A25] truncate">
-                            {p.title}
-                          </div>
-                          <div className="mt-1 text-[13px] sm:text-[14px] text-[#6F6A61]">
-                            {p.categoryLabel}
-                            {p.role ? ` · ${p.role}` : ""}
-                          </div>
-                        </div>
-                        <span className="shrink-0 rounded-[10px] bg-[#ECE9E4] px-3 py-1 text-[12px] font-semibold text-[#6F6A61]">
-                          {p.dday}
-                        </span>
+                    <div className="min-w-0">
+                      <span className="inline-flex items-center rounded-[8px] bg-[#EFEEEB] px-2.5 py-1 text-[12px] font-semibold text-[#5F5749]">
+                        {p.dday}
+                      </span>
+
+                      <div className="mt-3 text-[20px] sm:text-[22px] font-semibold text-[#25221D] leading-[120%] truncate">
+                        {p.title}
+                      </div>
+                      <div className="mt-2 text-[14px] text-[#342F28]">
+                        <span>{p.categoryLabel}</span>
+                        {p.role ? <span className="text-[#342F28]">{` · ${p.role}`}</span> : null}
                       </div>
                     </div>
-                    <div className="text-[#8D877E] text-[22px] leading-none shrink-0">›</div>
+                    <div className="shrink-0 flex w-[24px] h-[24px] justify-center items-center text-[#25221D]">
+                      <span className="text-[24px] leading-none">›</span>
+                    </div>
                   </article>
                 ))
               )}
@@ -384,24 +392,27 @@ export default function HomePage(): JSX.Element {
                       <div className="mt-4 flex flex-col gap-2">
                         <button
                           type="button"
-                          className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[10px] bg-[#E9FCEF] border border-[#BFEDE1] text-[#1F8F76] font-semibold"
+                          className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[10px] bg-[#E9FCF7] border border-[#BFEDE1] text-[#1BA07A] font-semibold"
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleSendMessageToUser(Number(u.userId))}
                         >
-                          <img className="w-5 h-5" alt="" src={plane} aria-hidden="true" />
-                          <span className="text-[14px] leading-none">쪽지보내기</span>
+                          <img className="w-5 h-5" alt="" src={send} aria-hidden="true" />
+                          <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#1BA07A]">
+                            쪽지보내기
+                          </span>
                         </button>
                         <button
                           type="button"
-                          className="h-10 rounded-[10px] bg-[#F7F6F3] border border-[#ECE7DF] text-[#7A7368] hover:opacity-90"
+                          className="h-10 rounded-[10px] bg-[#EFEEEB] hover:opacity-90 inline-flex items-center justify-center"
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => navigate(`/profile/${u.userId}`)}
                         >
-                          프로필 보러가기
+                          <span className="font-pretendard text-[16px] font-normal leading-[27px] text-[#7C7160]">
+                            프로필 보러가기
+                          </span>
                         </button>
                       </div>
-
-                      <p className="mt-3 text-[11px] text-[#9A948A] leading-4">
+                      <p className="mt-3 font-pretendard text-[10px] font-normal text-[#5F5749] leading-[15px] tracking-[-0.1px]">
                         {u.matchReason ?? ""}
                       </p>
                     </div>
