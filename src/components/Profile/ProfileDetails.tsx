@@ -416,7 +416,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
         <>
             <div className="flex flex-col lg:flex-row w-full gap-[24px]">
                 {/**프로필사진, 이름 */}
-                <div className="flex flex-col gap-[10px] items-center w-full lg:w-[200px] shrink-0">
+                <div className="flex flex-col gap-[10px] items-center w-full lg:w-[220px] shrink-0">
                     <div
                         onDragOver={handleProfileDragOver}
                         onDragLeave={handleProfileDragLeave}
@@ -427,7 +427,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                         className={`relative flex justify-center items-center bg-[#FBFAF9]
                          ${isEditing ? "cursor-pointer" : "cursor-default"}`}
                     >
-                        <div className="w-[160px] h-[180px] lg:w-[180px] lg:h-[200px] rounded-[10px] overflow-hidden flex justify-center items-center">
+                        <div className="w-[180px] h-[200px] lg:w-[200px] lg:h-[220px] rounded-[10px] overflow-hidden flex justify-center items-center">
                             <img
                                 src={getFullImageUrl(data.profileImage)}
                                 alt="프로필 이미지"
@@ -443,13 +443,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                 }}
                             />
                         </div>
-                        {canEdit && (
-                            <div className="absolute bottom-0 right-1 lg:right-2 flex w-[36px] h-[36px] 
-                                    justify-center items-center rounded-full z-20 shadow-md
-                                    bg-[#EFEEEB] border border-[#C2BBB0] text-[#C2BBB0]">
-
-                            </div>
-                        )}
+                        
                         <input
                             type="file"
                             ref={profileUpload.fileInputRef}
@@ -527,14 +521,13 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                                 `}
                                                 >
                                                     <Paperclip size={18} />
-                                                    <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em] text-[#1BA07A]">
+                                                    <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em]">
                                                         {data.documents && data.documents.length > 0
                                                             ? "첨부파일 확인"
                                                             : "학력 파일 증빙 전"
                                                         }
                                                     </span>
                                                 </button>
-                                                {isEditing && <Pencil size={16} color="#C2BBB0" className="shrink-0" />}
                                             </div>
                                         )
                                     ) : (
@@ -729,7 +722,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                                                     />
                                                                 </div>
                                                             ) : (
-                                                                <div className="flex justify-start items-center gap-[8px] bg-white w-full px-4">
+                                                                <div className="flex justify-center items-center gap-[8px] bg-white w-full px-4">
                                                                     <FileText size={28} color="#978B78" />
                                                                     <div className="flex flex-col items-center gap-2">
                                                                         <span className=" text-center text-[#978B78] font-pretendard text-[14px] font-medium leading-[140%] whitespace-nowrap">
@@ -793,10 +786,10 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                             onClick={() => {
                                 if (canEdit) setIsTagModalOpen(true);
                             }}
-                            className={`flex w-full justify-center min-h-[96px] lg:min-h-[110px]
+                            className={`flex w-full justify-center min-h-[96px] lg:min-h-[110px] border-none p-0
                                 ${isEditing
-                                    ? "cursor-pointer border-none p-0"
-                                    : "cursor-default border-none p-0"
+                                    ? "cursor-pointer"
+                                    : "cursor-default"
                                 }
                                 ${data.tags && data.tags.length > 0
                                     ? "justify-start items-start"
