@@ -49,6 +49,17 @@ export interface CreateExperienceRequest {
   summary: string;
 }
 
+//AI 초안 작성 요청
+export interface CreateAIPrompt {
+  title: string;
+  organization: string;
+  startDate: string;
+  endDate: string;
+  participationType: string;
+  role: string;
+  draftText: string;
+}
+
 // 이력 생성 응답
 export type CreateExperienceResponse = BaseResponse<number>;
 
