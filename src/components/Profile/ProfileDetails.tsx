@@ -443,13 +443,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                 }}
                             />
                         </div>
-                        {canEdit && (
-                            <div className="absolute bottom-0 right-1 lg:right-2 flex w-[36px] h-[36px] 
-                                    justify-center items-center rounded-full z-20 shadow-md
-                                    bg-[#EFEEEB] border border-[#C2BBB0] text-[#C2BBB0]">
-
-                            </div>
-                        )}
+                        
                         <input
                             type="file"
                             ref={profileUpload.fileInputRef}
@@ -729,7 +723,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                                                                     />
                                                                 </div>
                                                             ) : (
-                                                                <div className="flex justify-start items-center gap-[8px] bg-white w-full px-4">
+                                                                <div className="flex justify-center items-center gap-[8px] bg-white w-full px-4">
                                                                     <FileText size={28} color="#978B78" />
                                                                     <div className="flex flex-col items-center gap-2">
                                                                         <span className=" text-center text-[#978B78] font-pretendard text-[14px] font-medium leading-[140%] whitespace-nowrap">
@@ -793,10 +787,10 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, experienc
                             onClick={() => {
                                 if (canEdit) setIsTagModalOpen(true);
                             }}
-                            className={`flex w-full justify-center min-h-[96px] lg:min-h-[110px]
+                            className={`flex w-full justify-center min-h-[96px] lg:min-h-[110px] border-none p-0
                                 ${isEditing
-                                    ? "cursor-pointer border-none p-0"
-                                    : "cursor-default border-none p-0"
+                                    ? "cursor-pointer"
+                                    : "cursor-default"
                                 }
                                 ${data.tags && data.tags.length > 0
                                     ? "justify-start items-start"
