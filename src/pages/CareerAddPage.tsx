@@ -16,7 +16,7 @@ import { addExperienceLink, postExperienceFile } from "../api/profile/experience
 import { createAIDraft } from "../api/profile/session";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFileUpload } from "../hooks/useProfileMutation";
-import type { AttachedFile } from "../types/career";
+import type { AttachedFile, CreateAIPrompt } from "../types/career";
 import { useProfileData } from "../hooks/useProfileQueries";
 
 import { apiClient } from "../api/client";
@@ -68,6 +68,7 @@ const CareerAddPage = (): JSX.Element => {
   const [aiText, setAiText] = useState("");
   const [isAnalysing, setIsAnalysing] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
+  const [aiRequiredError, setAiRequiredError] = useState("");
 
   const [newCareer, setNewCareer] = useState({
     title: "",
@@ -103,7 +104,7 @@ const CareerAddPage = (): JSX.Element => {
 
     return lines.join("\n");
   }
-  
+
   useEffect(() => {
     if (!initialPrompt || initialPrompt.trim().length === 0) return;
 
@@ -117,7 +118,6 @@ const CareerAddPage = (): JSX.Element => {
       }
     });
   }, [initialPrompt]);
-
 
   useEffect(() => {
     if (!isToastVisible) return;
@@ -148,20 +148,21 @@ const CareerAddPage = (): JSX.Element => {
           }, 0);
         }
       }
+      if (aiRequiredError) setAiRequiredError("");
       return;
     }
 
     setNewCareer((prev) => ({ ...prev, [field]: value }));
+    if (aiRequiredError) setAiRequiredError("");
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setAiText(e.target.value);
+    if (aiRequiredError) setAiRequiredError("");
+
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(
-        textareaRef.current.scrollHeight,
-        120
-      )}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   };
 
@@ -190,8 +191,7 @@ const CareerAddPage = (): JSX.Element => {
       setSelectedFiles((prev: any) => [...prev, ...uploadedFiles]);
     } catch (error: any) {
       console.error("❌ 파일 업로드 실패:", error);
-      const errorMsg =
-        error.response?.data?.message || error.message || "알 수 없는 오류";
+      const errorMsg = error.response?.data?.message || error.message || "알 수 없는 오류";
       alert(`파일 업로드 실패:\n${errorMsg}`);
     }
   };
@@ -229,13 +229,34 @@ const CareerAddPage = (): JSX.Element => {
   };
 
   const handleAIDraft = async () => {
-    const prompt = aiText.trim();
-    if (!prompt) return;
+    const title = newCareer.title.trim();
+    const organization = newCareer.organizer.trim();
+    const participationType = newCareer.participation.trim();
+    const draftText = aiText.trim();
+
+    if (!title || !organization || !participationType || !draftText) {
+      setAiRequiredError("AI 초안 생성을 위해 활동명, 주최/기관, 참여형태, AI 입력 내용을 모두 채워주세요.");
+      return;
+    }
+
+    const startDate = getStartDateFromPeriod(newCareer.period) ?? "";
+    const endDate = getEndDateFromPeriod(newCareer.period) ?? "";
+    const role = (newCareer.role ?? "").trim();
+
+    const aiPayload: CreateAIPrompt = {
+      title,
+      organization,
+      startDate,
+      endDate,
+      participationType,
+      role,
+      draftText
+    };
 
     try {
       setIsAnalysing(true);
 
-      const draftRes = await createAIDraft({ prompt } as any);
+      const draftRes = await createAIDraft(aiPayload as any);
       if (!draftRes?.isSuccess) {
         alert(draftRes?.message ?? "AI 초안 생성에 실패했습니다.");
         return;
@@ -255,6 +276,7 @@ const CareerAddPage = (): JSX.Element => {
       setAiText("");
       setIsAIInputOpen(false);
       setIsToastVisible(true);
+      setAiRequiredError("");
     } catch (e) {
       console.error("[CareerAddPage] AI draft error:", e);
       alert("AI 초안 생성 중 오류가 발생했습니다.");
@@ -331,10 +353,7 @@ const CareerAddPage = (): JSX.Element => {
         isPublic: newCareer.isPublic
       };
 
-      const res = await apiClient.post<ApiEnvelope<CreateExperienceResult>>(
-        "/api/v1/experiences",
-        payload
-      );
+      const res = await apiClient.post<ApiEnvelope<CreateExperienceResult>>("/api/v1/experiences", payload);
 
       if (!res.data?.isSuccess) {
         alert(res.data?.message ?? "이력 저장에 실패했습니다.");
@@ -374,9 +393,7 @@ const CareerAddPage = (): JSX.Element => {
       if (links.length > 0) {
         try {
           await Promise.all(
-            links.map((link: LinkItem) =>
-              addExperienceLink(createdId, { title: "", url: link.url })
-            )
+            links.map((link: LinkItem) => addExperienceLink(createdId, { title: "", url: link.url }))
           );
         } catch (error) {
           console.error("❌ 링크 등록 중 오류:", error);
@@ -452,6 +469,12 @@ const CareerAddPage = (): JSX.Element => {
                     </div>
                   )}
                 </div>
+
+                {aiRequiredError && (
+                  <p className="font-pretendard text-[12px] sm:text-[13px] font-normal leading-[150%] tracking-[-0.1px] text-[#D14B4B]">
+                    {aiRequiredError}
+                  </p>
+                )}
 
                 {isAIInputOpen && (
                   <div className="flex justify-end gap-[8px]">
