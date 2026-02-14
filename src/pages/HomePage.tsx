@@ -279,13 +279,13 @@ export default function HomePage(): JSX.Element {
                   className="all-[unset] box-border px-3 py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                   aria-label="쪽지"
                 >
-                  <img className="relative w-4 h-4" alt="" src={send_brown} aria-hidden="true" />
-                  <span className="relative w-fit text-[14px] font-normal text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                  <img className="relative w-3.5 h-3.5" alt="" src={send_brown} aria-hidden="true" />
+                  <span className="relative w-fit text-[13px] font-normal text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                     쪽지
                   </span>
 
                   {unreadCount > 0 && (
-                    <span className="relative w-fit text-[14px] font-normal text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                    <span className="relative w-fit text-[13px] font-normal text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
@@ -296,8 +296,8 @@ export default function HomePage(): JSX.Element {
                   onClick={() => navigate("/board")}
                   className="all-[unset] box-border px-3 py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                 >
-                  <img className="relative w-4 h-4" alt="" src={menu} aria-hidden="true" />
-                  <span className="relative w-fit text-[14px] font-medium text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                  <img className="relative w-3.5 h-3.5" alt="" src={menu} aria-hidden="true" />
+                  <span className="relative w-fit text-[13px] font-medium text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                     내가 쓴 게시글
                   </span>
                 </button>
