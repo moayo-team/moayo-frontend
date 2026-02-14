@@ -120,7 +120,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                 : (safeEnd ? `- ${safeEnd}` : "");
 
             setFormData({
-                title: currentData.title || currentData.organization || "",
+                title: currentData.title || "",
                 organizer: currentData.organization || currentData.organizer || "",
                 period: period,
                 participation: currentData.activity || currentData.participation || "",
@@ -136,14 +136,14 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
         if (!isEditMode && !isSaving && filesRes.length > 0) {
             const mappedFiles: AttachedFile[] = filesRes
                 .map((f: any) => {
-                const matchedDoc = documents?.find(doc => doc.id === f.fileId);
-                return {
-                    id: f.fileId,
-                    name: f.fileName,
-                    url: matchedDoc?.fileUrl,
-                    type: 'file'
-                };
-            });
+                    const matchedDoc = documents?.find(doc => doc.id === f.fileId);
+                    return {
+                        id: f.fileId,
+                        name: f.fileName,
+                        url: matchedDoc?.fileUrl,
+                        type: 'file'
+                    };
+                });
             setSelectedFiles(mappedFiles);
         }
         else if (filesRes.length === 0 && !isMyProfile) {
@@ -181,8 +181,22 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                 // Blob을 브라우저 URL로 변환
                 const fileUrl = URL.createObjectURL(blob);
 
-                // 새 창에서 열기 (PDF나 이미지는 바로 보이고, 일반 파일은 다운로드됨)
-                window.open(fileUrl, '_blank');
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                const isPdfOrImage = blob.type.includes('pdf') || blob.type.includes('image');
+
+                if (isPdfOrImage && !isMobile) {
+                    // PC에서 PDF/이미지: 새 창
+                    window.open(fileUrl, '_blank');
+                } else {
+                    // 모바일 또는 기타 파일: 다운로드
+                    const a = document.createElement('a');
+                    a.href = fileUrl;
+                    a.download = file.name || 'download';
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
 
                 // 메모리 해제 (약간의 시간차를 두고 실행)
                 setTimeout(() => URL.revokeObjectURL(fileUrl), 100);
@@ -277,7 +291,7 @@ const CarrerDetailModal = ({ data: initialData, onClose, onDelete, onSave, docum
                     typeof file.id === "number" &&
                     !serverFileList.some((f: any) => Number(f.fileId) === Number(file.id))
                 );
-            }); 
+            });
 
             if (newFilesToAttach.length > 0) {
                 await Promise.all(

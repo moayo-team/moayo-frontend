@@ -152,7 +152,7 @@ export default function HomePage(): JSX.Element {
   }
 
   return (
-    <div className="pt-8 pb-20">
+    <div className="pt-8 pb-20 w-full flex flex-col gap-10">
       <section className="pt-6">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-[22px] font-bold text-[#342F28]">모아요 AI</h1>
@@ -186,7 +186,7 @@ export default function HomePage(): JSX.Element {
                     <span className="flex-1 text-[#1BA07A] text-[14px] sm:text-[16px] font-medium leading-[130%]">
                       {myName}님이 했던 경험을 자유롭게 서술해주세요. 모아요 AI가 정리해드려요!
                     </span>
-                    <img src={tablerPencil} alt="edit" className="shrink-0 w-5 h-5" />
+                    <img src={tablerPencil} alt="edit" className="shrink-0 w-5 h-5 ml-2" />
                   </div>
                 ) : (
                   <div className="flex w-full gap-3">
@@ -240,11 +240,11 @@ export default function HomePage(): JSX.Element {
       </section>
 
       <section className="pt-10 pb-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_360px] gap-6 lg:gap-8">
-          <aside className="w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_400px] xl:grid-cols-[220px_1fr_450px] gap-6 lg:gap-8 items-start">
+          <aside className="w-full order-2 lg:order-1">
             <h2 className="text-[16px] font-semibold text-[#342F28] mb-3">프로필</h2>
 
-            <div className="p-3">
+            <div className="p-0">
               <div className="h-auto sm:h-[175px] items-center justify-center gap-2 px-3 py-4 bg-[#FBFAF9] rounded-[10px] flex flex-col">
                 <div className="inline-flex flex-col items-center gap-2.5 relative flex-[0_0_auto] mt-[-7.50px] mb-[-7.50px]">
                   <img
@@ -259,12 +259,12 @@ export default function HomePage(): JSX.Element {
                   />
 
                   <div className="flex flex-col w-full items-center gap-0.5 relative flex-[0_0_auto]">
-                    <h2 className="relative self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
+                    <h2 className="relative self-stretch mt-[-1.00px] px-2 text-[18px] font-bold text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
                       {myName}
                     </h2>
 
                     <div className="flex items-center justify-center gap-[11px] relative self-stretch w-full flex-[0_0_auto]">
-                      <p className="relative w-fit mt-[-1.00px] font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap [font-style:var(--body-b2-300-font-style)]">
+                      <p className="relative w-fit mt-[-1.00px] text-[13px] font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap [font-style:var(--body-b2-300-font-style)]">
                         {user?.profile?.major ?? "전공"}
                       </p>
                     </div>
@@ -276,16 +276,16 @@ export default function HomePage(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => navigate("/message")}
-                  className="all-[unset] box-border px-3 py-2 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
+                  className="all-[unset] box-border px-3 py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                   aria-label="쪽지"
                 >
-                  <img className="relative w-5 h-5" alt="" src={send_brown} aria-hidden="true" />
-                  <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                  <img className="relative w-4 h-4" alt="" src={send_brown} aria-hidden="true" />
+                  <span className="relative w-fit text-[14px] font-normal text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                     쪽지
                   </span>
 
                   {unreadCount > 0 && (
-                    <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                    <span className="relative w-fit text-[14px] font-normal text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
@@ -294,10 +294,10 @@ export default function HomePage(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => navigate("/board")}
-                  className="all-[unset] box-border px-3 py-2 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
+                  className="all-[unset] box-border px-3 py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                 >
-                  <img className="relative w-5 h-5" alt="" src={menu} aria-hidden="true" />
-                  <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                  <img className="relative w-4 h-4" alt="" src={menu} aria-hidden="true" />
+                  <span className="relative w-fit text-[14px] font-medium text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                     내가 쓴 게시글
                   </span>
                 </button>
@@ -305,22 +305,22 @@ export default function HomePage(): JSX.Element {
             </div>
           </aside>
 
-          <main className="w-full min-w-0">
+          <main className="w-full min-w-0 order-1 lg:order-2">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-[16px] font-semibold text-[#342F28]">마감 임박 게시글</h2>
             </div>
 
             <div className="flex flex-col gap-4">
               {homeLoading ? (
-                <div className="w-full rounded-[10px] border border-[#ECE7DF] bg-white p-4 text-[#7A7368] text-[14px]">
+                <div className="w-full rounded-[10px] border border-[#ECE7DF] bg-white p-10 text-[#7A7368] text-sm">
                   불러오는 중...
                 </div>
               ) : homeError ? (
-                <div className="w-full rounded-[10px] border border-[#F3C6C6] bg-[#FFF5F5] p-4 text-[#D14B4B] text-[14px]">
+                <div className="w-full rounded-[10px] border border-[#F3C6C6] bg-[#FFF5F5] p-6 text-[#D14B4B] text-sm">
                   {homeError}
                 </div>
               ) : imminentPosts.length === 0 ? (
-                <div className="w-full rounded-[10px] border border-[#ECE7DF] bg-white p-4 text-[#7A7368] text-[14px]">
+                <div className="w-full rounded-[10px] border border-[#ECE7DF] bg-white p-10 text-[#7A7368] text-sm">
                   마감 임박 게시글이 없습니다.
                 </div>
               ) : (
@@ -394,15 +394,15 @@ export default function HomePage(): JSX.Element {
                   }) => (
                     <article
                       key={p.postId}
-                      className="w-full max-w-[475px] mx-auto rounded-[14px] border border-[#D9D5CE] bg-[#FBFAF9] px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4 cursor-pointer hover:opacity-95 transition"
+                      className="w-full rounded-[14px] border border-[#D9D5CE] bg-[#FBFAF9] p-5 md:p-6 flex items-center justify-between gap-4 cursor-pointer hover:opacity-95 transition"
                       onClick={() => navigate(`/post/${p.postId}`)}
                     >
-                      <div className="min-w-0">
-                        <span className="inline-flex items-center rounded-[8px] bg-[#EFEEEB] px-2.5 py-1 text-[12px] font-semibold text-[#5F5749]">
+                      <div className="min-w-0 flex-1">
+                        <span className="inline-flex items-center rounded-[8px] bg-[#EFEEEB] px-2 py-1 text-[11px] font-semibold text-[#5F5749]">
                           {p.dday}
                         </span>
 
-                        <div className="mt-3 text-[20px] sm:text-[22px] font-semibold text-[#25221D] leading-[120%] truncate">
+                        <div className="mt-3 text-[18px] md:text-[20px] font-semibold text-[#25221D] leading-[120%] truncate">
                           {p.title}
                         </div>
                         <div className="mt-2 text-[14px] text-[#342F28]">
@@ -411,7 +411,7 @@ export default function HomePage(): JSX.Element {
                         </div>
                       </div>
                       <div className="shrink-0 flex w-[24px] h-[24px] justify-center items-center text-[#25221D]">
-                        <span className="text-[24px] leading-none">›</span>
+                        <span className="text-2xl leading-none">›</span>
                       </div>
                     </article>
                   )
@@ -420,10 +420,10 @@ export default function HomePage(): JSX.Element {
             </div>
           </main>
 
-          <aside className="w-full">
-            <h2 className="text-[16px] font-semibold text-[#342F28] mb-3">AI 추천 유저</h2>
+          <aside className="w-full order-3">
+            <h2 className="text-[16px] font-semibold text-[#342F28] mb-3 px-1">AI 추천 유저</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
               {homeLoading ? (
                 <div className="col-span-1 sm:col-span-2 rounded-[10px] border border-[#ECE7DF] bg-white p-4 text-[#7A7368] text-[14px]">
                   불러오는 중...
@@ -469,7 +469,7 @@ export default function HomePage(): JSX.Element {
 
                     return (
                       <div key={u.userId} className="rounded-[10px] border border-[#ECE7DF] bg-white p-3">
-                        <div className="flex flex-col items-center gap-3">
+                        <div className="flex flex-col items-center gap-2  ">
                           <img
                             className={`w-[72px] h-[72px] rounded-[10px] ${
                               isDefault ? "object-contain p-2" : "object-cover"
@@ -480,27 +480,27 @@ export default function HomePage(): JSX.Element {
                               e.currentTarget.src = defaultImage;
                             }}
                           />
-                          <div className="text-center">
-                            <div className="font-semibold text-[#342F28]">{u.name}</div>
-                            <div className="text-[12px] text-[#7A7368]">{u.bio ?? ""}</div>
+                          <div className=" min-w-0 w-full text-center">
+                            <div className="font-semibold text-[#342F28] text-sm">{u.name}</div>
+                            <div className="text-[10px] text-[#7A7368]">{u.bio ?? ""}</div>
                           </div>
                         </div>
 
-                        <div className="mt-4 flex flex-col gap-2">
+                        <div className=" flex flex-col gap-1">
                           <button
                             type="button"
-                            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[5px] bg-[#E9FCF7] text-[#1BA07A] font-semibold"
+                            className="inline-flex items-center justify-center gap-1 w-full h-8 px-4 rounded-[5px] bg-[#E9FCF7] text-[#1BA07A] font-semibold"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => handleSendMessageToUser(Number(u.userId))}
                           >
-                            <img className="w-5 h-5" alt="" src={send} aria-hidden="true" />
-                            <span className="font-pretendard text-[14px] font-normal leading-[22px] text-[#1BA07A]">
+                            <img className="w-3.5 h-3.5" alt="" src={send} aria-hidden="true" />
+                            <span className="font-pretendard text-[11px] font-normal leading-[22px] text-[#1BA07A]">
                               쪽지보내기
                             </span>
                           </button>
                           <button
                             type="button"
-                            className="h-10 rounded-[5px] bg-[#EFEEEB] hover:opacity-90 inline-flex items-center justify-center"
+                            className="w-hull h-8 rounded-[5px] bg-[#EFEEEB] hover:opacity-90 inline-flex items-center justify-center"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => {
                               const otherId = Number(u.userId);
@@ -513,12 +513,12 @@ export default function HomePage(): JSX.Element {
                               navigate("/profile", { state: { userId: otherId } });
                             }}
                           >
-                            <span className="font-pretendard text-[14px] font-normal leading-[22px] text-[#7C7160]">
+                            <span className="font-pretendard text-[11px] font-normal leading-[22px] text-[#7C7160]">
                               프로필 보러가기
                             </span>
                           </button>
                         </div>
-                        <p className="mt-3 font-pretendard text-[10px] font-normal text-[#5F5749] leading-[15px] tracking-[-0.1px]">
+                        <p className="mt-1 font-pretendard text-[10px] font-normal text-[#5F5749] leading-[15px] tracking-[-0.1px] break-keep">
                           {u.matchReason ?? ""}
                         </p>
                       </div>

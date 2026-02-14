@@ -86,7 +86,7 @@ const ProfilePage = () => {
         { id: "email", label: "이메일", value: user.email ?? "" },
         { id: "phone", label: "전화번호", value: user.phoneNumber ?? "" },
       ],
-      documents: documents ?? [],
+      documents: documents,
     };
 
     setProfileData(formData);
@@ -122,6 +122,7 @@ const ProfilePage = () => {
       introduction: other.bio ?? "",
       tags: mappedTags,
       additionalDetails: mappedItems,
+      documents: other.documents ?? [],
       details: [
         { id: "school", label: "학력", value: other.university ?? "" },
         { id: "major", label: "학과", value: other.major ?? "" },

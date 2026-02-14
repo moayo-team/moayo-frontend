@@ -539,7 +539,7 @@ const ProfileDetails = ({ isEditing, isReadOnly, isDetailsEmpty, data, onDataCha
                                                     <span className="hidden md:inline text-[11px] font-medium font-pretendard leading-[140%] tracking-[-0.01em]">
                                                         {hasSchoolDocs
                                                             ? "첨부파일 확인"
-                                                            : "학력 파일 증빙 전"
+                                                            : "첨부파일 증빙 전"
                                                         }
                                                     </span>
                                                 </button>
