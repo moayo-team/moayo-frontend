@@ -241,7 +241,7 @@ export default function HomePage(): JSX.Element {
 
       <section className="pt-10 pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_400px] xl:grid-cols-[220px_1fr_450px] gap-6 lg:gap-8 items-start">
-          <aside className="w-full order-2 lg:order-1">
+          <aside className="w-full flex flex-col gap-4">
             <h2 className="text-[16px] font-semibold text-[#342F28] mb-3">프로필</h2>
 
             <div className="p-0">
@@ -305,7 +305,7 @@ export default function HomePage(): JSX.Element {
             </div>
           </aside>
 
-          <main className="w-full min-w-0 order-1 lg:order-2">
+          <main className="w-full min-w-0 flex flex-col gap-4">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-[16px] font-semibold text-[#342F28]">마감 임박 게시글</h2>
             </div>
@@ -420,7 +420,7 @@ export default function HomePage(): JSX.Element {
             </div>
           </main>
 
-          <aside className="w-full order-3">
+          <aside className="w-full flex flex-col gap-4">
             <h2 className="text-[16px] font-semibold text-[#342F28] mb-3 px-1">AI 추천 유저</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
