@@ -184,9 +184,8 @@ export const PostDetailPage = (): JSX.Element => {
                     <article className="flex flex-col items-center justify-center gap-2.5 px-5 py-6 relative self-stretch w-full bg-[#fbfaf9] rounded-[10px]">
                       <div className="inline-flex flex-col items-center gap-3 relative">
                         <img
-                          className={`w-[120px] h-[121px] rounded-[10px] ${
-                            resolvedProfileImage === profile_photo ? "object-contain p-2" : "object-cover"
-                          }`}
+                          className={`w-[120px] h-[121px] rounded-[10px] ${resolvedProfileImage === profile_photo ? "object-contain p-2" : "object-cover"
+                            }`}
                           alt={`Profile picture of ${user?.user?.name || '사용자'}`}
                           src={resolvedProfileImage}
                           onError={(e) => {
@@ -253,7 +252,7 @@ export const PostDetailPage = (): JSX.Element => {
 
           {/* Main Content - Right Column */}
           <main className="flex-1 order-2 min-w-0 lg:pt-10">
-            
+
             <article className="w-full">
               {/* Author Profile Section */}
               <div className="flex w-full items-start justify-center px-5 py-4 bg-gray-scale30 rounded-[5px] shadow-[0px_0px_4px_#0000004c] mb-8">
@@ -261,8 +260,8 @@ export const PostDetailPage = (): JSX.Element => {
                   <img
                     className={`w-[62px] h-[62px] relative rounded-[10px] overflow-hidden 
                       ${getFullImageUrl(isOwner ? user?.profile?.imageUrl : (authorProfile?.imageUrl || (post as any).profileImageUrl)) === profile_photo
-                                          ? "object-contain"
-                                          : "object-cover"}
+                        ? "object-contain"
+                        : "object-cover"}
                     `} alt="작성자 프로필 이미지"
                     src={getFullImageUrl(
                       isOwner
@@ -297,11 +296,13 @@ export const PostDetailPage = (): JSX.Element => {
               </div>
 
               {/* Post Title and D-Day */}
-              <div className="flex items-start justify-between gap-4 mb-8">
+              <div className="flex items-center justify-between gap-4 mb-8">
                 <h1 className="flex-1 font-heading-h1-100 font-[number:var(--heading-h1-100-font-weight)] text-black text-[26px] md:text-[30px] tracking-[var(--heading-h1-100-letter-spacing)] leading-[var(--heading-h1-100-line-height)] [font-style:var(--heading-h1-100-font-style)]">
                   {post.title}
                 </h1>
-                <Badge dday={(post as any).dday} deadline={post.deadline} />
+                <div className="flex-shrink-0 scale-125 origin-right pr-2">
+                  <Badge dday={(post as any).dday} deadline={post.deadline} />
+                </div>
               </div>
 
               {/* Post Details */}
@@ -309,7 +310,7 @@ export const PostDetailPage = (): JSX.Element => {
                 {postDetails.map((detail, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-3 relative self-stretch w-full min-h-[80px] flex-[0_0_auto]"
+                    className="flex items-stretch gap-3 relative w-full min-h-[60px] flex-[0_0_auto]"
                   >
                     <div className="flex w-[140px] items-center justify-center self-stretch  gap-2.5 px-10 py-2.5 relative bg-gray-scalegray-scale-50 rounded-[10px_0px_0px_10px]">
                       <div className="flex items-center justify-center w-fit font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-700 text-[15px] text-center leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
