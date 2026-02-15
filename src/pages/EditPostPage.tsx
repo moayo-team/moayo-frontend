@@ -302,13 +302,13 @@ export const EditPostPage = (): JSX.Element => {
                     직무태그 설정
                   </h2>
                   
-                  <div className="inline-flex flex-wrap items-center ga10p-2.5 relative flex-1">
+                  <div className="inline-flex flex-wrap items-center gap-2.5 relative flex-1">
                     {categories.map((category) => (
                       <button
                         key={category.id}
                         type="button"
                         onClick={() => handleCategoryToggle(category.id)}
-                        className={`flex min-w-[80px] h- items-center justify-center gap-1.5 px-4 relative ${
+                        className={`flex min-w-[100px] h-[51px] items-center justify-center gap-1.5 px-4 relative ${
                           category.selected
                             ? 'bg-primaryprimary-50 border-primaryprimary-500'
                             : 'bg-gray-scalegray-scale-50 border-gray-scalegray-scale-300'
