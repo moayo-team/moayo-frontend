@@ -296,11 +296,11 @@ export const PostDetailPage = (): JSX.Element => {
               </div>
 
               {/* Post Title and D-Day */}
-              <div className="flex items-center justify-between gap-4 mb-8">
+              <div className="flex items-center justify-between gap-6 mb-8">
                 <h1 className="flex-1 font-heading-h1-100 font-[number:var(--heading-h1-100-font-weight)] text-black text-[26px] md:text-[30px] tracking-[var(--heading-h1-100-letter-spacing)] leading-[var(--heading-h1-100-line-height)] [font-style:var(--heading-h1-100-font-style)]">
                   {post.title}
                 </h1>
-                <div className="flex-shrink-0 scale-125 origin-right pr-2">
+                <div className="flex-shrink-0 scale-150 origin-right pr-4 pt-1">
                   <Badge dday={(post as any).dday} deadline={post.deadline} />
                 </div>
               </div>

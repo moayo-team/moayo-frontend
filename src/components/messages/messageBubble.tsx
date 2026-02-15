@@ -17,11 +17,11 @@ export default function MessageBubble({ message, currentUserId }: Props) {
   const isMine = Number(message.senderId) === Number(currentUserId);
 
   return (
-    <div className={isMine ? "flex justify-end" : "flex justify-start"}>
-      <div className={isMine ? "max-w-[70%] text-right" : "max-w-[70%]"}>
+    <div className={`flex w-full ${isMine ? "flex justify-end" : "flex justify-start"} mb-1`}>
+      <div className={isMine ? "max-w-[75%] text-right" : "max-w-[75%]"}>
         <div
           className={[
-            "inline-block rounded-2xl px-5 py-3 text-sm leading-relaxed text-[#25221D]",
+            "inline-block rounded-2xl px-4 py-2.5 text-[14px] leading-relaxed text-[#25221D]",
             isMine ? "bg-[#6EEBC7] rounded-tr-xl" : "bg-[#E9FCF7] rounded-tl-xl",
           ].join(" ")}
         >
@@ -32,7 +32,7 @@ export default function MessageBubble({ message, currentUserId }: Props) {
           )}
         </div>
 
-        <div className="mt-1 text-[11px] text-gray-400">
+        <div className="mt-1 text-[10px] text-gray-400">
           {formatHHMM(message.createdAt)}
         </div>
       </div>
