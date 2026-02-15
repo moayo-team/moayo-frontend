@@ -305,19 +305,19 @@ export const PostDetailPage = (): JSX.Element => {
               </div>
 
               {/* Post Details */}
-              <div className="w-full items-start gap-3 mb-10 flex flex-col">
+              <div className="w-full items-start gap-4 mb-10 flex flex-col">
                 {postDetails.map((detail, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-3 relative self-stretch w-full min-h-[60px] flex-[0_0_auto]"
+                    className="flex items-center gap-3 relative self-stretch w-full min-h-[80px] flex-[0_0_auto]"
                   >
-                    <div className="flex w-[120px] items-center justify-center gap-2.5 px-10 py-2.5 relative bg-gray-scalegray-scale-50 rounded-[10px_0px_0px_10px]">
-                      <div className="flex items-center justify-center w-fit font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-700 text-[14px] text-center leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                    <div className="flex w-[140px] items-center justify-center self-stretch  gap-2.5 px-10 py-2.5 relative bg-gray-scalegray-scale-50 rounded-[10px_0px_0px_10px]">
+                      <div className="flex items-center justify-center w-fit font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-700 text-[15px] text-center leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
                         {detail.label}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2.5 px-6 relative flex-1 grow rounded-[0px_10px_10px_0px] border border-solid border-[#d6d6d8]">
-                      <div className="relative flex items-center justify-center flex-1 self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-400 text-[15px] tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
+                    <div className="flex items-center gap-2.5 px-8 relative flex-1 grow rounded-[0px_10px_10px_0px] border border-solid border-[#d6d6d8]">
+                      <div className="relative flex items-center justify-center flex-1 self-stretch mt-[-1.00px] font-heading-h2-300 font-[number:var(--heading-h2-300-font-weight)] text-gray-scalegray-scale-400 text-[16px] tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
                         {detail.value}
                       </div>
                     </div>
