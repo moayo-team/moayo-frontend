@@ -90,16 +90,16 @@ export const BoardPage = (): JSX.Element => {
     >
       <NavigationBar />
 
-      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+      <div className="w-full max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
           {/* Sidebar - Left Column */}
-          <aside className="w-full lg:w-[280px] flex-shrink-0 order-2 lg:order-1 pt-20">
+          <aside className="w-full lg:w-[240px] flex-shrink-0 order-1 gap-8">
             <div className="flex flex-col gap-[15px]">
               {isLoggedIn ? (
                 <section className="inline-flex flex-col items-start gap-4 relative w-full">
 
                   <div className="flex flex-col w-full items-start gap-4 relative">
-                    <article className="flex flex-col items-center justify-center gap-2.5 px-5 py-[27px] relative self-stretch w-full bg-[#fbfaf9] rounded-[10px]">
+                    <article className="flex flex-col items-center justify-center gap-2.5 px-5 py-6 relative self-stretch w-full bg-[#fbfaf9] rounded-[10px]">
                       <div className="inline-flex flex-col items-center gap-3 relative">
                         <img
                           className={`w-[120px] h-[121px] rounded-[10px] ${
@@ -112,26 +112,26 @@ export const BoardPage = (): JSX.Element => {
                           }}
                         />
 
-                        <div className="inline-flex flex-col items-center gap-1.5 relative">
-                          <h3 className="self-stretch mt-[-1.03px] [font-family:'Pretendard-Bold',Helvetica] font-bold text-warm-gray-scalegray-scale-900 text-[24.6px] text-center leading-[32.0px] relative tracking-[0]">
+                        <div className="inline-flex flex-col items-center gap-1.5 relativ">
+                          <h3 className="self-stretch mt-[-1.03px] [font-family:'Pretendard-Bold',Helvetica] font-bold text-warm-gray-scalegray-scale-900 text-[18px] text-center leading-[32.0px] relative tracking-[0]">
                             {user?.user?.name || '사용자'}
                           </h3>
                         </div>
                       </div>
                     </article>
 
-                    <nav className="flex items-center gap-1 self-stretch w-full relative">
+                    <nav className="flex items-center gap-2 self-stretch w-full relative">
                       <button
-                        className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative flex-1 grow bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
+                        className="flex h-12 items-center justify-center gap-2 px-4 relative flex-1 grow bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
                         aria-label="쪽지"
                         onClick={() => navigate('/message')}
                       >
-                        <img className="relative w-6 h-6" alt="message" src={grayplane} />
-                        <span className="w-fit font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                        <img className="relative w-3.5 h-3.5" alt="message" src={grayplane} />
+                        <span className="w-fit text-[13px] font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
                           쪽지
                         </span>
                         {unreadCount > 0 && (
-                          <span className="font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                          <span className="text-[13px] font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 leading-[var(--heading-h3-300-line-height)] tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
                             {unreadCount > 99 ? "99+" : unreadCount}
                           </span>
                         )}
@@ -140,11 +140,11 @@ export const BoardPage = (): JSX.Element => {
 
                     <button
                       onClick={() => navigate('/my-posts')}
-                      className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative self-stretch w-full bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
+                      className="flex h-12 items-center justify-center gap-2 px-4 relative self-stretch w-full bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
                       aria-label="내가 쓴 게시글"
                     >
-                      <img className="relative w-5 h-5" alt="menu icon" src={menu} />
-                      <span className="w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
+                      <img className="relative w-3.5 h-3.5" alt="menu icon" src={menu} />
+                      <span className="w-fit text-[13px] font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
                         내가 쓴 게시글
                       </span>
                     </button>
@@ -153,13 +153,13 @@ export const BoardPage = (): JSX.Element => {
               ) : (
                 <button
                   onClick={login}
-                  className="flex flex-col h-auto sm:h-[258px] items-center justify-center gap-4 px-5 py-6 sm:py-[27px] bg-gray-scale30 rounded-[10px] hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer w-full"
+                  className="flex flex-col h-auto items-center justify-center gap-4 px-5 py-8 bg-gray-scale30 rounded-[10px] hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer w-full"
                 >
                   <div className="text-center">
-                    <h3 className="font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-700 text-[length:var(--heading-h3-200-font-size)] mb-2">
+                    <h3 className="text-sm font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-700 mb-2">
                       로그인이 필요합니다
                     </h3>
-                    <p className="font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--body-b2-300-font-size)] mb-4">
+                    <p className="text-sm font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-500 mb-4">
                       프로필을 보려면 로그인하세요
                     </p>
                   </div>
@@ -174,20 +174,20 @@ export const BoardPage = (): JSX.Element => {
           </aside>
 
           {/* Main Content - Right Column */}
-          <main className="flex-1 order-1 lg:order-2">
+          <main className="flex-1 order-2 min-w-0">
             <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <h1 className="relative w-fit font-heading-h1-200 font-[number:var(--heading-h1-200-font-weight)] text-black text-2xl sm:text-[length:var(--heading-h1-200-font-size)] tracking-[var(--heading-h1-200-letter-spacing)] leading-[var(--heading-h1-200-line-height)] whitespace-nowrap [font-style:var(--heading-h1-200-font-style)]">
+              <h1 className="relative w-fit text-[22px] md:text-[26px] font-[number:var(--heading-h1-200-font-weight)] text-black tracking-[var(--heading-h1-200-letter-spacing)] leading-[var(--heading-h1-200-line-height)] whitespace-nowrap [font-style:var(--heading-h1-200-font-style)]">
                 게시판
               </h1>
 
               {isLoggedIn && (
                 <button
                   onClick={() => navigate('/create')}
-                  className="all-[unset] box-border w-full sm:w-[143px] p-3 sm:p-[15px] bg-primaryprimary-300 hover:bg-primaryprimary-400 active:bg-primaryprimary-500 cursor-pointer rounded-[10px] flex items-center justify-center gap-2.5 transition-colors focus:outline-none focus:ring-2 focus:ring-primaryprimary-500 focus:ring-offset-2"
+                  className="all-[unset] box-border w-full sm:w-auto px-6 py-2.5 bg-primaryprimary-300 hover:bg-primaryprimary-400 active:bg-primaryprimary-500 cursor-pointer rounded-[10px] flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primaryprimary-500 focus:ring-offset-2"
                   type="button"
                   aria-label="게시글 추가"
                 >
-                  <span className="relative w-fit mt-[-1.00px] font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                  <span className="relative w-fit mt-[-1.00px] text-[14px] font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-900 tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                     게시글 추가
                   </span>
                 </button>
@@ -195,19 +195,19 @@ export const BoardPage = (): JSX.Element => {
             </header>
 
             {selectedJobFilters.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
+              <div className="flex flex-wrap items-center gap-2 mb-6">
                 {selectedJobFilters.map((tag, index) => (
                   <button
                     key={index}
                     onClick={() => removeJobFilter(tag)}
-                    className="flex min-w-[90px] sm:w-[110px] h-[45px] sm:h-[51px] px-2.5 py-[3px] bg-primaryprimary-50 rounded-[10px] border border-solid border-primaryprimary-500 items-center justify-center gap-[5px] hover:bg-primaryprimary-100 transition-colors"
+                    className="flex gap-1.5 px-3 py-1.5 bg-primaryprimary-50 rounded-[10px] border border-solid border-primaryprimary-500 items-center justify-center gap-[5px] hover:bg-primaryprimary-100 transition-colors"
                     aria-label={`Remove ${tag} tag`}
                   >
-                    <div className="relative flex-1 font-body-b1-200 font-[number:var(--body-b1-200-font-weight)] text-gray-scalegray-scale-800 text-sm sm:text-[length:var(--body-b1-200-font-size)] text-center tracking-[var(--body-b1-200-letter-spacing)] leading-[var(--body-b1-200-line-height)] [font-style:var(--body-b1-200-font-style)]">
+                    <div className="relative flex-1 text-[12px] font-[number:var(--body-b1-200-font-weight)] text-gray-scalegray-scale-800  text-center tracking-[var(--body-b1-200-letter-spacing)] leading-[var(--body-b1-200-line-height)] [font-style:var(--body-b1-200-font-style)]">
                       {tag}
                     </div>
                     <img
-                      className="relative w-5 h-5 sm:w-6 sm:h-6"
+                      className="relative w-4 h-4"
                       alt="Remove"
                       src={remove}
                     />
@@ -219,9 +219,9 @@ export const BoardPage = (): JSX.Element => {
             <PostsList filters={{ tags: selectedJobFilters, page: currentPage, pageSize: 10 }} />
 
             {data && data.posts && data.posts.length > 0 && (
-              <nav className="flex justify-center items-center mt-8 sm:mt-12" aria-label="Pagination">
+              <nav className="flex justify-center items-center mt-10 gap-1" aria-label="Pagination">
                 <button
-                  className="inline-flex items-start p-1.5 rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-start p-2 rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   aria-label="Previous page"
@@ -236,14 +236,14 @@ export const BoardPage = (): JSX.Element => {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`inline-flex flex-col items-center gap-2.5 px-2 sm:px-3 py-1 rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors ${currentPage === page ? "border border-solid border-primaryprimary-500" : ""
+                    className={`inline-flex flex-col items-center min-w-[32px] h-8 gap-2.5 px-2 sm:px-3 py-1 rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors ${currentPage === page ? "border border-solid border-primaryprimary-500" : ""
                       }`}
                     aria-label={`Page ${page}`}
                     aria-current={currentPage === page ? "page" : undefined}
                   >
                     <div className={`relative mt-[-1.00px] ${currentPage === page
-                      ? "font-body-medium font-[number:var(--body-medium-font-weight)] text-primaryprimary-500 text-[length:var(--body-medium-font-size)] tracking-[var(--body-medium-letter-spacing)] leading-[var(--body-medium-line-height)] [font-style:var(--body-medium-font-style)]"
-                      : "font-body-regular font-[number:var(--body-regular-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-regular-font-size)] tracking-[var(--body-regular-letter-spacing)] leading-[var(--body-regular-line-height)] [font-style:var(--body-regular-font-style)]"
+                      ? "font-body-medium font-[number:var(--body-medium-font-weight)] text-primaryprimary-500 text-sm tracking-[var(--body-medium-letter-spacing)] leading-[var(--body-medium-line-height)] [font-style:var(--body-medium-font-style)]"
+                      : "font-body-regular font-[number:var(--body-regular-font-weight)] text-gray-scalegray-scale-900 text-sm tracking-[var(--body-regular-letter-spacing)] leading-[var(--body-regular-line-height)] [font-style:var(--body-regular-font-style)]"
                       } text-center whitespace-nowrap`}>
                       {page}
                     </div>
@@ -251,7 +251,7 @@ export const BoardPage = (): JSX.Element => {
                 ))}
 
                 <button
-                  className="inline-flex items-start p-1.5 rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-start p-2 rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
                   aria-label="Next page"
