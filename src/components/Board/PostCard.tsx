@@ -96,14 +96,14 @@ export const PostCard = ({ post }: PostCardProps): JSX.Element => {
   
   return (
     <article
-      className="w-full flex flex-col min-h-[220px] items-center justify-center p-5 relative bg-gray-scalewhite rounded-[10px] border border-solid border-gray-scalegray-scale-300 cursor-pointer hover:shadow-lg transition-shadow"
+      className="w-full flex flex-col min-h-[220px] items-start p-5 sm:p-6 relative bg-gray-scalewhite rounded-[10px] border border-solid border-gray-scalegray-scale-300 cursor-pointer hover:shadow-lg transition-shadow"
       onClick={() => navigate(`/post/${post.id}`)}
     >
-      <div className="flex flex-col h-full items-start justify-between relative gap-4">
+      <div className="flex flex-col w-full h-full items-start justify-between relative gap-4">
         <div className="flex flex-col items-start gap-3 relative self-stretch w-full flex-[0_0_auto]">
           <header className="flex flex-col items-start gap-1 relative self-stretch w-full flex-[0_0_auto]">
-            <div className="flex items-start justify-between gap-2 relative self-stretch w-full">
-              <h2 className="relative flex-1 mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[18px] tracking-[var(--heading-h2-100-letter-spacing)] leading-[var(--heading-h2-100-line-height)] [font-style:var(--heading-h2-100-font-style)] truncate min-w-0">
+            <div className="flex items-center justify-between gap-2 relative self-stretch w-full">
+              <h2 className="relative flex-1 mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[18px] tracking-[var(--heading-h2-100-letter-spacing)] leading-[var(--heading-h2-100-line-height)] [font-style:var(--heading-h2-100-font-style)] truncate min-w-0 text-left">
                 {post.title}
               </h2>
               <Badge dday={serverDDay} deadline={post.deadline} />
@@ -117,7 +117,7 @@ export const PostCard = ({ post }: PostCardProps): JSX.Element => {
               </a>
             </div>
           </header>
-          <p className="whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[14px] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
+          <p className="text-left whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[14px] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
             {stripHtml(post.description)} 
           </p>
         </div>
