@@ -109,20 +109,19 @@ export default function MessagePage() {
   }
 
   return (
-    <div className="bg-white">
+    <div className="bg-white min-h-screen">
       <main className="w-full">
-        <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-end justify-between mb-5 sm:mb-6">
-            <h1 className="text-[22px] sm:text-[26px] xl:text-[28px] font-bold leading-[1.3] text-[#25221D]">
+        <div className="mx-auto w-full max-w-[1024px] px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-end justify-between mb-6">
+            <h1 className="text-[24px] sm:text-[26px] font-bold leading-[1.3] text-[#25221D]">
               쪽지함
             </h1>
           </div>
 
           <div
             className="
-              grid grid-cols-1 md:grid-cols-[380px_1fr] gap-4 md:gap-6
-              h-[calc(100vh-190px)] min-h-[600px]
-              xl:h-[680px]
+              grid grid-cols-1 md:grid-cols-[320px_1fr] gap-4 md:gap-5
+              h-[calc(100vh-200px)] min-h-[650px]
             "
           >
             <aside
@@ -135,7 +134,7 @@ export default function MessagePage() {
               "
             >
               <div className="px-5 py-4 border-b border-[#ECE7DF] bg-white">
-                <div className="text-[14px] font-semibold text-[#342F28]">대화 목록</div>
+                <div className="text-[15x] font-semibold text-[#342F28]">대화 목록</div>
               </div>
 
               <div className="h-full overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">

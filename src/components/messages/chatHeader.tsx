@@ -35,7 +35,7 @@ export default function ChatHeader({ thread }: Props) {
 
   return (
     <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <div className="h-10 w-10 rounded-full overflow-hidden flex items-center justify-center">
           <img
             src={avatarUrl}
@@ -53,14 +53,14 @@ export default function ChatHeader({ thread }: Props) {
         </div>
 
         <div>
-          <div className="text-sm font-semibold text-gray-900">
+          <div className="text-[15px] font-semibold text-gray-900">
             {displayName}
           </div>
-          <div className="text-xs text-gray-500">{email}</div>
+          <div className="text-[12px] text-gray-500">{email}</div>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 text-xs text-gray-600">
+      <div className="flex items-center gap-3 text-[13px] text-gray-600">
         <button
           className="hover:text-gray-900"
           type="button"

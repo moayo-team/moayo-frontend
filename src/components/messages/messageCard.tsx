@@ -36,7 +36,7 @@ export default function ThreadListItem({ thread, active, onClick }: Props) {
       onClick={onClick}
       className={[
         "w-full min-w-0 h-[93px] text-left rounded-[10px] transition-colors",
-        "px-[14px] py-[12px]",
+        "px-4 py-3.5",
         active ? "bg-[#EFEEEB]" : "bg-[#FBFAF9] hover:bg-[#F3F2F0]",
         "shadow-sm",
       ].join(" ")}

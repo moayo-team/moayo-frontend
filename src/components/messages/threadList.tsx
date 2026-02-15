@@ -18,7 +18,7 @@ export default function ThreadList({ threads, selectedRoomId, onSelectRoom }: Pr
         [&::-webkit-scrollbar]:hidden
       "
     >
-      <div className="w-full space-y-[10px] px-2">
+      <div className="w-full space-y-1 py-2">
         {threads.map((t) => (
           <ThreadListItem
             key={t.roomId}
