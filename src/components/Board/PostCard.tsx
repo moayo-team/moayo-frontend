@@ -96,28 +96,28 @@ export const PostCard = ({ post }: PostCardProps): JSX.Element => {
   
   return (
     <article
-      className="w-full max-w-[500px] flex flex-col min-h-[276px] items-center justify-center gap-2.5 p-4 sm:p-5 lg:p-6 relative bg-gray-scalewhite rounded-[10px] border border-solid border-gray-scalegray-scale-300 cursor-pointer hover:shadow-lg transition-shadow"
+      className="w-full flex flex-col min-h-[220px] items-center justify-center p-5 relative bg-gray-scalewhite rounded-[10px] border border-solid border-gray-scalegray-scale-300 cursor-pointer hover:shadow-lg transition-shadow"
       onClick={() => navigate(`/post/${post.id}`)}
     >
-      <div className="flex flex-col w-full min-h-[212px] items-center justify-between relative">
-        <div className="flex flex-col items-start gap-[21px] relative self-stretch w-full flex-[0_0_auto]">
-          <header className="flex flex-col items-start gap-[3px] relative self-stretch w-full flex-[0_0_auto]">
-            <div className="flex min-h-[31px] items-center justify-between gap-2 relative self-stretch w-full">
-              <h2 className="relative flex-1 mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[length:var(--heading-h2-100-font-size)] tracking-[var(--heading-h2-100-letter-spacing)] leading-[var(--heading-h2-100-line-height)] [font-style:var(--heading-h2-100-font-style)] truncate min-w-0">
+      <div className="flex flex-col h-full items-center justify-between relative gap-4">
+        <div className="flex flex-col items-start gap-3 relative self-stretch w-full flex-[0_0_auto]">
+          <header className="flex flex-col items-start gap-1 relative self-stretch w-full flex-[0_0_auto]">
+            <div className="flex items-center justify-between gap-2 relative self-stretch w-full">
+              <h2 className="relative flex-1 mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[18px] tracking-[var(--heading-h2-100-letter-spacing)] leading-[var(--heading-h2-100-line-height)] [font-style:var(--heading-h2-100-font-style)] truncate min-w-0">
                 {post.title}
               </h2>
               <Badge dday={serverDDay} deadline={post.deadline} />
             </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-4 relative flex-[0_0_auto]">
+              <div className="flex flex-wrap items-center gap-2 relative flex-[0_0_auto]">
               <a
                 href="#"
-                className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)] text-sm sm:text-base"
+                className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[13px] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)]"
               >
                 {post.author?.name || '익명'}
               </a>
             </div>
           </header>
-          <p className="whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
+          <p className="whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[14px] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
             {stripHtml(post.description)} 
           </p>
         </div>
@@ -127,11 +127,11 @@ export const PostCard = ({ post }: PostCardProps): JSX.Element => {
             {isLoggedIn && !isOwner && (
               <button
                 onClick={handleSendMessage}
-                className="all-[unset] box-border min-w-[120px] sm:w-[143px] px-3 sm:px-[15px] py-2 sm:py-2.5 bg-primaryprimary-50 hover:bg-primaryprimary-100 cursor-pointer rounded-[10px] flex items-center justify-center gap-2 sm:gap-2.5 relative transition-colors"
+                className="all-[unset] box-border min-w-[120px] sm:w-[143px] px-3 sm:px-[15px] py-2 sm:py-2.5 bg-primaryprimary-50 hover:bg-primaryprimary-100 cursor-pointer rounded-[10px] flex items-center justify-center relative transition-colors"
                 type="button"
                 aria-label="쪽지 보내기"
               >
-                <span className="w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-primaryprimary-800 text-[length:var(--heading-h3-200-font-size)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)] text-sm sm:text-base">
+                <span className="w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-primaryprimary-800 text-[13px] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
                   쪽지 보내기
                 </span>
               </button>
