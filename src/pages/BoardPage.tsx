@@ -113,7 +113,7 @@ export const BoardPage = (): JSX.Element => {
                         />
 
                         <div className="inline-flex flex-col items-center gap-1.5 relativ">
-                          <h3 className="self-stretch mt-[-1.03px] [font-family:'Pretendard-Bold',Helvetica] font-bold text-warm-gray-scalegray-scale-900 text-[18px] text-center leading-[32.0px] relative tracking-[0]">
+                          <h3 className="self-stretch mt-[-1.03px] [font-family:'Pretendard-Bold',Helvetica] font-bold text-warm-gray-scalegray-scale-900 text-[22px] text-center leading-[32.0px] relative tracking-[0]">
                             {user?.user?.name || '사용자'}
                           </h3>
                         </div>
@@ -126,12 +126,12 @@ export const BoardPage = (): JSX.Element => {
                         aria-label="쪽지"
                         onClick={() => navigate('/message')}
                       >
-                        <img className="relative w-3.5 h-3.5" alt="message" src={grayplane} />
-                        <span className="w-fit text-[13px] font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                        <img className="relative w-4 h-4" alt="message" src={grayplane} />
+                        <span className="w-fit text-[15px] font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
                           쪽지
                         </span>
                         {unreadCount > 0 && (
-                          <span className="text-[13px] font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 leading-[var(--heading-h3-300-line-height)] tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                          <span className="text-[15px] font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 leading-[var(--heading-h3-300-line-height)] tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
                             {unreadCount > 99 ? "99+" : unreadCount}
                           </span>
                         )}
@@ -143,8 +143,8 @@ export const BoardPage = (): JSX.Element => {
                       className="flex h-12 items-center justify-center gap-2 px-4 relative self-stretch w-full bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
                       aria-label="내가 쓴 게시글"
                     >
-                      <img className="relative w-3.5 h-3.5" alt="menu icon" src={menu} />
-                      <span className="w-fit text-[13px] font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
+                      <img className="relative w-4 h-4" alt="menu icon" src={menu} />
+                      <span className="w-fit text-[15px] font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
                         내가 쓴 게시글
                       </span>
                     </button>

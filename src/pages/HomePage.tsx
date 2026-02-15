@@ -259,12 +259,12 @@ export default function HomePage(): JSX.Element {
                   />
 
                   <div className="flex flex-col w-full items-center gap-0.5 relative flex-[0_0_auto]">
-                    <h2 className="relative self-stretch mt-[-1.00px] px-2 text-[18px] font-bold text-gray-scalegray-scale-900 text-[length:var(--heading-h2-300-font-size)] text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
+                    <h2 className="relative self-stretch mt-[-1.00px] px-2 text-[22px] font-bold text-gray-scalegray-scale-900 text-center tracking-[var(--heading-h2-300-letter-spacing)] leading-[var(--heading-h2-300-line-height)] [font-style:var(--heading-h2-300-font-style)]">
                       {myName}
                     </h2>
 
                     <div className="flex items-center justify-center gap-[11px] relative self-stretch w-full flex-[0_0_auto]">
-                      <p className="relative w-fit mt-[-1.00px] text-[13px] font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--body-b2-300-font-size)] text-center tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap [font-style:var(--body-b2-300-font-style)]">
+                      <p className="relative w-fit mt-[-1.00px] text-[14px] font-[number:var(--body-b2-300-font-weight)] text-gray-scalegray-scale-900 text-center tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] whitespace-nowrap [font-style:var(--body-b2-300-font-style)]">
                         {user?.profile?.major ?? "전공"}
                       </p>
                     </div>
@@ -279,13 +279,13 @@ export default function HomePage(): JSX.Element {
                   className="all-[unset] box-border px-3 py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                   aria-label="쪽지"
                 >
-                  <img className="relative w-3.5 h-3.5" alt="" src={send_brown} aria-hidden="true" />
-                  <span className="relative w-fit text-[13px] font-normal text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                  <img className="relative w-4 h-4" alt="" src={send_brown} aria-hidden="true" />
+                  <span className="relative w-fit text-[15px] font-normal text-[#7C7160] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                     쪽지
                   </span>
 
                   {unreadCount > 0 && (
-                    <span className="relative w-fit text-[13px] font-normal text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                    <span className="relative w-fit text-[15px] font-normal text-[#7C7160] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
@@ -296,8 +296,8 @@ export default function HomePage(): JSX.Element {
                   onClick={() => navigate("/board")}
                   className="all-[unset] box-border px-3 py-2.5 flex-1 self-stretch w-full grow bg-[#FBFAF9] rounded-[5px] flex items-center justify-center gap-2 relative hover:bg-gray-scalegray-scale-50 transition-colors cursor-pointer"
                 >
-                  <img className="relative w-3.5 h-3.5" alt="" src={menu} aria-hidden="true" />
-                  <span className="relative w-fit text-[13px] font-medium text-[#7C7160] text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+                  <img className="relative w-4 h-4" alt="" src={menu} aria-hidden="true" />
+                  <span className="relative w-fit text-[15px] font-medium text-[#7C7160] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                     내가 쓴 게시글
                   </span>
                 </button>
