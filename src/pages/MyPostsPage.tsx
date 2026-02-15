@@ -61,46 +61,46 @@ const PostCard = ({ post, authorNameFallback, onDelete, onEdit, isDeleting }: Po
   };
 
   return (
-    <article className="w-full max-w-[500px] flex flex-col min-h-[276px] items-center justify-center gap-2.5 p-4 sm:p-5 lg:p-6 relative bg-gray-scalewhite rounded-[10px] border border-solid border-gray-scalegray-scale-300 hover:shadow-lg transition-shadow">
-      <div className="flex flex-col w-full min-h-[212px] items-center justify-between relative">
-        <div className="flex flex-col items-start gap-[21px] relative self-stretch w-full flex-[0_0_auto]">
-          <header className="flex flex-col items-start gap-[3px] relative self-stretch w-full flex-[0_0_auto]">
-            <div className="flex min-h-[31px] items-center justify-between gap-2 relative self-stretch w-full">
-              <h2 className="relative flex-1 mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[length:var(--heading-h2-100-font-size)] tracking-[var(--heading-h2-100-letter-spacing)] leading-[var(--heading-h2-100-line-height)] [font-style:var(--heading-h2-100-font-style)] truncate min-w-0">
+    <article className="w-full flex flex-col min-h-[220px] items-center justify-center p-5 sm:p-6 relative bg-gray-scalewhite rounded-[10px] border border-solid border-gray-scalegray-scale-300 hover:shadow-lg transition-shadow">
+      <div className="flex flex-col w-full h-full items-center justify-between relative gap-4">
+        <div className="flex flex-col items-start gap-3 relative self-stretch w-full flex-[0_0_auto]">
+          <header className="flex flex-col items-start gap-1 relative self-stretch w-full flex-[0_0_auto]">
+            <div className="flex items-start justify-between gap-2 relative self-stretch w-full">
+              <h2 className="relative flex-1 mt-[-1.00px] font-heading-h2-100 font-[number:var(--heading-h2-100-font-weight)] text-black text-[18px] tracking-[var(--heading-h2-100-letter-spacing)] leading-[var(--heading-h2-100-line-height)] [font-style:var(--heading-h2-100-font-style)] truncate min-w-0">
                 {post.title}
               </h2>
               <Badge dday={serverDDay} deadline={post.deadline} />
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 relative flex-[0_0_auto]">
-              <span className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--body-b1-100-font-size)] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)] text-sm sm:text-base">
+              <span className="relative w-fit mt-[-1.00px] font-body-b1-100 font-[number:var(--body-b1-100-font-weight)] text-gray-scalegray-scale-400 text-[13px] tracking-[var(--body-b1-100-letter-spacing)] leading-[var(--body-b1-100-line-height)] whitespace-nowrap [font-style:var(--body-b1-100-font-style)]">
                 {post.author?.name || authorNameFallback || '익명'}
               </span>
             </div>
           </header>
-          <p className="whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[length:var(--body-b2-300-font-size)] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
+          <p className="text-left whitespace-pre-wrap relative self-stretch font-body-b2-300 font-[number:var(--body-b2-300-font-weight)] text-black text-[14px] tracking-[var(--body-b2-300-letter-spacing)] leading-[var(--body-b2-300-line-height)] [font-style:var(--body-b2-300-font-style)] line-clamp-3">
             {stripHtml(post.description)}
           </p>
         </div>
-        <div className="flex items-center justify-end gap-2.5 relative self-stretch w-full flex-[0_0_auto] mt-4">
+        <div className="flex items-center justify-end gap-2 relative self-stretch w-full flex-[0_0_auto] mt-2">
           <button
-            className="inline-flex items-center justify-center gap-2.5 px-5 py-2.5 relative flex-[0_0_auto] bg-gray-scalegray-scale-50 rounded-[10px] cursor-pointer hover:bg-gray-scalegray-scale-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center gap-2.5 px-4 py-2 relative flex-[0_0_auto] bg-gray-scalegray-scale-50 rounded-[10px] cursor-pointer hover:bg-gray-scalegray-scale-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleDeleteClick}
             disabled={isDeleting}
             type="button"
             aria-label={`${post.title} 삭제하기`}
           >
-            <span className="relative w-fit mt-[-1.00px] font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-400 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+            <span className="relative w-fit mt-[-1.00px] font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-400 text-[12px] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
               삭제하기
             </span>
           </button>
           <button
-            className="all-[unset] box-border w-[143px] px-[15px] py-2.5 bg-primaryprimary-50 rounded-[10px] flex items-center justify-center gap-2.5 relative cursor-pointer hover:bg-primaryprimary-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="all-[unset] box-border px-4 py-2 bg-primaryprimary-50 rounded-[10px] flex items-center justify-center gap-2.5 relative cursor-pointer hover:bg-primaryprimary-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => onEdit(post.id)}
             disabled={isDeleting}
             type="button"
             aria-label={`${post.title} 수정하기`}
           >
-            <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-primaryprimary-800 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+            <span className="relative w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-primaryprimary-800 text-[12px] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
               수정하기
             </span>
           </button>
@@ -243,14 +243,14 @@ export const MyPostsPage = (): JSX.Element => {
     });
   }, [isLoggedIn, user?.user?.id, fetchHome]);
   return (
-    <div className="w-full pt-8">
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+    <div className="w-full max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
         {/* Sidebar - Left Column */}
-        <aside className="w-full lg:w-[280px] flex-shrink-0 order-2 lg:order-1">
+        <aside className="w-full lg:w-[240px] flex-shrink-0 order-1">
           <div className="flex flex-col gap-[15px]">
             <section className="inline-flex flex-col items-start gap-4 relative w-full">
               <div className="flex flex-col w-full items-start gap-4 relative">
-                <article className="flex flex-col items-center justify-center gap-2.5 px-5 py-[27px] relative self-stretch w-full bg-[#fbfaf9] rounded-[10px]">
+                <article className="flex flex-col items-center justify-center gap-2.5 px-5 py-6 relative self-stretch w-full bg-[#fbfaf9] rounded-[10px]">
                   <div className="inline-flex flex-col items-center gap-3 relative">
                     <img
                       className={`w-[120px] h-[121px] rounded-[10px] ${
@@ -264,26 +264,26 @@ export const MyPostsPage = (): JSX.Element => {
                     />
 
                     <div className="inline-flex flex-col items-center gap-1.5 relative">
-                      <h3 className="self-stretch mt-[-1.03px] [font-family:'Pretendard-Bold',Helvetica] font-bold text-warm-gray-scalegray-scale-900 text-[24.6px] text-center leading-[32.0px] relative tracking-[0]">
+                      <h3 className="self-stretch mt-[-1.03px] [font-family:'Pretendard-Bold',Helvetica] font-bold text-warm-gray-scalegray-scale-900 text-[22px] text-center leading-[32.0px] relative tracking-[0]">
                         {user?.user?.name || '사용자'}
                       </h3>
                     </div>
                   </div>
                 </article>
 
-                <nav className="flex items-center gap-1 self-stretch w-full relative">
+                <nav className="flex items-center gap-2 self-stretch w-full relative">
                   <button
-                    className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative flex-1 grow bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
+                    className="flex h-12 items-center justify-center gap-2.5 px-4 relative flex-1 grow bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
                     aria-label="쪽지"
                     onClick={() => navigate('/message')}
                     type="button"
                   >
-                    <img className="relative w-6 h-6" alt="message" src={grayplane} />
-                    <span className="w-fit font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                    <img className="relative w-4 h-4" alt="message" src={grayplane} />
+                    <span className="w-fit font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[15px] leading-[var(--heading-h3-300-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
                       쪽지
                     </span>
                     {unreadCount > 0 && (
-                      <span className="font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-300-font-size)] leading-[var(--heading-h3-300-line-height)] tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
+                      <span className="font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-500 text-[15px] leading-[var(--heading-h3-300-line-height)] tracking-[var(--heading-h3-300-letter-spacing)] [font-style:var(--heading-h3-300-font-style)]">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     )}
@@ -292,12 +292,12 @@ export const MyPostsPage = (): JSX.Element => {
 
                 <button
                   onClick={() => navigate('/board')}
-                  className="flex h-16 items-center justify-center gap-2.5 px-[15px] py-2.5 relative self-stretch w-full bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
+                  className="flex h-12 items-center justify-center gap-2.5 px-4 relative self-stretch w-full bg-gray-scale30 rounded-[5px] hover:bg-gray-scalegray-scale-50 transition-colors"
                   type="button"
                   aria-label="게시판으로 돌아가기"
                 >
-                  <img className="relative w-5 h-5" alt="menu icon" src={menu} />
-                  <span className="w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[length:var(--heading-h3-200-font-size)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
+                  <img className="relative w-4 h-4" alt="menu icon" src={menu} />
+                  <span className="w-fit font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-500 text-[15px] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap relative tracking-[var(--heading-h3-200-letter-spacing)] [font-style:var(--heading-h3-200-font-style)]">
                     게시판으로 돌아가기
                   </span>
                 </button>
@@ -306,19 +306,19 @@ export const MyPostsPage = (): JSX.Element => {
           </div>
         </aside>
 
-        <main className="flex-1 order-1 lg:order-2 min-w-0">
-          <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-            <h1 className="relative w-fit font-heading-h1-200 font-[number:var(--heading-h1-200-font-weight)] text-black text-2xl sm:text-[length:var(--heading-h1-200-font-size)] tracking-[var(--heading-h1-200-letter-spacing)] leading-[var(--heading-h1-200-line-height)] whitespace-nowrap [font-style:var(--heading-h1-200-font-style)]">
+        <main className="flex-1 order-2 min-w-0">
+          <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <h1 className="relative w-fit font-heading-h1-200 font-[number:var(--heading-h1-200-font-weight)] text-black text-[24px] md:text-[26px] tracking-[var(--heading-h1-200-letter-spacing)] leading-[var(--heading-h1-200-line-height)] whitespace-nowrap [font-style:var(--heading-h1-200-font-style)]">
               내가 쓴 게시글
             </h1>
 
             <button
-              className="all-[unset] box-border w-full sm:w-[143px] p-3 sm:p-[15px] bg-primaryprimary-300 rounded-[10px] flex items-center justify-center gap-2.5 relative cursor-pointer hover:bg-primaryprimary-400 focus:outline-none focus:ring-2 focus:ring-primaryprimary-500 focus:ring-offset-2 transition-colors"
+              className="all-[unset] box-border w-full sm:w-auto px-6 py-2.5 bg-primaryprimary-300 rounded-[10px] flex items-center justify-center gap-2.5 relative cursor-pointer hover:bg-primaryprimary-400 focus:outline-none focus:ring-2 focus:ring-primaryprimary-500 focus:ring-offset-2 transition-colors"
               onClick={handleAddPost}
               type="button"
               aria-label="게시글 추가"
             >
-              <span className="relative w-fit mt-[-1.00px] font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+              <span className="relative w-fit mt-[-1.00px] font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-900 text-[14px] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                 게시글 추가
               </span>
             </button>
@@ -326,7 +326,7 @@ export const MyPostsPage = (): JSX.Element => {
 
           {isPending && (
             <div className="flex justify-center items-center min-h-[400px]">
-              <div className="text-lg font-heading-h2-300 text-gray-scalegray-scale-500">
+              <div className="text-[16px] font-heading-h2-300 text-gray-scalegray-scale-500">
                 게시글을 불러오는 중...
               </div>
             </div>
@@ -334,7 +334,7 @@ export const MyPostsPage = (): JSX.Element => {
 
           {error && (
             <div className="flex justify-center items-center min-h-[400px]">
-              <div className="text-lg font-heading-h2-300 text-red-600">
+              <div className="text-[16px] font-heading-h2-300 text-red-600">
                 오류: {error.message}
               </div>
             </div>
@@ -343,7 +343,7 @@ export const MyPostsPage = (): JSX.Element => {
           {!isPending && !error && posts.length === 0 && (
             <div className="flex justify-center items-center min-h-[400px]">
               <div className="text-center">
-                <div className="text-lg font-heading-h2-300 text-gray-scalegray-scale-500 mb-4">
+                <div className="text-[16px] font-heading-h2-300 text-gray-scalegray-scale-500 mb-6">
                   작성한 게시글이 없습니다
                 </div>
                 <button
@@ -359,7 +359,7 @@ export const MyPostsPage = (): JSX.Element => {
           {!isPending && !error && posts.length > 0 && (
             <>
               <section className="w-full pt-6 mb-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 sm:gap-x-5 lg:gap-x-[19px] gap-y-[40px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
                   {posts.map((post) => (
                     <PostCard
                       key={post.id}
@@ -375,12 +375,12 @@ export const MyPostsPage = (): JSX.Element => {
 
               {totalPages > 0 && (
                 <nav
-                  className="flex justify-center items-center mt-8 sm:mt-12"
+                  className="flex justify-center items-center mt-12 gap-1"
                   role="navigation"
                   aria-label="Pagination"
                 >
                   <button
-                    className="items-start p-1.5 inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="items-start p-2 inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
                     aria-label="Previous page"
@@ -428,7 +428,7 @@ export const MyPostsPage = (): JSX.Element => {
                   ))}
 
                   <button
-                    className="items-start p-1.5 inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="items-start p-2 inline-flex relative flex-[0_0_auto] rounded-sm overflow-hidden hover:bg-gray-scalegray-scale-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleNextPage}
                     disabled={currentPage === totalPages}
                     aria-label="Next page"

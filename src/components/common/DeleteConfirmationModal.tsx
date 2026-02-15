@@ -45,10 +45,10 @@ export const DeleteConfirmationModal = ({
       className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 p-4"
       onClick={handleBackgroundClick}
     >
-      <div className="inline-flex items-center justify-center gap-2.5 px-[50px] py-10 relative bg-gray-scalegray-scale-50 rounded-[30px] shadow-lg">
-        <div className="flex flex-col w-[580px] items-start gap-5 relative">
+      <div className="inline-flex items-center justify-center gap-2.5 px-8 sm:px-[50px] py-10 relative bg-gray-scalegray-scale-50 rounded-[30px] shadow-lg">
+        <div className="flex flex-col w-[480px] items-start gap-6 relative">
           <div className="flex items-center justify-start relative self-stretch w-full flex-[0_0_auto]">
-            <h1 className="font-heading-h1-200 font-[number:var(--heading-h1-200-font-weight)] text-gray-scalegray-scale-800 text-[length:var(--heading-h1-200-font-size)] tracking-[var(--heading-h1-200-letter-spacing)] leading-[var(--heading-h1-200-line-height)] relative w-fit mt-[-1.00px] [font-style:var(--heading-h1-200-font-style)]">
+            <h1 className="font-heading-h1-200 font-[number:var(--heading-h1-200-font-weight)] text-gray-scalegray-scale-800 text-[22px] tracking-[var(--heading-h1-200-letter-spacing)] leading-[var(--heading-h1-200-line-height)] relative w-fit mt-[-1.00px] [font-style:var(--heading-h1-200-font-style)]">
               {title}
             </h1>
           </div>
@@ -56,33 +56,33 @@ export const DeleteConfirmationModal = ({
           <div className="flex flex-col items-center gap-5 relative self-stretch w-full flex-[0_0_auto]">
             <div className="flex flex-col items-start gap-[30px] relative self-stretch w-full flex-[0_0_auto]">
               <div className="flex flex-col items-start gap-5 relative self-stretch w-full flex-[0_0_auto]">
-                <p className="font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-600 text-[length:var(--heading-h3-300-font-size)] tracking-[var(--heading-h3-300-letter-spacing)] leading-[var(--heading-h3-300-line-height)] relative w-fit mt-[-1.00px] [font-style:var(--heading-h3-300-font-style)]">
+                <p className="font-heading-h3-300 font-[number:var(--heading-h3-300-font-weight)] text-gray-scalegray-scale-600 text-[15px] tracking-[var(--heading-h3-300-letter-spacing)] leading-[var(--heading-h3-300-line-height)] relative w-fit mt-[-1.00px] [font-style:var(--heading-h3-300-font-style)]">
                   {message}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-4 relative self-stretch w-full">
+          <div className="flex items-center justify-end gap-3 relative self-stretch w-full mt-2">
             <button
-              className="all-[unset] box-border flex w-[143px] items-center justify-center gap-2.5 p-[15px] relative flex-[0_0_auto] bg-gray-scalegray-scale-100 rounded-[10px] cursor-pointer hover:bg-gray-scalegray-scale-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="all-[unset] box-border flex w-[100px] items-center justify-center gap-2.5 py-3 relative flex-[0_0_auto] bg-gray-scalegray-scale-100 rounded-[10px] cursor-pointer hover:bg-gray-scalegray-scale-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={onClose}
               disabled={isDeleting}
               type="button"
               aria-label="취소"
             >
-              <span className="relative w-fit mt-[-1.00px] font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-700 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+              <span className="relative w-fit mt-[-1.00px] font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-700 text-[15px] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                 취소
               </span>
             </button>
             <button
-              className="all-[unset] box-border flex w-[143px] items-center justify-center gap-2.5 p-[15px] relative flex-[0_0_auto] bg-primaryprimary-300 rounded-[10px] cursor-pointer hover:bg-primaryprimary-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="all-[unset] box-border flex w-[100px] items-center justify-center gap-2.5 py-3 relative flex-[0_0_auto] bg-primaryprimary-300 rounded-[10px] cursor-pointer hover:bg-primaryprimary-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleConfirm}
               disabled={isDeleting}
               type="button"
               aria-label="삭제 확인"
             >
-              <span className="relative w-fit mt-[-1.00px] font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-900 text-[length:var(--heading-h3-200-font-size)] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
+              <span className="relative w-fit mt-[-1.00px] font-heading-h3-200 font-[number:var(--heading-h3-200-font-weight)] text-gray-scalegray-scale-900 text-[15px] tracking-[var(--heading-h3-200-letter-spacing)] leading-[var(--heading-h3-200-line-height)] whitespace-nowrap [font-style:var(--heading-h3-200-font-style)]">
                 {isDeleting ? '삭제 중...' : '확인'}
               </span>
             </button>

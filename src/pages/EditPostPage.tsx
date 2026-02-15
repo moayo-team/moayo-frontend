@@ -308,7 +308,7 @@ export const EditPostPage = (): JSX.Element => {
                         key={category.id}
                         type="button"
                         onClick={() => handleCategoryToggle(category.id)}
-                        className={`flex min-w-[100px] h-[51px] items-center justify-center gap-1.5 px-4 relative ${
+                        className={`flex min-w-[80px] h-10 items-center justify-center gap-1.5 px-4 relative ${
                           category.selected
                             ? 'bg-primaryprimary-50 border-primaryprimary-500'
                             : 'bg-gray-scalegray-scale-50 border-gray-scalegray-scale-300'
